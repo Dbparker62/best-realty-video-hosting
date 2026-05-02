@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,9 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Field, FieldLabel, FieldGroup } from "@/components/ui/field"
-import { Spinner } from "@/components/ui/spinner"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
 interface LoginDialogProps {
   open: boolean
@@ -20,63 +17,55 @@ interface LoginDialogProps {
 }
 
 export function LoginDialog({ open, onOpenChange }: LoginDialogProps) {
-  const { login, isLoading } = useAuth()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    await login(email, password)
-    onOpenChange(false)
-    setEmail("")
-    setPassword("")
-  }
+  const { login, cognitoConfigured } = useAuth()
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Welcome back</DialogTitle>
+          <DialogTitle>Sign in</DialogTitle>
           <DialogDescription>
-            Sign in to access your courses and continue learning.
+            Use your account to purchase courses, watch lessons, and track
+            progress.
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="mt-4">
-          <FieldGroup>
-            <Field>
-              <FieldLabel htmlFor="email">Email</FieldLabel>
-              <Input
-                id="email"
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="password">Password</FieldLabel>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </Field>
-          </FieldGroup>
-          <Button type="submit" className="mt-6 w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Spinner className="mr-2" />
-                Signing in...
-              </>
-            ) : (
-              "Sign in"
-            )}
+        <div className="mt-4 space-y-4">
+          {!cognitoConfigured && (
+            <Alert variant="destructive">
+              <AlertTitle>Missing Cognito configuration</AlertTitle>
+              <AlertDescription className="text-sm">
+                Set{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                  NEXT_PUBLIC_COGNITO_DOMAIN
+                </code>
+                ,{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                  NEXT_PUBLIC_COGNITO_CLIENT_ID
+                </code>
+                , and optionally{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                  NEXT_PUBLIC_COGNITO_REDIRECT_URI
+                </code>{" "}
+                (must match your Cognito app client and API{" "}
+                <code className="rounded bg-muted px-1 py-0.5 text-xs">
+                  COGNITO_REDIRECT_URI
+                </code>
+                ).
+              </AlertDescription>
+            </Alert>
+          )}
+          <Button
+            type="button"
+            className="w-full"
+            disabled={!cognitoConfigured}
+            onClick={() => {
+              login()
+              onOpenChange(false)
+            }}
+          >
+            Continue with Cognito
           </Button>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   )

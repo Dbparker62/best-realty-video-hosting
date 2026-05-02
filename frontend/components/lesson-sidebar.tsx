@@ -3,7 +3,7 @@
 import Link from "next/link"
 import type { Lesson } from "@/lib/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Lock, Play, Check, Clock } from "lucide-react"
+import { Lock, Play, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface LessonSidebarProps {
@@ -22,7 +22,7 @@ export function LessonSidebar({
   const sortedLessons = [...lessons].sort((a, b) => a.order - b.order)
 
   const canAccess = (lesson: Lesson) => {
-    return lesson.isPreview || (hasPurchased && !lesson.isLocked)
+    return lesson.isPreview || hasPurchased
   }
 
   return (

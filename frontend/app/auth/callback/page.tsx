@@ -1,12 +1,11 @@
-import { useEffect, useState } from "react"
-import { useNavigate, useSearchParams } from "react-router-dom"
+"use client"
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+import { Suspense, useEffect, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { API_BASE_URL } from "@/lib/api"
 
-export default function AuthCallbackPage() {
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+function AuthCallbackContent() {
+  const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -27,25 +26,34 @@ export default function AuthCallbackPage() {
           throw new Error("Failed to complete login")
         }
 
-        const data = await response.json()
+        const data = (await response.json()) as {
+          access_token?: string
+          id_token?: string
+          refresh_token?: string
+        }
 
-        localStorage.setItem("access_token", data.access_token)
-        localStorage.setItem("id_token", data.id_token)
-        localStorage.setItem("refresh_token", data.refresh_token)
+        if (data.access_token) {
+          localStorage.setItem("access_token", data.access_token)
+        }
+        if (data.id_token) {
+          localStorage.setItem("id_token", data.id_token)
+        }
+        if (data.refresh_token) {
+          localStorage.setItem("refresh_token", data.refresh_token)
+        }
 
-        navigate("/my-courses")
-      } catch (err) {
-        console.error(err)
+        window.location.assign("/my-courses")
+      } catch {
         setError("Login failed. Please try again.")
       }
     }
 
-    exchangeCode()
-  }, [navigate, searchParams])
+    void exchangeCode()
+  }, [searchParams])
 
   if (error) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center px-4">
         <div className="rounded-xl border p-6">
           <h1 className="text-xl font-semibold">Login failed</h1>
           <p className="mt-2 text-sm text-muted-foreground">{error}</p>
@@ -55,7 +63,7 @@ export default function AuthCallbackPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center">
+    <div className="flex min-h-screen items-center justify-center px-4">
       <div className="rounded-xl border p-6">
         <h1 className="text-xl font-semibold">Completing login...</h1>
         <p className="mt-2 text-sm text-muted-foreground">
@@ -63,5 +71,19 @@ export default function AuthCallbackPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center">
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      }
+    >
+      <AuthCallbackContent />
+    </Suspense>
   )
 }

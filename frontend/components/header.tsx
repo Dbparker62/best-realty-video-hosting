@@ -15,7 +15,7 @@ import { useState } from "react"
 import { LoginDialog } from "./login-dialog"
 
 export function Header() {
-  const { user, isAuthenticated, logout } = useAuth()
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth()
   const [showLogin, setShowLogin] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
@@ -41,7 +41,7 @@ export function Header() {
             >
               Courses
             </Link>
-            {isAuthenticated && (
+            {isAuthenticated && !authLoading && (
               <Link
                 href="/my-courses"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
@@ -53,7 +53,9 @@ export function Header() {
 
           {/* Desktop Auth */}
           <div className="hidden items-center gap-4 md:flex">
-            {isAuthenticated ? (
+            {authLoading ? (
+              <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
+            ) : isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="gap-2">
@@ -110,7 +112,7 @@ export function Header() {
               >
                 Courses
               </Link>
-              {isAuthenticated && (
+              {isAuthenticated && !authLoading && (
                 <Link
                   href="/my-courses"
                   className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
@@ -119,7 +121,9 @@ export function Header() {
                   My Courses
                 </Link>
               )}
-              {isAuthenticated ? (
+              {authLoading ? (
+                <div className="h-9 w-full animate-pulse rounded-lg bg-muted" />
+              ) : isAuthenticated ? (
                 <button
                   onClick={() => {
                     logout()

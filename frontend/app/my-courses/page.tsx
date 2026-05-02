@@ -11,12 +11,30 @@ import { Empty } from "@/components/ui/empty"
 import { BookOpen, ArrowRight } from "lucide-react"
 
 export default function MyCoursesPage() {
-  const { isAuthenticated } = useAuth()
+  const { isAuthenticated, isLoading: authLoading } = useAuth()
 
   const { data: courses, isLoading } = useSWR(
     isAuthenticated ? "my-courses" : null,
     getMyCourses
   )
+
+  if (authLoading) {
+    return (
+      <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="mt-4 h-5 w-96 max-w-full" />
+        <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="space-y-4 rounded-xl border p-6">
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+              <Skeleton className="h-16 w-full" />
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
 
   if (!isAuthenticated) {
     return (

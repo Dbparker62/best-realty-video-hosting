@@ -1,7 +1,8 @@
 "use client"
 
-import { use, useCallback } from "react"
+import { useCallback, useMemo } from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import useSWR from "swr"
 import { getCourse, getCourseLessons, initiateCheckout, hasPurchasedCourse } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
@@ -11,30 +12,31 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Clock, BookOpen, User, CheckCircle } from "lucide-react"
 
-export default function CourseDetailPage({
-  params,
-}: {
-  params: Promise<{ courseId: string }>
-}) {
-  const { courseId } = use(params)
+export default function CourseDetailPage() {
+  const params = useParams()
+  const courseId = useMemo(() => {
+    const raw = params?.courseId
+    return Array.isArray(raw) ? raw[0] : raw
+  }, [params])
   const { isAuthenticated } = useAuth()
 
   const { data: course, isLoading: courseLoading } = useSWR(
-    ["course", courseId],
-    () => getCourse(courseId)
+    courseId ? ["course", courseId] : null,
+    () => getCourse(courseId as string)
   )
 
   const { data: lessons, isLoading: lessonsLoading } = useSWR(
-    ["lessons", courseId],
-    () => getCourseLessons(courseId)
+    courseId ? ["lessons", courseId] : null,
+    () => getCourseLessons(courseId as string)
   )
 
   const { data: purchased } = useSWR(
-    isAuthenticated ? ["purchased", courseId] : null,
-    () => hasPurchasedCourse(courseId)
+    isAuthenticated && courseId ? ["purchased", courseId] : null,
+    () => hasPurchasedCourse(courseId as string)
   )
 
   const handleBuyCourse = useCallback(async () => {
+    if (!courseId) return
     try {
       const { checkoutUrl } = await initiateCheckout(courseId)
       window.location.href = checkoutUrl
@@ -42,6 +44,10 @@ export default function CourseDetailPage({
       console.error("Checkout failed:", error)
     }
   }, [courseId])
+
+  if (!courseId) {
+    return null
+  }
 
   if (courseLoading) {
     return (
@@ -74,6 +80,10 @@ export default function CourseDetailPage({
       </div>
     )
   }
+
+  const firstLessonId = lessons?.length
+    ? [...lessons].sort((a, b) => a.order - b.order)[0]?.id
+    : undefined
 
   return (
     <div className="min-h-screen">
@@ -120,7 +130,7 @@ export default function CourseDetailPage({
                     <span>{course.duration}</span>
                   </div>
                 )}
-                {course.lessonCount && (
+                {course.lessonCount != null && course.lessonCount > 0 && (
                   <div className="flex items-center gap-1.5">
                     <BookOpen className="h-4 w-4" />
                     <span>{course.lessonCount} lessons</span>
@@ -141,11 +151,19 @@ export default function CourseDetailPage({
               </div>
 
               {purchased ? (
-                <Button className="w-full" asChild>
-                  <Link href={`/courses/${courseId}/lessons/${lessons?.[0]?.id}`}>
-                    Start Learning
-                  </Link>
-                </Button>
+                firstLessonId ? (
+                  <Button className="w-full" asChild>
+                    <Link
+                      href={`/courses/${courseId}/lessons/${firstLessonId}`}
+                    >
+                      Start Learning
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button className="w-full" disabled>
+                    No lessons yet
+                  </Button>
+                )
               ) : (
                 <Button
                   className="w-full"
@@ -196,7 +214,9 @@ export default function CourseDetailPage({
         ) : (
           <div className="rounded-xl border bg-muted/30 p-8 text-center">
             <p className="text-muted-foreground">
-              Lesson content is being prepared. Check back soon!
+              {isAuthenticated
+                ? "Lesson content is being prepared. Check back soon!"
+                : "Sign in to view the lesson list for this course."}
             </p>
           </div>
         )}

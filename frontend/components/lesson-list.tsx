@@ -23,8 +23,7 @@ export function LessonList({
 
   const getLessonAccess = (lesson: Lesson) => {
     if (lesson.isPreview) return "preview"
-    if (hasPurchased && !lesson.isLocked) return "watch"
-    if (hasPurchased) return "locked"
+    if (hasPurchased) return "watch"
     return "locked"
   }
 

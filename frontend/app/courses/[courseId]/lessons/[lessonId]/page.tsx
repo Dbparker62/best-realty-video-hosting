@@ -1,7 +1,8 @@
 "use client"
 
-import { use, useMemo } from "react"
+import { useMemo } from "react"
 import Link from "next/link"
+import { useParams } from "next/navigation"
 import useSWR from "swr"
 import {
   getCourse,
@@ -15,27 +16,34 @@ import { LessonSidebar } from "@/components/lesson-sidebar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from "lucide-react"
+import type { Lesson } from "@/lib/types"
 
-export default function LessonPlayerPage({
-  params,
-}: {
-  params: Promise<{ courseId: string; lessonId: string }>
-}) {
-  const { courseId, lessonId } = use(params)
+export default function LessonPlayerPage() {
+  const params = useParams()
+  const courseId = useMemo(() => {
+    const raw = params?.courseId
+    return Array.isArray(raw) ? raw[0] : raw
+  }, [params])
+  const lessonId = useMemo(() => {
+    const raw = params?.lessonId
+    return Array.isArray(raw) ? raw[0] : raw
+  }, [params])
+
   const { isAuthenticated } = useAuth()
 
-  const { data: course } = useSWR(["course", courseId], () =>
-    getCourse(courseId)
+  const { data: course } = useSWR(
+    courseId ? ["course", courseId] : null,
+    () => getCourse(courseId as string)
   )
 
   const { data: lessons, isLoading: lessonsLoading } = useSWR(
-    ["lessons", courseId],
-    () => getCourseLessons(courseId)
+    courseId ? ["lessons", courseId] : null,
+    () => getCourseLessons(courseId as string)
   )
 
   const { data: purchased } = useSWR(
-    isAuthenticated ? ["purchased", courseId] : null,
-    () => hasPurchasedCourse(courseId)
+    isAuthenticated && courseId ? ["purchased", courseId] : null,
+    () => hasPurchasedCourse(courseId as string)
   )
 
   const currentLesson = useMemo(
@@ -43,15 +51,15 @@ export default function LessonPlayerPage({
     [lessons, lessonId]
   )
 
-  const canAccess =
-    currentLesson?.isPreview || (purchased && !currentLesson?.isLocked)
-
-  const { data: videoData, isLoading: videoLoading } = useSWR(
-    canAccess ? ["video", lessonId] : null,
-    () => getLessonVideoUrl(lessonId)
+  const canAccess = Boolean(
+    currentLesson && (currentLesson.isPreview || purchased)
   )
 
-  // Navigation
+  const { data: videoData, isLoading: videoLoading } = useSWR(
+    canAccess && lessonId ? ["video", lessonId] : null,
+    () => getLessonVideoUrl(lessonId as string)
+  )
+
   const sortedLessons = useMemo(
     () => [...(lessons || [])].sort((a, b) => a.order - b.order),
     [lessons]
@@ -64,9 +72,13 @@ export default function LessonPlayerPage({
       ? sortedLessons[currentIndex + 1]
       : null
 
-  const canAccessLesson = (lesson: typeof prevLesson) => {
+  const canAccessLesson = (lesson: Lesson | null) => {
     if (!lesson) return false
-    return lesson.isPreview || (purchased && !lesson.isLocked)
+    return lesson.isPreview || !!purchased
+  }
+
+  if (!courseId || !lessonId) {
+    return null
   }
 
   if (lessonsLoading) {

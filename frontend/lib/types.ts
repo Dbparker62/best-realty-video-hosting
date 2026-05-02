@@ -18,7 +18,6 @@ export interface Lesson {
   order: number
   duration: string
   isPreview: boolean
-  isLocked: boolean
 }
 
 export interface PurchasedCourse extends Course {
