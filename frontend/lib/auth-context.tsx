@@ -20,6 +20,15 @@ interface AuthContextType {
   logout: () => void
   isAuthenticated: boolean
   cognitoConfigured: boolean
+  /** User is in the Cognito `admin` group (takes precedence over `customer` for role checks). */
+  isAdmin: boolean
+  /** User is in the Cognito `customer` group. */
+  isCustomer: boolean
+  /**
+   * Can call customer-protected APIs (`require_customer`). Admins are always allowed
+   * by the API even without the customer group.
+   */
+  canUseCustomerFeatures: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -87,6 +96,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null)
   }, [])
 
+  const groups = user?.groups ?? []
+  const isAdmin = groups.includes("admin")
+  const isCustomer = groups.includes("customer")
+  const canUseCustomerFeatures = isAdmin || isCustomer
+
   return (
     <AuthContext.Provider
       value={{
@@ -96,6 +110,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         isAuthenticated: !!user,
         cognitoConfigured,
+        isAdmin,
+        isCustomer,
+        canUseCustomerFeatures,
       }}
     >
       {children}

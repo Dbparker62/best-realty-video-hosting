@@ -11,10 +11,14 @@ import { Empty } from "@/components/ui/empty"
 import { BookOpen, ArrowRight } from "lucide-react"
 
 export default function MyCoursesPage() {
-  const { isAuthenticated, isLoading: authLoading } = useAuth()
+  const {
+    isAuthenticated,
+    isLoading: authLoading,
+    canUseCustomerFeatures,
+  } = useAuth()
 
   const { data: courses, isLoading } = useSWR(
-    isAuthenticated ? "my-courses" : null,
+    canUseCustomerFeatures ? "my-courses" : null,
     getMyCourses
   )
 
@@ -50,6 +54,19 @@ export default function MyCoursesPage() {
         </p>
         <p className="mt-6 text-sm text-muted-foreground">
           Click the Login button in the header to sign in.
+        </p>
+      </div>
+    )
+  }
+
+  if (!canUseCustomerFeatures) {
+    return (
+      <div className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6 lg:px-8">
+        <h1 className="text-2xl font-bold text-foreground">Access not available</h1>
+        <p className="mt-2 text-muted-foreground">
+          Your account must be in the <strong>customer</strong> or <strong>admin</strong> Cognito
+          group to use enrolled courses. Admins always have access even if they are also
+          customers.
         </p>
       </div>
     )

@@ -14,7 +14,7 @@ function getAccessToken(): string | null {
   return localStorage.getItem("access_token")
 }
 
-function authHeaders(): HeadersInit {
+export function authHeaders(): HeadersInit {
   const token = getAccessToken()
 
   if (!token) {
@@ -29,6 +29,16 @@ function authHeaders(): HeadersInit {
   }
 }
 
+export function normalizeCognitoGroups(raw: unknown): string[] {
+  if (Array.isArray(raw)) {
+    return raw.map((g) => String(g))
+  }
+  if (typeof raw === "string" && raw.length > 0) {
+    return [raw]
+  }
+  return []
+}
+
 function formatDuration(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return "—"
   const m = Math.floor(seconds / 60)
@@ -37,7 +47,7 @@ function formatDuration(seconds: number): string {
 }
 
 /** Raw FastAPI / Dynamo-style course payload */
-interface CourseApi {
+export interface CourseApi {
   id: string
   title: string
   description?: string | null
@@ -68,7 +78,7 @@ export function mapCourseFromApi(raw: CourseApi): Course {
   }
 }
 
-function mapLessonFromApi(raw: LessonApi): Lesson {
+export function mapLessonFromApi(raw: LessonApi): Lesson {
   const durationSeconds = raw.duration_seconds
   return {
     id: String(raw.id),
@@ -97,6 +107,7 @@ export async function fetchAuthMe(): Promise<User | null> {
     sub?: string
     email?: string
     username?: string
+    groups?: unknown
   }
 
   const email = data.email ?? ""
@@ -109,6 +120,7 @@ export async function fetchAuthMe(): Promise<User | null> {
     id: String(data.sub ?? ""),
     email,
     name,
+    groups: normalizeCognitoGroups(data.groups),
   }
 }
 

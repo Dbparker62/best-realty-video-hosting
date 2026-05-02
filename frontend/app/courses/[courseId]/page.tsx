@@ -18,7 +18,7 @@ export default function CourseDetailPage() {
     const raw = params?.courseId
     return Array.isArray(raw) ? raw[0] : raw
   }, [params])
-  const { isAuthenticated } = useAuth()
+  const { canUseCustomerFeatures } = useAuth()
 
   const { data: course, isLoading: courseLoading } = useSWR(
     courseId ? ["course", courseId] : null,
@@ -31,7 +31,7 @@ export default function CourseDetailPage() {
   )
 
   const { data: purchased } = useSWR(
-    isAuthenticated && courseId ? ["purchased", courseId] : null,
+    canUseCustomerFeatures && courseId ? ["purchased", courseId] : null,
     () => hasPurchasedCourse(courseId as string)
   )
 
@@ -214,9 +214,9 @@ export default function CourseDetailPage() {
         ) : (
           <div className="rounded-xl border bg-muted/30 p-8 text-center">
             <p className="text-muted-foreground">
-              {isAuthenticated
+              {canUseCustomerFeatures
                 ? "Lesson content is being prepared. Check back soon!"
-                : "Sign in to view the lesson list for this course."}
+                : "Sign in with a customer or admin account to view the lesson list."}
             </p>
           </div>
         )}

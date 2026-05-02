@@ -29,7 +29,7 @@ export default function LessonPlayerPage() {
     return Array.isArray(raw) ? raw[0] : raw
   }, [params])
 
-  const { isAuthenticated } = useAuth()
+  const { canUseCustomerFeatures } = useAuth()
 
   const { data: course } = useSWR(
     courseId ? ["course", courseId] : null,
@@ -42,7 +42,7 @@ export default function LessonPlayerPage() {
   )
 
   const { data: purchased } = useSWR(
-    isAuthenticated && courseId ? ["purchased", courseId] : null,
+    canUseCustomerFeatures && courseId ? ["purchased", courseId] : null,
     () => hasPurchasedCourse(courseId as string)
   )
 

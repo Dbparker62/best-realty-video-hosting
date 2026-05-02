@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import { Button } from "@/components/ui/button"
 import {
@@ -10,14 +11,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Building2, Menu, User, LogOut, BookOpen } from "lucide-react"
+import { Building2, Menu, LogOut, BookOpen, LayoutDashboard } from "lucide-react"
 import { useState } from "react"
 import { LoginDialog } from "./login-dialog"
 
 export function Header() {
-  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth()
+  const pathname = usePathname()
+  const {
+    user,
+    isAuthenticated,
+    isLoading: authLoading,
+    logout,
+    canUseCustomerFeatures,
+    isAdmin,
+  } = useAuth()
   const [showLogin, setShowLogin] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  if (pathname.startsWith("/admin")) {
+    return null
+  }
 
   return (
     <>
@@ -41,12 +54,20 @@ export function Header() {
             >
               Courses
             </Link>
-            {isAuthenticated && !authLoading && (
+            {canUseCustomerFeatures && !authLoading && (
               <Link
                 href="/my-courses"
                 className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
               >
                 My Courses
+              </Link>
+            )}
+            {isAdmin && !authLoading && (
+              <Link
+                href="/admin"
+                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Admin
               </Link>
             )}
           </nav>
@@ -68,12 +89,22 @@ export function Header() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
-                  <DropdownMenuItem asChild>
-                    <Link href="/my-courses" className="flex items-center gap-2">
-                      <BookOpen className="h-4 w-4" />
-                      My Courses
-                    </Link>
-                  </DropdownMenuItem>
+                  {canUseCustomerFeatures && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/my-courses" className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        My Courses
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
+                  {isAdmin && (
+                    <DropdownMenuItem asChild>
+                      <Link href="/admin" className="flex items-center gap-2">
+                        <LayoutDashboard className="h-4 w-4" />
+                        Admin dashboard
+                      </Link>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={logout}
@@ -112,13 +143,22 @@ export function Header() {
               >
                 Courses
               </Link>
-              {isAuthenticated && !authLoading && (
+              {canUseCustomerFeatures && !authLoading && (
                 <Link
                   href="/my-courses"
                   className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
                   onClick={() => setMobileMenuOpen(false)}
                 >
                   My Courses
+                </Link>
+              )}
+              {isAdmin && !authLoading && (
+                <Link
+                  href="/admin"
+                  className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Admin
                 </Link>
               )}
               {authLoading ? (

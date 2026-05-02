@@ -9,7 +9,7 @@ load_dotenv(env_file)
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
 USERS_TABLE = os.getenv("USERS_TABLE")
 COURSES_TABLE = "course-platform-courses"
-VIDEO_BUCKET = os.getenv("VIDEO_BUCKET")
+VIDEO_BUCKET = "course-platform-videos-best-realty"
 COGNITO_REGION = os.getenv("COGNITO_REGION")
 COGNITO_USER_POOL_ID = r"us-east-1_eL4j5xZD0"
 COGNITO_CLIENT_ID = r"56emmsgl9hc910uc8j9opclq6b"

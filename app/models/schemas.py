@@ -19,7 +19,10 @@ class CourseCreate(BaseModel):
     title: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=500)
     price_cents: int = Field(..., ge=0)
-    owner_id: str = Field(..., min_length=1)
+    owner_id: Optional[str] = Field(
+        default=None,
+        description="If omitted, the API sets owner to the authenticated admin's Cognito sub.",
+    )
     is_published: bool = False
 
 

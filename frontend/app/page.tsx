@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Building2, GraduationCap, TrendingUp, Award } from "lucide-react"
 
 export default function CourseCatalog() {
-  const { isAuthenticated } = useAuth()
+  const { canUseCustomerFeatures } = useAuth()
   
   const { data: courses, isLoading: coursesLoading } = useSWR(
     "courses",
@@ -17,7 +17,7 @@ export default function CourseCatalog() {
   )
   
   const { data: myCourses } = useSWR(
-    isAuthenticated ? "my-courses" : null,
+    canUseCustomerFeatures ? "my-courses" : null,
     getMyCourses
   )
 
