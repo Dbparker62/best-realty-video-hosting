@@ -185,7 +185,7 @@ export default function CourseDetailPage() {
                 </li>
                 <li className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-accent" />
-                  Certificate of completion
+                  Professional Insight and knowledge
                 </li>
               </ul>
             </div>

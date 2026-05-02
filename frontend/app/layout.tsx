@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: 'Best Realty Courses | Professional Real Estate Education',
-  description: 'Master real estate investing with expert-led video courses. Learn property valuation, market analysis, negotiation, and more.',
+  description: 'Master real estate exam with expert-led video courses. Learn property valuation, market analysis, negotiation, and more.',
   generator: 'v0.app',
   icons: {
     icon: [

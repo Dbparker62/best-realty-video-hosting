@@ -8,6 +8,9 @@ from app.utils.database import s3_client, VIDEO_BUCKET
 from app.utils.error import bad_request
 from app.services.access_service import has_course_access
 from app.utils.error import forbidden
+from app.config import CLOUDFRONT_DOMAIN
+
+
 def check_course_exists(course_id: str):
     course_response = courses_table.get_item(Key={"id": course_id})
 
@@ -152,13 +155,6 @@ def get_lesson_video_url(lesson_id: str, user: dict):
             {"lesson_id": lesson_id}
         )
 
-    video_url = s3_client.generate_presigned_url(
-        "get_object",
-        Params={
-            "Bucket": VIDEO_BUCKET,
-            "Key": lesson["video_s3_key"],
-        },
-        ExpiresIn=3600
-    )
+    video_url = f"{CLOUDFRONT_DOMAIN}/{lesson['video_s3_key']}"
 
     return {"video_url": video_url}

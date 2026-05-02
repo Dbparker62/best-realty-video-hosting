@@ -24,18 +24,15 @@ def get_current_user(
 ):
     token = credentials.credentials
 
-    print("==== AUTH DEBUG START ====")
-    print("Token starts with:", token[:30])
-    print("Token length:", len(token))
-
+   
     try:
         unverified_header = jwt.get_unverified_header(token)
-        print("Unverified header:", unverified_header)
+        
 
         kid = unverified_header.get("kid")
-        print("Token kid:", kid)
+        
 
-        print("Available JWKS kids:", [jwk["kid"] for jwk in _jwks["keys"]])
+       
 
         key = None
         for jwk in _jwks["keys"]:
@@ -43,7 +40,7 @@ def get_current_user(
                 key = jwk
                 break
 
-        print("Matching key found:", key is not None)
+       
 
         if key is None:
             raise HTTPException(status_code=401, detail="Invalid token key")
@@ -56,20 +53,17 @@ def get_current_user(
             options={"verify_aud": False},
         )
 
-        print("Decoded payload:", payload)
-        print("Expected client ID:", COGNITO_CLIENT_ID)
-        print("Token client_id:", payload.get("client_id"))
-        print("Token use:", payload.get("token_use"))
+       
 
         if payload.get("client_id") != COGNITO_CLIENT_ID:
-            print("CLIENT ID MISMATCH")
+            
             raise HTTPException(status_code=401, detail="Invalid token client")
 
         if payload.get("token_use") != "access":
-            print("TOKEN TYPE IS NOT ACCESS")
+           
             raise HTTPException(status_code=401, detail="Invalid token type")
 
-        print("==== AUTH DEBUG SUCCESS ====")
+       
 
         return {
             "sub": payload.get("sub"),
@@ -80,8 +74,7 @@ def get_current_user(
         }
 
     except JWTError as e:
-        print("JWT ERROR:", str(e))
-        print("==== AUTH DEBUG FAILED ====")
+      
         raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 
