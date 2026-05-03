@@ -200,12 +200,21 @@ export async function getVideoUploadUrl(
 
 export async function saveVideoKey(
   lessonId: string,
-  videoKey: string
+  videoKey: string,
+  durationSeconds?: number | null
 ): Promise<void> {
+  const body: Record<string, unknown> = { video_s3_key: videoKey }
+  if (
+    durationSeconds != null &&
+    Number.isFinite(durationSeconds) &&
+    durationSeconds >= 0
+  ) {
+    body.duration_seconds = Math.round(durationSeconds)
+  }
   const response = await fetch(`${API_BASE_URL}/lessons/${lessonId}/video`, {
     method: "PUT",
     headers: authHeaders(),
-    body: JSON.stringify({ video_s3_key: videoKey }),
+    body: JSON.stringify(body),
   })
   if (!response.ok) {
     throw new Error("Failed to save video key")

@@ -121,6 +121,8 @@ def update_lesson_video(lesson_id: str, request: schemas.VideoUpdateRequest):
     lesson = check_lesson_exists(lesson_id)
 
     lesson["video_s3_key"] = request.video_s3_key
+    if request.duration_seconds is not None:
+        lesson["duration_seconds"] = request.duration_seconds
 
     lessons_table.put_item(Item=lesson)
 

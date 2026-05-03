@@ -93,8 +93,4 @@ class VideoUploadResponse(BaseModel):
 
 class VideoUpdateRequest(BaseModel):
     video_s3_key: str = Field(..., min_length=1, max_length=500)
-
-class LessonVideoUploadRequest(BaseModel):
-    lesson_id: str = Field(..., min_length=1, max_length=100)
-    filename: str = Field(..., min_length=1, max_length=255)
-    content_type: str = Field(default="video/mp4", pattern="^video/mp4$")
+    duration_seconds: Optional[int] = Field(None, ge=0)

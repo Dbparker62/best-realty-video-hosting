@@ -13,6 +13,28 @@ import {
 import { Progress } from "@/components/ui/progress"
 import { Spinner } from "@/components/ui/spinner"
 import { getVideoUploadUrl, saveVideoKey } from "@/lib/admin-api"
+
+/** Read duration from a local video file (browser metadata). */
+function getVideoDurationSeconds(file: File): Promise<number | null> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file)
+    const video = document.createElement("video")
+    video.preload = "metadata"
+    const cleanup = () => {
+      URL.revokeObjectURL(url)
+    }
+    video.onloadedmetadata = () => {
+      cleanup()
+      const d = video.duration
+      resolve(Number.isFinite(d) && d > 0 ? Math.round(d) : null)
+    }
+    video.onerror = () => {
+      cleanup()
+      resolve(null)
+    }
+    video.src = url
+  })
+}
 import type { AdminLesson } from "@/lib/types"
 import { Upload, CheckCircle, XCircle, FileVideo } from "lucide-react"
 
@@ -63,10 +85,15 @@ export function VideoUploadDialog({
       setStep("uploading")
       setProgress(10)
 
-      const { uploadUrl, videoKey } = await getVideoUploadUrl(
+      const uploadPromise = getVideoUploadUrl(
         lesson.id,
         selectedFile.name || "lesson-video.mp4"
       )
+      const durationPromise = getVideoDurationSeconds(selectedFile)
+      const [{ uploadUrl, videoKey }, durationSeconds] = await Promise.all([
+        uploadPromise,
+        durationPromise,
+      ])
       setProgress(25)
 
       await putVideoToPresignedUrl(uploadUrl, selectedFile, (p) => {
@@ -74,9 +101,9 @@ export function VideoUploadDialog({
       })
       setProgress(75)
 
-      // Step 3: Save video key to backend
+      // Step 3: Save video key (and duration from file metadata) to backend
       setStep("saving")
-      await saveVideoKey(lesson.id, videoKey)
+      await saveVideoKey(lesson.id, videoKey, durationSeconds)
       setProgress(100)
 
       // Complete

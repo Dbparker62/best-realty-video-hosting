@@ -216,7 +216,7 @@ export default function CourseDetailPage() {
             <p className="text-muted-foreground">
               {canUseCustomerFeatures
                 ? "Lesson content is being prepared. Check back soon!"
-                : "Sign in with a customer or admin account to view the lesson list."}
+                : "Sign in view the lesson list."}
             </p>
           </div>
         )}

@@ -55,7 +55,7 @@ export default function CourseCatalog() {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">20+</p>
-                <p className="text-sm text-muted-foreground">Years of Proof</p>
+                <p className="text-sm text-muted-foreground">Years of Experience</p>
               </div>
             </div>
             <div className="flex items-center gap-4 rounded-xl border bg-background p-4">
