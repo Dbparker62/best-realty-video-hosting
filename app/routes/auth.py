@@ -7,7 +7,7 @@ from app.config import COGNITO_CLIENT_ID
 router = APIRouter()
 
 COGNITO_DOMAIN = os.getenv("COGNITO_DOMAIN")
-REDIRECT_URI = os.getenv("COGNITO_REDIRECT_URI", "http://127.0.0.1:8000/auth/callback")
+REDIRECT_URI = os.getenv("COGNITO_REDIRECT_URI", "https://36fjcwgqfc.execute-api.us-east-1.amazonaws.com/auth/callback")
 
 
 @router.get("/auth/callback")

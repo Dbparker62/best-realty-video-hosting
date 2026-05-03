@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-APP_ENV = os.getenv("APP_ENV", "dev")
+APP_ENV = os.getenv("APP_ENV", "prod")
 
 env_file = f".env.{APP_ENV}"
 load_dotenv(env_file)

@@ -6,7 +6,7 @@ import type { Course, Lesson, PurchasedCourse, User, VideoUrl } from "./types"
  * Otherwise default to calling the FastAPI server directly.
  */
 export const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "http://127.0.0.1:8000"
+  process.env.NEXT_PUBLIC_API_URL ?? "https://36fjcwgqfc.execute-api.us-east-1.amazonaws.com"
 ).replace(/\/$/, "")
 
 function getAccessToken(): string | null {
