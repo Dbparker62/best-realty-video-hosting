@@ -75,7 +75,6 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onClick={togglePlay}
-        crossOrigin="anonymous"
       >
         <track kind="captions" />
       </video>
