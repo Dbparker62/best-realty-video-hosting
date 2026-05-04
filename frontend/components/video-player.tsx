@@ -5,6 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Play, Pause, Volume2, VolumeX, Maximize, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
 
+/** WebKit (iOS Safari): native fullscreen; standard Fullscreen API is often unsupported on iPhone. */
+type VideoElementWithWebKit = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void
+}
+
 interface VideoPlayerProps {
   videoUrl: string
   title: string
@@ -18,13 +23,12 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   const [showControls, setShowControls] = useState(true)
 
   const togglePlay = () => {
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause()
-      } else {
-        videoRef.current.play()
-      }
-      setIsPlaying(!isPlaying)
+    const el = videoRef.current
+    if (!el) return
+    if (isPlaying) {
+      el.pause()
+    } else {
+      void el.play().catch(() => {})
     }
   }
 
@@ -43,22 +47,33 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
     }
   }
 
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (videoRef.current) {
-      const rect = e.currentTarget.getBoundingClientRect()
-      const percent = (e.clientX - rect.left) / rect.width
-      videoRef.current.currentTime = percent * videoRef.current.duration
-    }
+  const scrubToClientX = (target: HTMLDivElement, clientX: number) => {
+    const el = videoRef.current
+    if (!el || !Number.isFinite(el.duration) || el.duration <= 0) return
+    const rect = target.getBoundingClientRect()
+    const percent = Math.min(1, Math.max(0, (clientX - rect.left) / rect.width))
+    el.currentTime = percent * el.duration
+  }
+
+  const handleProgressPointer = (e: React.PointerEvent<HTMLDivElement>) => {
+    scrubToClientX(e.currentTarget, e.clientX)
   }
 
   const handleFullscreen = () => {
-    if (videoRef.current) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen()
-      } else {
-        videoRef.current.requestFullscreen()
-      }
+    const video = videoRef.current as VideoElementWithWebKit | null
+    if (!video) return
+
+    if (document.fullscreenElement) {
+      void document.exitFullscreen?.()
+      return
     }
+
+    if (typeof video.webkitEnterFullscreen === "function") {
+      video.webkitEnterFullscreen()
+      return
+    }
+
+    void video.requestFullscreen?.()
   }
 
   return (
@@ -70,14 +85,15 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
       <video
         ref={videoRef}
         src={videoUrl}
-        className="h-full w-full"
+        className="h-full w-full object-contain"
+        playsInline
+        preload="metadata"
+        controls={false}
         onTimeUpdate={handleTimeUpdate}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onClick={togglePlay}
-      >
-        <track kind="captions" />
-      </video>
+      />
 
       {/* Play overlay for initial state */}
       {!isPlaying && (
@@ -101,8 +117,13 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
       >
         {/* Progress bar */}
         <div
-          className="mb-3 h-1 cursor-pointer rounded-full bg-white/30"
-          onClick={handleProgressClick}
+          className="mb-3 h-2 cursor-pointer touch-manipulation rounded-full bg-white/30 md:h-1"
+          onPointerDown={handleProgressPointer}
+          role="slider"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress)}
+          aria-label="Seek"
         >
           <div
             className="h-full rounded-full bg-white transition-all"
