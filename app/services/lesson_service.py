@@ -8,13 +8,13 @@ from app.utils.error import bad_request
 from app.services.access_service import has_course_access
 from app.utils.error import forbidden
 from app.config import CLOUDFRONT_DOMAIN
-from lambda_package.botocore.signers import generate_presigned_url
+from botocore.signers import CloudFrontSigner
 from datetime import datetime, timedelta, timezone
 import os
 
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import padding
-from botocore.signers import CloudFrontSigner
+
 
 
 def rsa_signer(message):
@@ -190,7 +190,7 @@ def get_lesson_video_url(lesson_id: str, user: dict):
             {"lesson_id": lesson_id}
         )
 
-    cloudfront_url = f"{CLOUDFRONT_DOMAIN}/{lesson.video_s3_key}"
+    cloudfront_url = f"{CLOUDFRONT_DOMAIN}/{lesson['video_s3_key']}"
 
     video_url = generate_signed_url(cloudfront_url)
 
