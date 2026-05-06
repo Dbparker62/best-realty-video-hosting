@@ -26,7 +26,18 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   const [progress, setProgress] = useState(0)
   const [showControls, setShowControls] = useState(true)
 
-  const storageKey = `video-player:time:${videoUrl}`
+  const normalizedVideoKey = (() => {
+    // Many video hosts use expiring/signed URLs (changing query params).
+    // Normalize so "same video" resumes across remounts.
+    try {
+      const u = new URL(videoUrl, typeof window !== "undefined" ? window.location.href : undefined)
+      return `${u.origin}${u.pathname}`
+    } catch {
+      return videoUrl.split("#")[0]?.split("?")[0] ?? videoUrl
+    }
+  })()
+
+  const storageKey = `video-player:time:${normalizedVideoKey}`
 
   const persistTime = () => {
     try {
@@ -102,7 +113,7 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
 
   useEffect(() => {
     hasRestoredTimeRef.current = false
-  }, [videoUrl])
+  }, [storageKey])
 
   useEffect(() => {
     return () => {
@@ -183,6 +194,7 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
         preload="metadata"
         controls={false}
         onLoadedMetadata={restoreTimeIfPossible}
+        onCanPlay={restoreTimeIfPossible}
         onTimeUpdate={handleTimeUpdate}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
