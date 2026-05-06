@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Play, Pause, Volume2, VolumeX, Maximize, Settings } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -22,10 +22,21 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   const [progress, setProgress] = useState(0)
   const [showControls, setShowControls] = useState(true)
 
+  useEffect(() => {
+    const syncFromElement = () => {
+      const el = videoRef.current
+      if (!el) return
+      setIsPlaying(!el.paused && !el.ended)
+    }
+
+    document.addEventListener("visibilitychange", syncFromElement)
+    return () => document.removeEventListener("visibilitychange", syncFromElement)
+  }, [])
+
   const togglePlay = () => {
     const el = videoRef.current
     if (!el) return
-    if (isPlaying) {
+    if (!el.paused && !el.ended) {
       el.pause()
     } else {
       void el.play().catch(() => {})
