@@ -1,21 +1,24 @@
 "use client"
 
-import { useMemo } from "react"
+import { useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import useSWR from "swr"
+import useSWR, { mutate } from "swr"
 import {
   getCourse,
   getCourseLessons,
   getLessonVideoUrl,
   hasPurchasedCourse,
+  markLessonComplete,
+  unmarkLessonComplete,
+  getCompletedLessons,
 } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { VideoPlayer } from "@/components/video-player"
 import { LessonSidebar } from "@/components/lesson-sidebar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from "lucide-react"
+import { ArrowLeft, ChevronLeft, ChevronRight, Lock, CheckCircle, Circle } from "lucide-react"
 import type { Lesson } from "@/lib/types"
 
 export default function LessonPlayerPage() {
@@ -65,6 +68,34 @@ export default function LessonPlayerPage() {
       revalidateOnReconnect: false,
     }
   )
+
+  const { data: completedLessons } = useSWR(
+    canUseCustomerFeatures && courseId ? ["completedLessons", courseId] : null,
+    () => getCompletedLessons(courseId as string)
+  )
+
+  const [isMarkingComplete, setIsMarkingComplete] = useState(false)
+
+  const isCurrentLessonComplete = useMemo(
+    () => completedLessons?.includes(lessonId as string) ?? false,
+    [completedLessons, lessonId]
+  )
+
+  const handleToggleComplete = async () => {
+    if (!courseId || !lessonId) return
+    setIsMarkingComplete(true)
+    try {
+      if (isCurrentLessonComplete) {
+        await unmarkLessonComplete(courseId, lessonId)
+      } else {
+        await markLessonComplete(courseId, lessonId)
+      }
+      // Revalidate the completed lessons cache
+      mutate(["completedLessons", courseId])
+    } finally {
+      setIsMarkingComplete(false)
+    }
+  }
 
   const sortedLessons = useMemo(
     () => [...(lessons || [])].sort((a, b) => a.order - b.order),
@@ -191,12 +222,36 @@ export default function LessonPlayerPage() {
 
             {/* Lesson Info */}
             <div className="mt-6">
-              <h1 className="text-2xl font-bold text-foreground">
-                {currentLesson.title}
-              </h1>
-              <p className="mt-3 text-muted-foreground">
-                {currentLesson.description}
-              </p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex-1">
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {currentLesson.title}
+                  </h1>
+                  <p className="mt-3 text-muted-foreground">
+                    {currentLesson.description}
+                  </p>
+                </div>
+                {canAccess && canUseCustomerFeatures && (
+                  <Button
+                    onClick={handleToggleComplete}
+                    disabled={isMarkingComplete}
+                    variant={isCurrentLessonComplete ? "outline" : "default"}
+                    className="shrink-0"
+                  >
+                    {isCurrentLessonComplete ? (
+                      <>
+                        <CheckCircle className="mr-2 h-4 w-4 text-green-500" />
+                        Completed
+                      </>
+                    ) : (
+                      <>
+                        <Circle className="mr-2 h-4 w-4" />
+                        Mark as Complete
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
@@ -207,6 +262,7 @@ export default function LessonPlayerPage() {
               courseId={courseId}
               currentLessonId={lessonId}
               hasPurchased={!!purchased}
+              completedLessons={completedLessons || []}
             />
           </div>
         </div>
@@ -219,6 +275,7 @@ export default function LessonPlayerPage() {
             courseId={courseId}
             currentLessonId={lessonId}
             hasPurchased={!!purchased}
+            completedLessons={completedLessons || []}
           />
         </div>
       </div>

@@ -3,7 +3,7 @@
 import Link from "next/link"
 import type { Lesson } from "@/lib/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Lock, Play, Clock } from "lucide-react"
+import { Lock, Play, Clock, CheckCircle } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface LessonSidebarProps {
@@ -11,6 +11,7 @@ interface LessonSidebarProps {
   courseId: string
   currentLessonId: string
   hasPurchased: boolean
+  completedLessons?: string[]
 }
 
 export function LessonSidebar({
@@ -18,6 +19,7 @@ export function LessonSidebar({
   courseId,
   currentLessonId,
   hasPurchased,
+  completedLessons = [],
 }: LessonSidebarProps) {
   const sortedLessons = [...lessons].sort((a, b) => a.order - b.order)
 
@@ -25,12 +27,20 @@ export function LessonSidebar({
     return lesson.isPreview || hasPurchased
   }
 
+  const isCompleted = (lessonId: string) => {
+    return completedLessons.includes(lessonId)
+  }
+
+  const completedCount = sortedLessons.filter((l) => isCompleted(l.id)).length
+
   return (
     <div className="flex h-full flex-col rounded-xl border bg-card">
       <div className="border-b px-4 py-3">
         <h3 className="font-semibold text-foreground">Course Content</h3>
         <p className="text-sm text-muted-foreground">
-          {lessons.length} lessons
+          {completedCount > 0
+            ? `${completedCount}/${lessons.length} lessons completed`
+            : `${lessons.length} lessons`}
         </p>
       </div>
       <ScrollArea className="flex-1">
@@ -38,6 +48,7 @@ export function LessonSidebar({
           {sortedLessons.map((lesson, index) => {
             const isActive = lesson.id === currentLessonId
             const accessible = canAccess(lesson)
+            const completed = isCompleted(lesson.id)
 
             return (
               <Link
@@ -59,15 +70,19 @@ export function LessonSidebar({
                 <div
                   className={cn(
                     "flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-medium",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : !accessible
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary/10 text-primary"
+                    completed
+                      ? "bg-green-500/10 text-green-500"
+                      : isActive
+                        ? "bg-primary text-primary-foreground"
+                        : !accessible
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-primary/10 text-primary"
                   )}
                 >
                   {!accessible ? (
                     <Lock className="h-3.5 w-3.5" />
+                  ) : completed ? (
+                    <CheckCircle className="h-4 w-4" />
                   ) : isActive ? (
                     <Play className="h-3.5 w-3.5" />
                   ) : (

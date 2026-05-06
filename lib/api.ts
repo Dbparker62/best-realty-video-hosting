@@ -273,3 +273,134 @@ export async function getLessonVideoUrl(lessonId: string): Promise<VideoUrl> {
     expiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
   }
 }
+
+/**
+ * Mark a lesson as complete for the current user.
+ * Falls back to localStorage if the API endpoint doesn't exist.
+ */
+export async function markLessonComplete(
+  courseId: string,
+  lessonId: string
+): Promise<void> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/lessons/${lessonId}/complete`,
+      {
+        method: "POST",
+        headers: authHeaders(),
+      }
+    )
+
+    if (response.status === 404 || response.status === 501) {
+      // API doesn't support this yet, use localStorage fallback
+      saveCompletedLessonLocally(courseId, lessonId)
+      return
+    }
+
+    if (!response.ok) {
+      throw new Error("Failed to mark lesson as complete")
+    }
+  } catch {
+    // Network error or API not available, use localStorage fallback
+    saveCompletedLessonLocally(courseId, lessonId)
+  }
+}
+
+/**
+ * Unmark a lesson as complete for the current user.
+ */
+export async function unmarkLessonComplete(
+  courseId: string,
+  lessonId: string
+): Promise<void> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/lessons/${lessonId}/complete`,
+      {
+        method: "DELETE",
+        headers: authHeaders(),
+      }
+    )
+
+    if (response.status === 404 || response.status === 501) {
+      // API doesn't support this yet, use localStorage fallback
+      removeCompletedLessonLocally(courseId, lessonId)
+      return
+    }
+
+    if (!response.ok) {
+      throw new Error("Failed to unmark lesson as complete")
+    }
+  } catch {
+    // Network error or API not available, use localStorage fallback
+    removeCompletedLessonLocally(courseId, lessonId)
+  }
+}
+
+/**
+ * Get completed lessons for a course.
+ */
+export async function getCompletedLessons(courseId: string): Promise<string[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/courses/${courseId}/progress`,
+      {
+        headers: authHeaders(),
+      }
+    )
+
+    if (response.status === 404 || response.status === 501) {
+      // API doesn't support this yet, use localStorage fallback
+      return getCompletedLessonsLocally(courseId)
+    }
+
+    if (!response.ok) {
+      return getCompletedLessonsLocally(courseId)
+    }
+
+    const data = (await response.json()) as { completed_lessons?: string[] }
+    return data.completed_lessons ?? []
+  } catch {
+    // Network error or API not available, use localStorage fallback
+    return getCompletedLessonsLocally(courseId)
+  }
+}
+
+// LocalStorage fallback functions
+const STORAGE_KEY = "completed_lessons"
+
+function getCompletedLessonsMap(): Record<string, string[]> {
+  if (typeof window === "undefined") return {}
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    return stored ? JSON.parse(stored) : {}
+  } catch {
+    return {}
+  }
+}
+
+function saveCompletedLessonLocally(courseId: string, lessonId: string): void {
+  if (typeof window === "undefined") return
+  const map = getCompletedLessonsMap()
+  if (!map[courseId]) {
+    map[courseId] = []
+  }
+  if (!map[courseId].includes(lessonId)) {
+    map[courseId].push(lessonId)
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(map))
+}
+
+function removeCompletedLessonLocally(courseId: string, lessonId: string): void {
+  if (typeof window === "undefined") return
+  const map = getCompletedLessonsMap()
+  if (map[courseId]) {
+    map[courseId] = map[courseId].filter((id) => id !== lessonId)
+  }
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(map))
+}
+
+function getCompletedLessonsLocally(courseId: string): string[] {
+  const map = getCompletedLessonsMap()
+  return map[courseId] ?? []
+}
