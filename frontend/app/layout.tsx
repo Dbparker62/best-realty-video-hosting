@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/lib/auth-context'
 import { Header } from '@/components/header'
+import { Footer } from '@/components/footer'
 import './globals.css'
 
 const inter = Inter({ 
@@ -44,6 +45,7 @@ export default function RootLayout({
         <AuthProvider>
           <Header />
           <main>{children}</main>
+          <Footer />
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>

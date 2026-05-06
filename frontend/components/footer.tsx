@@ -36,14 +36,6 @@ export function Footer() {
                   Browse Courses
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/my-courses"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  My Courses
-                </Link>
-              </li>
             </ul>
           </div>
 
