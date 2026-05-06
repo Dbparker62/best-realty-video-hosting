@@ -17,21 +17,62 @@ interface VideoPlayerProps {
 
 export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
+  const hasRestoredTimeRef = useRef(false)
+  const lastTimeRef = useRef(0)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [progress, setProgress] = useState(0)
   const [showControls, setShowControls] = useState(true)
+
+  const storageKey = `video-player:time:${videoUrl}`
+
+  const persistTime = () => {
+    try {
+      sessionStorage.setItem(storageKey, String(lastTimeRef.current))
+    } catch {
+      // ignore (private mode / disabled storage)
+    }
+  }
+
+  const restoreTimeIfPossible = () => {
+    const el = videoRef.current
+    if (!el || hasRestoredTimeRef.current) return
+    try {
+      const raw = sessionStorage.getItem(storageKey)
+      const t = raw ? Number(raw) : 0
+      if (Number.isFinite(t) && t > 0 && Number.isFinite(el.duration) && el.duration > 0) {
+        el.currentTime = Math.min(t, Math.max(0, el.duration - 0.25))
+        lastTimeRef.current = el.currentTime
+      }
+    } catch {
+      // ignore
+    } finally {
+      hasRestoredTimeRef.current = true
+    }
+  }
 
   useEffect(() => {
     const syncFromElement = () => {
       const el = videoRef.current
       if (!el) return
       setIsPlaying(!el.paused && !el.ended)
+      lastTimeRef.current = el.currentTime || lastTimeRef.current
+      persistTime()
     }
 
     document.addEventListener("visibilitychange", syncFromElement)
     return () => document.removeEventListener("visibilitychange", syncFromElement)
   }, [])
+
+  useEffect(() => {
+    hasRestoredTimeRef.current = false
+  }, [videoUrl])
+
+  useEffect(() => {
+    return () => {
+      persistTime()
+    }
+  }, [storageKey])
 
   const togglePlay = () => {
     const el = videoRef.current
@@ -52,6 +93,7 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
 
   const handleTimeUpdate = () => {
     if (videoRef.current) {
+      lastTimeRef.current = videoRef.current.currentTime
       const percent =
         (videoRef.current.currentTime / videoRef.current.duration) * 100
       setProgress(percent)
@@ -100,6 +142,7 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
         playsInline
         preload="metadata"
         controls={false}
+        onLoadedMetadata={restoreTimeIfPossible}
         onTimeUpdate={handleTimeUpdate}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
