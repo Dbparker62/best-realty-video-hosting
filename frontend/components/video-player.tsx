@@ -19,6 +19,8 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasRestoredTimeRef = useRef(false)
   const lastTimeRef = useRef(0)
+  const lastPersistedTimeRef = useRef(0)
+  const wasPlayingBeforeHideRef = useRef(false)
   const [isPlaying, setIsPlaying] = useState(false)
   const [isMuted, setIsMuted] = useState(false)
   const [progress, setProgress] = useState(0)
@@ -28,7 +30,11 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
 
   const persistTime = () => {
     try {
-      sessionStorage.setItem(storageKey, String(lastTimeRef.current))
+      // Avoid overwriting a good timestamp with a transient 0 during backgrounding.
+      if (lastTimeRef.current > 0) {
+        sessionStorage.setItem(storageKey, String(lastTimeRef.current))
+        lastPersistedTimeRef.current = lastTimeRef.current
+      }
     } catch {
       // ignore (private mode / disabled storage)
     }
@@ -43,6 +49,7 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
       if (Number.isFinite(t) && t > 0 && Number.isFinite(el.duration) && el.duration > 0) {
         el.currentTime = Math.min(t, Math.max(0, el.duration - 0.25))
         lastTimeRef.current = el.currentTime
+        lastPersistedTimeRef.current = el.currentTime
       }
     } catch {
       // ignore
@@ -55,9 +62,38 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
     const syncFromElement = () => {
       const el = videoRef.current
       if (!el) return
-      setIsPlaying(!el.paused && !el.ended)
-      lastTimeRef.current = el.currentTime || lastTimeRef.current
-      persistTime()
+      const currentlyPlaying = !el.paused && !el.ended
+      setIsPlaying(currentlyPlaying)
+
+      // If the tab is being hidden, capture the most recent time and whether we were playing.
+      if (document.visibilityState === "hidden") {
+        wasPlayingBeforeHideRef.current = currentlyPlaying
+        if (Number.isFinite(el.currentTime) && el.currentTime > 0) {
+          lastTimeRef.current = el.currentTime
+        }
+        persistTime()
+        return
+      }
+
+      // If we became visible again and the element got reset, put it back.
+      if (
+        document.visibilityState === "visible" &&
+        lastPersistedTimeRef.current > 0 &&
+        Number.isFinite(el.duration) &&
+        el.duration > 0 &&
+        el.currentTime + 0.5 < lastPersistedTimeRef.current
+      ) {
+        el.currentTime = Math.min(
+          lastPersistedTimeRef.current,
+          Math.max(0, el.duration - 0.25)
+        )
+        lastTimeRef.current = el.currentTime
+      }
+
+      if (document.visibilityState === "visible" && wasPlayingBeforeHideRef.current) {
+        void el.play().catch(() => {})
+        wasPlayingBeforeHideRef.current = false
+      }
     }
 
     document.addEventListener("visibilitychange", syncFromElement)
@@ -94,6 +130,10 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   const handleTimeUpdate = () => {
     if (videoRef.current) {
       lastTimeRef.current = videoRef.current.currentTime
+      // Persist occasionally so switching UI tabs can restore accurately.
+      if (Math.abs(lastTimeRef.current - lastPersistedTimeRef.current) >= 1) {
+        persistTime()
+      }
       const percent =
         (videoRef.current.currentTime / videoRef.current.duration) * 100
       setProgress(percent)
