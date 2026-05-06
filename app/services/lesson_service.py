@@ -4,7 +4,7 @@ from app.models import schemas
 from app.utils.database import courses_table, lessons_table
 from app.utils.error import not_found
 from app.utils.database import s3_client
-from utils import VIDEO_BUCKET
+from app.config import VIDEO_BUCKET
 from app.utils.error import bad_request
 from app.services.access_service import has_course_access
 from app.utils.error import forbidden
