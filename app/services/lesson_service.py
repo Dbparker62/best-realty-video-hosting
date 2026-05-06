@@ -35,7 +35,7 @@ def rsa_signer(message):
 def generate_signed_url(url):
     key_pair_id = os.getenv("CLOUDFRONT_KEY_PAIR_ID")
 
-    expire = datetime.now(timezone.utc) + timedelta(minutes=30)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=300)
 
     signer = CloudFrontSigner(key_pair_id, rsa_signer)
 
