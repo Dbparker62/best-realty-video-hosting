@@ -1,6 +1,5 @@
 from uuid import uuid4
 from boto3.dynamodb.conditions import Attr
-
 from app.models import schemas
 from app.utils.database import courses_table, lessons_table
 from app.utils.error import not_found
@@ -9,7 +8,41 @@ from app.utils.error import bad_request
 from app.services.access_service import has_course_access
 from app.utils.error import forbidden
 from app.config import CLOUDFRONT_DOMAIN
+from lambda_package.botocore.signers import generate_presigned_url
+from datetime import datetime, timedelta, timezone
+import os
 
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
+from botocore.signers import CloudFrontSigner
+
+
+def rsa_signer(message):
+    private_key = os.getenv("CLOUDFRONT_PRIVATE_KEY").replace("\\n", "\n")
+
+    key = serialization.load_pem_private_key(
+        private_key.encode(),
+        password=None,
+    )
+
+    return key.sign(
+        message,
+        padding.PKCS1v15(),
+        hashes.SHA1(),
+    )
+
+
+def generate_signed_url(url):
+    key_pair_id = os.getenv("CLOUDFRONT_KEY_PAIR_ID")
+
+    expire = datetime.now(timezone.utc) + timedelta(minutes=30)
+
+    signer = CloudFrontSigner(key_pair_id, rsa_signer)
+
+    return signer.generate_presigned_url(
+        url,
+        date_less_than=expire,
+    )
 
 def check_course_exists(course_id: str):
     course_response = courses_table.get_item(Key={"id": course_id})
@@ -157,6 +190,10 @@ def get_lesson_video_url(lesson_id: str, user: dict):
             {"lesson_id": lesson_id}
         )
 
-    video_url = f"{CLOUDFRONT_DOMAIN}/{lesson['video_s3_key']}"
+    cloudfront_url = f"{CLOUDFRONT_DOMAIN}/{lesson.video_s3_key}"
 
-    return {"video_url": video_url}
+    video_url = generate_signed_url(cloudfront_url)
+
+    return {
+        "video_url": video_url
+    }
