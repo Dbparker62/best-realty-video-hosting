@@ -57,7 +57,13 @@ export default function LessonPlayerPage() {
 
   const { data: videoData, isLoading: videoLoading } = useSWR(
     canAccess && lessonId ? ["video", lessonId] : null,
-    () => getLessonVideoUrl(lessonId as string)
+    () => getLessonVideoUrl(lessonId as string),
+    {
+      // The video URL can be signed/expiring; revalidating on focus swaps the
+      // `src` and restarts playback when the user returns to the browser tab.
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+    }
   )
 
   const sortedLessons = useMemo(
