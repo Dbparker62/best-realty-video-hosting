@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo } from "react"
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import useSWR from "swr"
@@ -15,7 +15,7 @@ import { VideoPlayer } from "@/components/video-player"
 import { LessonSidebar } from "@/components/lesson-sidebar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from "lucide-react"
+import { ArrowLeft, CheckCircle, ChevronLeft, ChevronRight, Lock } from "lucide-react"
 import type { Lesson } from "@/lib/types"
 
 export default function LessonPlayerPage() {
@@ -30,6 +30,11 @@ export default function LessonPlayerPage() {
   }, [params])
 
   const { canUseCustomerFeatures } = useAuth()
+  const [lessonCompleted, setLessonCompleted] = useState(false)
+
+  useEffect(() => {
+    setLessonCompleted(false)
+  }, [lessonId])
 
   const { data: course } = useSWR(
     courseId ? ["course", courseId] : null,
@@ -191,12 +196,29 @@ export default function LessonPlayerPage() {
 
             {/* Lesson Info */}
             <div className="mt-6">
-              <h1 className="text-2xl font-bold text-foreground">
-                {currentLesson.title}
-              </h1>
-              <p className="mt-3 text-muted-foreground">
-                {currentLesson.description}
-              </p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {currentLesson.title}
+                  </h1>
+                  <p className="mt-3 text-muted-foreground">
+                    {currentLesson.description}
+                  </p>
+                </div>
+                {canAccess && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={lessonCompleted ? "outline" : "default"}
+                    disabled={lessonCompleted}
+                    className="shrink-0 self-start"
+                    onClick={() => setLessonCompleted(true)}
+                  >
+                    <CheckCircle className="mr-1.5 h-4 w-4" />
+                    {lessonCompleted ? "Completed" : "Complete lesson"}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
