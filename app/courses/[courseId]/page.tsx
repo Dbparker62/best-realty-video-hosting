@@ -24,7 +24,7 @@ export default function CourseDetailPage() {
     const raw = params?.courseId
     return Array.isArray(raw) ? raw[0] : raw
   }, [params])
-  const { canUseCustomerFeatures } = useAuth()
+  const { isAuthenticated, canUseCustomerFeatures } = useAuth()
 
   const { data: course, isLoading: courseLoading } = useSWR(
     courseId ? ["course", courseId] : null,
@@ -37,13 +37,13 @@ export default function CourseDetailPage() {
   )
 
   const { data: purchased } = useSWR(
-    canUseCustomerFeatures && courseId ? ["purchased", courseId] : null,
+    isAuthenticated && courseId ? ["purchased", courseId] : null,
     () => hasPurchasedCourse(courseId as string),
     { revalidateOnFocus: true }
   )
 
   const { data: courseProgress } = useSWR(
-    canUseCustomerFeatures && purchased && courseId
+    isAuthenticated && purchased && courseId
       ? ["course-progress", courseId]
       : null,
     () => getCourseProgress(courseId as string)
@@ -105,10 +105,6 @@ export default function CourseDetailPage() {
     )
   }
 
-  const firstLessonId = lessons?.length
-    ? [...lessons].sort((a, b) => a.order - b.order)[0]?.id
-    : undefined
-
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -165,30 +161,15 @@ export default function CourseDetailPage() {
               <p className="mt-6 text-muted-foreground">{course.description}</p>
             </div>
 
-            {/* Price Card */}
-            <div className="shrink-0 rounded-xl border bg-background p-6 lg:w-72">
-              <div className="mb-4 text-center">
-                <span className="text-3xl font-bold text-foreground">
-                  ${course.price}
-                </span>
-                <span className="text-muted-foreground">/lifetime</span>
-              </div>
+            {!purchased && (
+              <div className="shrink-0 rounded-xl border bg-background p-6 lg:w-72">
+                <div className="mb-4 text-center">
+                  <span className="text-3xl font-bold text-foreground">
+                    ${course.price}
+                  </span>
+                  <span className="text-muted-foreground">/lifetime</span>
+                </div>
 
-              {purchased ? (
-                firstLessonId ? (
-                  <Button className="w-full" asChild>
-                    <Link
-                      href={`/courses/${courseId}/lessons/${firstLessonId}`}
-                    >
-                      Start Learning
-                    </Link>
-                  </Button>
-                ) : (
-                  <Button className="w-full" disabled>
-                    No lessons yet
-                  </Button>
-                )
-              ) : (
                 <Button
                   className="w-full"
                   onClick={handleBuyCourse}
@@ -196,23 +177,23 @@ export default function CourseDetailPage() {
                 >
                   {course.published ? "Buy Now" : "Coming Soon"}
                 </Button>
-              )}
 
-              <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-accent" />
-                  Lifetime access
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-accent" />
-                  All future updates
-                </li>
-                <li className="flex items-center gap-2">
-                  <CheckCircle className="h-4 w-4 text-accent" />
-                  Professional Insight and knowledge
-                </li>
-              </ul>
-            </div>
+                <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                    Lifetime access
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                    All future updates
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4 text-accent" />
+                    Professional Insight and knowledge
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
         </div>
       </div>
