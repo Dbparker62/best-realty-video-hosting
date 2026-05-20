@@ -1,22 +1,57 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import useSWR from "swr"
+import useSWR, { mutate as globalMutate } from "swr"
 import {
   getCourse,
   getCourseLessons,
+  getCourseProgress,
   getLessonVideoUrl,
   hasPurchasedCourse,
+  markLessonComplete,
+  updateLessonProgress,
 } from "@/lib/api"
+import type { CourseProgress } from "@/lib/types"
 import { useAuth } from "@/lib/auth-context"
 import { VideoPlayer } from "@/components/video-player"
 import { LessonSidebar } from "@/components/lesson-sidebar"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, CheckCircle, ChevronLeft, ChevronRight, Lock } from "lucide-react"
+import {
+  ArrowLeft,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Lock,
+} from "lucide-react"
 import type { Lesson } from "@/lib/types"
+
+function applyLessonCompleted(
+  progress: CourseProgress | undefined,
+  lessonId: string
+): CourseProgress | undefined {
+  if (!progress) return progress
+
+  const lessons = progress.lessons.map((row) =>
+    row.lessonId === lessonId ? { ...row, completed: true } : row
+  )
+  const completedLessons = lessons.filter((row) => row.completed).length
+  const totalLessons = progress.totalLessons || lessons.length
+
+  return {
+    ...progress,
+    lessons,
+    completedLessons,
+    progress:
+      totalLessons > 0
+        ? Math.round((completedLessons / totalLessons) * 100)
+        : 0,
+  }
+}
 
 export default function LessonPlayerPage() {
   const params = useParams()
@@ -29,12 +64,11 @@ export default function LessonPlayerPage() {
     return Array.isArray(raw) ? raw[0] : raw
   }, [params])
 
-  const { canUseCustomerFeatures } = useAuth()
-  const [lessonCompleted, setLessonCompleted] = useState(false)
-
-  useEffect(() => {
-    setLessonCompleted(false)
-  }, [lessonId])
+  const { isAuthenticated } = useAuth()
+  const lastSavedAtRef = useRef(0)
+  const savingRef = useRef(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
   const { data: course } = useSWR(
     courseId ? ["course", courseId] : null,
@@ -47,7 +81,7 @@ export default function LessonPlayerPage() {
   )
 
   const { data: purchased } = useSWR(
-    canUseCustomerFeatures && courseId ? ["purchased", courseId] : null,
+    isAuthenticated && courseId ? ["purchased", courseId] : null,
     () => hasPurchasedCourse(courseId as string)
   )
 
@@ -60,16 +94,159 @@ export default function LessonPlayerPage() {
     currentLesson && (currentLesson.isPreview || purchased)
   )
 
+  const trackProgress = Boolean(isAuthenticated && courseId && canAccess)
+
+  const progressKey =
+    trackProgress && courseId ? ["course-progress", courseId] : null
+
+  const {
+    data: courseProgress,
+    mutate: mutateProgress,
+    error: progressError,
+  } = useSWR(progressKey, () => getCourseProgress(courseId as string), {
+    revalidateOnFocus: true,
+  })
+
+  const currentLessonProgress = useMemo(
+    () => courseProgress?.lessons.find((l) => l.lessonId === lessonId),
+    [courseProgress, lessonId]
+  )
+
+  const isLessonCompleted = Boolean(currentLessonProgress?.completed)
+
+  const completedLessonIds = useMemo(
+    () =>
+      new Set(
+        courseProgress?.lessons
+          .filter((l) => l.completed)
+          .map((l) => l.lessonId) ?? []
+      ),
+    [courseProgress]
+  )
+
   const { data: videoData, isLoading: videoLoading } = useSWR(
     canAccess && lessonId ? ["video", lessonId] : null,
     () => getLessonVideoUrl(lessonId as string),
     {
-      // The video URL can be signed/expiring; revalidating on focus swaps the
-      // `src` and restarts playback when the user returns to the browser tab.
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
     }
   )
+
+  const persistProgress = useCallback(
+    async (
+      positionSeconds: number,
+      completed?: boolean,
+      options?: { optimistic?: boolean }
+    ) => {
+      if (!courseId || !lessonId || !canAccess || savingRef.current) return
+
+      savingRef.current = true
+      setIsSaving(true)
+      setStatusMessage(null)
+
+      if (options?.optimistic && completed) {
+        await mutateProgress(
+          (current) => applyLessonCompleted(current, lessonId),
+          { revalidate: false }
+        )
+      }
+
+      try {
+        const updated = await updateLessonProgress(courseId, lessonId, {
+          positionSeconds: Math.floor(positionSeconds),
+          completed,
+        })
+        await mutateProgress(updated, { revalidate: false })
+        void globalMutate("my-courses")
+
+        if (completed) {
+          setStatusMessage("Lesson marked complete!")
+        }
+      } catch (err) {
+        await mutateProgress()
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Could not save progress. Try again."
+        setStatusMessage(message)
+        console.error("Failed to save lesson progress:", message)
+      } finally {
+        savingRef.current = false
+        setIsSaving(false)
+      }
+    },
+    [courseId, lessonId, canAccess, mutateProgress]
+  )
+
+  const handleWatchUpdate = useCallback(
+    (positionSeconds: number, durationSeconds: number) => {
+      if (!canAccess || isLessonCompleted) return
+      const now = Date.now()
+      if (now - lastSavedAtRef.current < 10000) return
+      lastSavedAtRef.current = now
+
+      const shouldComplete =
+        durationSeconds > 0 && positionSeconds / durationSeconds >= 0.9
+
+      void persistProgress(positionSeconds, shouldComplete ? true : undefined, {
+        optimistic: shouldComplete,
+      })
+    },
+    [canAccess, isLessonCompleted, persistProgress]
+  )
+
+  const handleLessonComplete = useCallback(() => {
+    if (!canAccess || isLessonCompleted) return
+    void persistProgress(
+      currentLessonProgress?.positionSeconds ?? 0,
+      true,
+      { optimistic: true }
+    )
+  }, [
+    canAccess,
+    isLessonCompleted,
+    persistProgress,
+    currentLessonProgress?.positionSeconds,
+  ])
+
+  const handleMarkComplete = useCallback(async () => {
+    if (!courseId || !lessonId || !canAccess || isLessonCompleted || isSaving) {
+      return
+    }
+
+    setIsSaving(true)
+    setStatusMessage(null)
+
+    try {
+      const updated = await markLessonComplete(courseId, lessonId)
+      await mutateProgress(updated, { revalidate: false })
+      void globalMutate("my-courses")
+      void globalMutate(["purchased", courseId])
+      setStatusMessage("Lesson marked complete!")
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not mark lesson complete. Try again."
+      setStatusMessage(message)
+      console.error("markLessonComplete failed:", message)
+    } finally {
+      setIsSaving(false)
+    }
+  }, [
+    courseId,
+    lessonId,
+    canAccess,
+    isLessonCompleted,
+    isSaving,
+    mutateProgress,
+  ])
+
+  useEffect(() => {
+    lastSavedAtRef.current = 0
+    setStatusMessage(null)
+  }, [lessonId])
 
   const sortedLessons = useMemo(
     () => [...(lessons || [])].sort((a, b) => a.order - b.order),
@@ -122,9 +299,12 @@ export default function LessonPlayerPage() {
     )
   }
 
+  const progressPercent = courseProgress?.progress ?? 0
+  const completedCount = courseProgress?.completedLessons ?? 0
+  const totalCount = courseProgress?.totalLessons ?? lessons?.length ?? 0
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Navigation */}
       <div className="border-b bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link
@@ -132,7 +312,9 @@ export default function LessonPlayerPage() {
             className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{course?.title || "Back to Course"}</span>
+            <span className="hidden sm:inline">
+              {course?.title || "Back to Course"}
+            </span>
             <span className="sm:hidden">Back</span>
           </Link>
 
@@ -157,10 +339,26 @@ export default function LessonPlayerPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {trackProgress && (
+          <div className="mb-6 rounded-xl border bg-card p-4">
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <span className="font-medium text-foreground">Course progress</span>
+              <span className="text-muted-foreground">
+                {completedCount}/{totalCount} lessons · {progressPercent}%
+              </span>
+            </div>
+            <Progress value={progressPercent} className="h-2" />
+            {progressError && (
+              <p className="mt-2 text-sm text-destructive">
+                Could not load progress. Mark complete may still work after you
+                redeploy the API.
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          {/* Video Area */}
           <div>
             {canAccess ? (
               videoLoading ? (
@@ -169,6 +367,11 @@ export default function LessonPlayerPage() {
                 <VideoPlayer
                   videoUrl={videoData.url}
                   title={currentLesson.title}
+                  initialPositionSeconds={
+                    currentLessonProgress?.positionSeconds ?? 0
+                  }
+                  onWatchUpdate={handleWatchUpdate}
+                  onLessonComplete={handleLessonComplete}
                 />
               ) : (
                 <div className="flex aspect-video items-center justify-center rounded-xl bg-muted">
@@ -194,7 +397,6 @@ export default function LessonPlayerPage() {
               </div>
             )}
 
-            {/* Lesson Info */}
             <div className="mt-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0 flex-1">
@@ -204,36 +406,58 @@ export default function LessonPlayerPage() {
                   <p className="mt-3 text-muted-foreground">
                     {currentLesson.description}
                   </p>
+                  {isLessonCompleted && (
+                    <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-accent">
+                      <CheckCircle className="h-4 w-4" />
+                      You completed this lesson
+                    </p>
+                  )}
                 </div>
                 {canAccess && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={lessonCompleted ? "outline" : "default"}
-                    disabled={lessonCompleted}
-                    className="shrink-0 self-start"
-                    onClick={() => setLessonCompleted(true)}
-                  >
-                    <CheckCircle className="mr-1.5 h-4 w-4" />
-                    {lessonCompleted ? "Completed" : "Complete lesson"}
-                  </Button>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={isLessonCompleted ? "outline" : "default"}
+                      disabled={isLessonCompleted || isSaving}
+                      className="self-start sm:self-auto"
+                      onClick={handleMarkComplete}
+                    >
+                      {isSaving ? (
+                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="mr-1.5 h-4 w-4" />
+                      )}
+                      {isLessonCompleted ? "Completed" : "Mark complete"}
+                    </Button>
+                    {statusMessage && (
+                      <p
+                        className={`max-w-sm text-right text-sm font-medium ${
+                          statusMessage.toLowerCase().includes("complete")
+                            ? "text-accent"
+                            : "text-destructive"
+                        }`}
+                      >
+                        {statusMessage}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="hidden h-[calc(100vh-200px)] lg:block">
             <LessonSidebar
               lessons={lessons || []}
               courseId={courseId}
               currentLessonId={lessonId}
               hasPurchased={!!purchased}
+              completedLessonIds={completedLessonIds}
             />
           </div>
         </div>
 
-        {/* Mobile Lesson List */}
         <div className="mt-8 lg:hidden">
           <h3 className="mb-4 font-semibold text-foreground">Course Content</h3>
           <LessonSidebar
@@ -241,6 +465,7 @@ export default function LessonPlayerPage() {
             courseId={courseId}
             currentLessonId={lessonId}
             hasPurchased={!!purchased}
+            completedLessonIds={completedLessonIds}
           />
         </div>
       </div>
