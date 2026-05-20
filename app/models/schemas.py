@@ -42,6 +42,13 @@ class CourseOut(BaseModel):
     is_published: bool = False
 
 
+class PurchasedCourseOut(CourseOut):
+    progress: int = 0
+    completed_lessons: int = 0
+    total_lessons: int = 0
+    last_watched_lesson_id: Optional[str] = None
+
+
 class LessonCreate(BaseModel):
     course_id: str = Field(..., min_length=1, max_length=100)
     title: str = Field(..., min_length=1, max_length=100)

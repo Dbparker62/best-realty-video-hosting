@@ -176,10 +176,29 @@ export async function initiateCheckout(
   }
 }
 
-/**
- * When GET /my-courses exists on the API, returns server data.
- * Otherwise derives purchased courses by probing video access (no backend change required).
- */
+interface PurchasedCourseApi extends CourseApi {
+  progress?: number
+  completed_lessons?: number
+  completedLessons?: number
+  total_lessons?: number
+  totalLessons?: number
+  last_watched_lesson_id?: string | null
+  lastWatchedLessonId?: string
+}
+
+function mapPurchasedCourseFromApi(item: PurchasedCourseApi): PurchasedCourse {
+  return {
+    ...mapCourseFromApi(item),
+    progress: Number(item.progress) || 0,
+    completedLessons:
+      Number(item.completed_lessons ?? item.completedLessons) || 0,
+    totalLessons: Number(item.total_lessons ?? item.totalLessons) || 0,
+    lastWatchedLessonId:
+      item.last_watched_lesson_id ?? item.lastWatchedLessonId ?? undefined,
+  }
+}
+
+/** Enrolled courses from GET /my-courses (DynamoDB course access). */
 export async function getMyCourses(): Promise<PurchasedCourse[]> {
   const response = await fetch(`${API_BASE_URL}/my-courses`, {
     headers: authHeaders(),
@@ -193,18 +212,12 @@ export async function getMyCourses(): Promise<PurchasedCourse[]> {
     throw new Error("Failed to fetch your courses")
   }
 
-  const data = await response.json()
+  const data = (await response.json()) as PurchasedCourseApi[]
   if (!Array.isArray(data)) {
     return []
   }
 
-  return data.map((item: CourseApi & Partial<PurchasedCourse>) => ({
-    ...mapCourseFromApi(item),
-    progress: Number(item.progress) || 0,
-    completedLessons: Number(item.completedLessons) || 0,
-    totalLessons: Number(item.totalLessons) || 0,
-    lastWatchedLessonId: item.lastWatchedLessonId,
-  }))
+  return data.map(mapPurchasedCourseFromApi)
 }
 
 async function getMyCoursesDerived(): Promise<PurchasedCourse[]> {
