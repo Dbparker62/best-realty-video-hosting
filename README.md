@@ -1,73 +1,56 @@
-# React + TypeScript + Vite
+# Best Realty Video Course Platform
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A deployed video course platform built for Best Realty to manage, sell, and securely deliver online course content.
 
-Currently, two official plugins are available:
+Live site: https://best-realty-video-hosting.vercel.app/
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What It Does
 
-## React Compiler
+This platform allows users to browse courses, sign in with secure authentication, access enrolled course content, and watch protected lesson videos. Admin users can create courses, add lessons, upload videos, and manage course content through an admin dashboard.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Key Features
 
-## Expanding the ESLint configuration
+- User authentication with Amazon Cognito
+- Role-based access for admins and customers
+- Course and lesson management
+- Secure video uploads to Amazon S3
+- Private video delivery through CloudFront signed URLs
+- Serverless backend using AWS Lambda and API Gateway
+- Course data stored in DynamoDB
+- Frontend deployed on Vercel with Next.js
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Tech Stack
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Frontend**
+- Next.js
+- React
+- TypeScript
+- Vercel
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+**Backend**
+- Python
+- FastAPI
+- AWS Lambda
+- API Gateway
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+**AWS Infrastructure**
+- Cognito
+- DynamoDB
+- S3
+- CloudFront
+- IAM
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+**Payments**
+- Stripe integration in progress
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Architecture Overview
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+The frontend communicates with a FastAPI backend deployed on AWS Lambda through API Gateway. Users authenticate through Cognito. Course, lesson, user, purchase, and access data are stored in DynamoDB. Videos are uploaded to a private S3 bucket and delivered through CloudFront using signed URLs, ensuring users can only access videos they are authorized to view.
+
+## Project Status
+
+The core platform is deployed and functional. Current work includes improving customer dashboards, course progress tracking, Stripe payment flow, and additional admin tools.
+
+## Why This Project Matters
+
+This project was built to solve a real business need: securely hosting and delivering online course content while giving administrators control over courses, lessons, and media. It demonstrates backend development, cloud infrastructure, authentication, authorization, secure media delivery, and production deployment.
