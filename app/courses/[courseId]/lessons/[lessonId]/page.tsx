@@ -1,9 +1,9 @@
 "use client"
 
-import { useCallback, useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import useSWR from "swr"
+import useSWR, { mutate as globalMutate } from "swr"
 import {
   getCourse,
   getCourseLessons,
@@ -12,19 +12,45 @@ import {
   hasPurchasedCourse,
   updateLessonProgress,
 } from "@/lib/api"
+import type { CourseProgress } from "@/lib/types"
 import { useAuth } from "@/lib/auth-context"
 import { VideoPlayer } from "@/components/video-player"
 import { LessonSidebar } from "@/components/lesson-sidebar"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   ArrowLeft,
   CheckCircle,
   ChevronLeft,
   ChevronRight,
+  Loader2,
   Lock,
 } from "lucide-react"
 import type { Lesson } from "@/lib/types"
+
+function applyLessonCompleted(
+  progress: CourseProgress | undefined,
+  lessonId: string
+): CourseProgress | undefined {
+  if (!progress) return progress
+
+  const lessons = progress.lessons.map((row) =>
+    row.lessonId === lessonId ? { ...row, completed: true } : row
+  )
+  const completedLessons = lessons.filter((row) => row.completed).length
+  const totalLessons = progress.totalLessons || lessons.length
+
+  return {
+    ...progress,
+    lessons,
+    completedLessons,
+    progress:
+      totalLessons > 0
+        ? Math.round((completedLessons / totalLessons) * 100)
+        : 0,
+  }
+}
 
 export default function LessonPlayerPage() {
   const params = useParams()
@@ -40,6 +66,8 @@ export default function LessonPlayerPage() {
   const { canUseCustomerFeatures } = useAuth()
   const lastSavedAtRef = useRef(0)
   const savingRef = useRef(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [statusMessage, setStatusMessage] = useState<string | null>(null)
 
   const { data: course } = useSWR(
     courseId ? ["course", courseId] : null,
@@ -67,10 +95,14 @@ export default function LessonPlayerPage() {
 
   const trackProgress = Boolean(canUseCustomerFeatures && courseId && canAccess)
 
-  const { data: courseProgress, mutate: mutateProgress } = useSWR(
-    trackProgress && courseId ? ["course-progress", courseId] : null,
-    () => getCourseProgress(courseId as string)
-  )
+  const progressKey =
+    trackProgress && courseId ? ["course-progress", courseId] : null
+
+  const {
+    data: courseProgress,
+    mutate: mutateProgress,
+    error: progressError,
+  } = useSWR(progressKey, () => getCourseProgress(courseId as string))
 
   const currentLessonProgress = useMemo(
     () => courseProgress?.lessons.find((l) => l.lessonId === lessonId),
@@ -98,18 +130,46 @@ export default function LessonPlayerPage() {
     }
   )
 
-  const saveProgress = useCallback(
-    async (positionSeconds: number, completed?: boolean) => {
+  const persistProgress = useCallback(
+    async (
+      positionSeconds: number,
+      completed?: boolean,
+      options?: { optimistic?: boolean }
+    ) => {
       if (!courseId || !lessonId || !canAccess || savingRef.current) return
+
       savingRef.current = true
+      setIsSaving(true)
+      setStatusMessage(null)
+
+      if (options?.optimistic && completed) {
+        await mutateProgress(
+          (current) => applyLessonCompleted(current, lessonId),
+          { revalidate: false }
+        )
+      }
+
       try {
-        await updateLessonProgress(courseId, lessonId, {
+        const updated = await updateLessonProgress(courseId, lessonId, {
           positionSeconds: Math.floor(positionSeconds),
           completed,
         })
+        await mutateProgress(updated, { revalidate: false })
+        void globalMutate("my-courses")
+
+        if (completed) {
+          setStatusMessage("Lesson marked complete!")
+        }
+      } catch (err) {
         await mutateProgress()
+        setStatusMessage(
+          err instanceof Error
+            ? err.message
+            : "Could not save progress. Try again."
+        )
       } finally {
         savingRef.current = false
+        setIsSaving(false)
       }
     },
     [courseId, lessonId, canAccess, mutateProgress]
@@ -117,47 +177,52 @@ export default function LessonPlayerPage() {
 
   const handleWatchUpdate = useCallback(
     (positionSeconds: number, durationSeconds: number) => {
-      if (!canAccess) return
+      if (!canAccess || isLessonCompleted) return
       const now = Date.now()
       if (now - lastSavedAtRef.current < 10000) return
       lastSavedAtRef.current = now
 
-      const completed =
+      const shouldComplete =
         durationSeconds > 0 && positionSeconds / durationSeconds >= 0.9
 
-      void saveProgress(positionSeconds, completed ? true : undefined)
+      void persistProgress(positionSeconds, shouldComplete ? true : undefined, {
+        optimistic: shouldComplete,
+      })
     },
-    [canAccess, saveProgress]
+    [canAccess, isLessonCompleted, persistProgress]
   )
 
   const handleLessonComplete = useCallback(() => {
     if (!canAccess || isLessonCompleted) return
-    void saveProgress(
+    void persistProgress(
       currentLessonProgress?.positionSeconds ?? 0,
-      true
+      true,
+      { optimistic: true }
     )
   }, [
     canAccess,
     isLessonCompleted,
-    saveProgress,
+    persistProgress,
     currentLessonProgress?.positionSeconds,
   ])
 
   const handleMarkComplete = useCallback(() => {
     if (!canAccess || isLessonCompleted) return
-    void saveProgress(
+    void persistProgress(
       currentLessonProgress?.positionSeconds ?? 0,
-      true
+      true,
+      { optimistic: true }
     )
   }, [
     canAccess,
     isLessonCompleted,
-    saveProgress,
+    persistProgress,
     currentLessonProgress?.positionSeconds,
   ])
 
   useEffect(() => {
     lastSavedAtRef.current = 0
+    setStatusMessage(null)
   }, [lessonId])
 
   const sortedLessons = useMemo(
@@ -211,6 +276,10 @@ export default function LessonPlayerPage() {
     )
   }
 
+  const progressPercent = courseProgress?.progress ?? 0
+  const completedCount = courseProgress?.completedLessons ?? 0
+  const totalCount = courseProgress?.totalLessons ?? lessons?.length ?? 0
+
   return (
     <div className="min-h-screen bg-background">
       <div className="border-b bg-card">
@@ -248,15 +317,22 @@ export default function LessonPlayerPage() {
       </div>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        {courseProgress && courseProgress.totalLessons > 0 && (
-          <p className="mb-4 text-sm text-muted-foreground">
-            Course progress:{" "}
-            <span className="font-medium text-foreground">
-              {courseProgress.progress}%
-            </span>{" "}
-            ({courseProgress.completedLessons}/{courseProgress.totalLessons}{" "}
-            lessons completed)
-          </p>
+        {trackProgress && (
+          <div className="mb-6 rounded-xl border bg-card p-4">
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <span className="font-medium text-foreground">Course progress</span>
+              <span className="text-muted-foreground">
+                {completedCount}/{totalCount} lessons · {progressPercent}%
+              </span>
+            </div>
+            <Progress value={progressPercent} className="h-2" />
+            {progressError && (
+              <p className="mt-2 text-sm text-destructive">
+                Could not load progress. Mark complete may still work after you
+                redeploy the API.
+              </p>
+            )}
+          </div>
         )}
 
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -307,19 +383,42 @@ export default function LessonPlayerPage() {
                   <p className="mt-3 text-muted-foreground">
                     {currentLesson.description}
                   </p>
+                  {isLessonCompleted && (
+                    <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-accent">
+                      <CheckCircle className="h-4 w-4" />
+                      You completed this lesson
+                    </p>
+                  )}
                 </div>
                 {canAccess && (
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant={isLessonCompleted ? "outline" : "default"}
-                    disabled={isLessonCompleted}
-                    className="shrink-0 self-start"
-                    onClick={handleMarkComplete}
-                  >
-                    <CheckCircle className="mr-1.5 h-4 w-4" />
-                    {isLessonCompleted ? "Completed" : "Mark complete"}
-                  </Button>
+                  <div className="flex shrink-0 flex-col items-end gap-2">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={isLessonCompleted ? "outline" : "default"}
+                      disabled={isLessonCompleted || isSaving}
+                      className="self-start sm:self-auto"
+                      onClick={handleMarkComplete}
+                    >
+                      {isSaving ? (
+                        <Loader2 className="mr-1.5 h-4 w-4 animate-spin" />
+                      ) : (
+                        <CheckCircle className="mr-1.5 h-4 w-4" />
+                      )}
+                      {isLessonCompleted ? "Completed" : "Mark complete"}
+                    </Button>
+                    {statusMessage && (
+                      <p
+                        className={`max-w-xs text-right text-xs ${
+                          statusMessage.includes("complete")
+                            ? "text-accent"
+                            : "text-destructive"
+                        }`}
+                      >
+                        {statusMessage}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

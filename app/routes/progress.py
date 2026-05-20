@@ -17,7 +17,7 @@ def get_course_progress(course_id: str, user=Depends(require_customer)):
 
 @router.put(
     "/courses/{course_id}/lessons/{lesson_id}/progress",
-    response_model=schemas.LessonProgressOut,
+    response_model=schemas.CourseProgressOut,
 )
 def update_lesson_progress(
     course_id: str,
@@ -25,16 +25,11 @@ def update_lesson_progress(
     body: schemas.LessonProgressUpdate,
     user=Depends(require_customer),
 ):
-    item = progress_service.upsert_lesson_progress(
+    progress_service.upsert_lesson_progress(
         user,
         course_id,
         lesson_id,
         completed=body.completed,
         position_seconds=body.position_seconds,
     )
-    return {
-        "lesson_id": item.get("lesson_id", lesson_id),
-        "completed": bool(item.get("completed")),
-        "position_seconds": item.get("position_seconds"),
-        "last_watched_at": item.get("last_watched_at"),
-    }
+    return progress_service.summarize_course_progress(user["sub"], course_id)

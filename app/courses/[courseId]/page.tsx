@@ -4,7 +4,13 @@ import { useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import useSWR from "swr"
-import { getCourse, getCourseLessons, initiateCheckout, hasPurchasedCourse } from "@/lib/api"
+import {
+  getCourse,
+  getCourseLessons,
+  getCourseProgress,
+  initiateCheckout,
+  hasPurchasedCourse,
+} from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { LessonList } from "@/components/lesson-list"
 import { Button } from "@/components/ui/button"
@@ -34,6 +40,23 @@ export default function CourseDetailPage() {
     canUseCustomerFeatures && courseId ? ["purchased", courseId] : null,
     () => hasPurchasedCourse(courseId as string),
     { revalidateOnFocus: true }
+  )
+
+  const { data: courseProgress } = useSWR(
+    canUseCustomerFeatures && purchased && courseId
+      ? ["course-progress", courseId]
+      : null,
+    () => getCourseProgress(courseId as string)
+  )
+
+  const completedLessonIds = useMemo(
+    () =>
+      new Set(
+        courseProgress?.lessons
+          .filter((l) => l.completed)
+          .map((l) => l.lessonId) ?? []
+      ),
+    [courseProgress]
   )
 
   const handleBuyCourse = useCallback(async () => {
@@ -207,11 +230,23 @@ export default function CourseDetailPage() {
             ))}
           </div>
         ) : lessons && lessons.length > 0 ? (
-          <LessonList
-            lessons={lessons}
-            courseId={courseId}
-            hasPurchased={!!purchased}
-          />
+          <>
+            {purchased && courseProgress && courseProgress.totalLessons > 0 && (
+              <p className="mb-4 text-sm text-muted-foreground">
+                Your progress:{" "}
+                <span className="font-medium text-foreground">
+                  {courseProgress.completedLessons}/{courseProgress.totalLessons}{" "}
+                  lessons ({courseProgress.progress}%)
+                </span>
+              </p>
+            )}
+            <LessonList
+              lessons={lessons}
+              courseId={courseId}
+              hasPurchased={!!purchased}
+              completedLessonIds={completedLessonIds}
+            />
+          </>
         ) : (
           <div className="rounded-xl border bg-muted/30 p-8 text-center">
             <p className="text-muted-foreground">

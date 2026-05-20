@@ -393,7 +393,7 @@ export async function updateLessonProgress(
   courseId: string,
   lessonId: string,
   payload: { completed?: boolean; positionSeconds?: number }
-): Promise<LessonProgress> {
+): Promise<CourseProgress> {
   const response = await fetch(
     `${API_BASE_URL}/courses/${courseId}/lessons/${lessonId}/progress`,
     {
@@ -407,25 +407,11 @@ export async function updateLessonProgress(
   )
 
   if (!response.ok) {
-    throw new Error("Failed to update lesson progress")
+    throw new Error(await parseApiError(response))
   }
 
-  const data = (await response.json()) as {
-    lesson_id: string
-    completed?: boolean
-    position_seconds?: number | null
-    last_watched_at?: string | null
-  }
-
-  return {
-    lessonId: data.lesson_id,
-    completed: Boolean(data.completed),
-    positionSeconds:
-      data.position_seconds != null
-        ? Number(data.position_seconds)
-        : undefined,
-    lastWatchedAt: data.last_watched_at ?? undefined,
-  }
+  const data = (await response.json()) as CourseProgressApi
+  return mapCourseProgressFromApi(data)
 }
 
 export async function getLessonVideoUrl(lessonId: string): Promise<VideoUrl> {
