@@ -42,6 +42,21 @@ class CourseOut(BaseModel):
     is_published: bool = False
 
 
+class CourseAccessOut(BaseModel):
+    has_access: bool
+    course_id: str
+
+
+class CheckoutConfirmRequest(BaseModel):
+    session_id: str = Field(..., min_length=1)
+
+
+class CheckoutConfirmOut(BaseModel):
+    course_id: str
+    has_access: bool
+    already_recorded: bool = False
+
+
 class PurchasedCourseOut(CourseOut):
     progress: int = 0
     completed_lessons: int = 0

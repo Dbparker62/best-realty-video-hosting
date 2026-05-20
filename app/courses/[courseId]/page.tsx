@@ -32,7 +32,8 @@ export default function CourseDetailPage() {
 
   const { data: purchased } = useSWR(
     canUseCustomerFeatures && courseId ? ["purchased", courseId] : null,
-    () => hasPurchasedCourse(courseId as string)
+    () => hasPurchasedCourse(courseId as string),
+    { revalidateOnFocus: true }
   )
 
   const handleBuyCourse = useCallback(async () => {

@@ -6,7 +6,8 @@ from boto3.dynamodb.conditions import Attr
 from app.utils.error import not_found
 from app.models import schemas
 from app.utils.database import users_table, courses_table, lessons_table
-from app.utils.auth import require_admin
+from app.services.access_service import has_course_access
+from app.utils.auth import require_admin, require_customer
 
 router = APIRouter()
 
@@ -92,5 +93,12 @@ def delete_course(course_id: str, user=Depends(require_admin)):
 def list_courses():
     response = courses_table.scan()
     return response.get("Items", [])
+
+
+@router.get("/courses/{course_id}/access", response_model=schemas.CourseAccessOut)
+def get_course_access(course_id: str, user=Depends(require_customer)):
+    is_admin = "admin" in user.get("groups", [])
+    has_access = is_admin or has_course_access(user["sub"], course_id)
+    return {"has_access": has_access, "course_id": course_id}
 
 

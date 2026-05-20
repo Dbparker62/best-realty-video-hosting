@@ -12,7 +12,8 @@ from app.services import payment_service
 from app.services.access_service import has_course_access
 from app.utils.auth import require_customer
 from app.utils.database import courses_table
-from app.utils.error import conflict, not_found
+from app.models import schemas
+from app.utils.error import conflict, forbidden, not_found
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +61,10 @@ def create_checkout_session(
                 "quantity": 1,
             }
         ],
-        success_url=f"{base}/payment/success?course_id={course_id}",
+        success_url=(
+            f"{base}/payment/success?course_id={course_id}"
+            "&session_id={CHECKOUT_SESSION_ID}"
+        ),
         cancel_url=f"{base}/payment/cancel",
         metadata={
             "user_id": user_id,
@@ -69,6 +73,52 @@ def create_checkout_session(
     )
 
     return {"checkout_url": session.url}
+
+
+@router.post("/checkout/confirm", response_model=schemas.CheckoutConfirmOut)
+def confirm_checkout(
+    body: schemas.CheckoutConfirmRequest,
+    user=Depends(require_customer),
+):
+    """
+    Fulfill purchase after Stripe redirect (works even if webhook is delayed or missing).
+    Verifies the session belongs to the signed-in user and payment is complete.
+    """
+    session = stripe.checkout.Session.retrieve(body.session_id)
+    session_dict = payment_service._stripe_session_dict(session)
+    metadata = session_dict.get("metadata") or {}
+
+    if metadata.get("user_id") != user["sub"]:
+        forbidden(
+            "SESSION_USER_MISMATCH",
+            "This checkout session does not belong to your account",
+            {"session_id": body.session_id},
+        )
+
+    course_id = metadata.get("course_id")
+    if not course_id:
+        not_found(
+            "MISSING_COURSE_ID",
+            "Checkout session is missing course_id metadata",
+            {"session_id": body.session_id},
+        )
+
+    if session_dict.get("payment_status") != "paid":
+        not_found(
+            "PAYMENT_NOT_COMPLETE",
+            "Payment is not complete yet",
+            {
+                "session_id": body.session_id,
+                "payment_status": session_dict.get("payment_status"),
+            },
+        )
+
+    result = payment_service.record_successful_purchase(session_dict)
+    return {
+        "course_id": course_id,
+        "has_access": True,
+        "already_recorded": result.get("already_recorded", False),
+    }
 
 
 @router.post("/stripe/webhook")

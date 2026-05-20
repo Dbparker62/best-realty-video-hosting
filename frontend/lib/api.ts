@@ -248,6 +248,34 @@ async function getMyCoursesDerived(): Promise<PurchasedCourse[]> {
   return result
 }
 
+export async function confirmCheckout(sessionId: string): Promise<{
+  courseId: string
+  hasAccess: boolean
+}> {
+  const response = await fetch(`${API_BASE_URL}/checkout/confirm`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ session_id: sessionId }),
+  })
+
+  if (!response.ok) {
+    const text = await response.text()
+    throw new Error(
+      text || "Failed to confirm checkout. Sign in and try again."
+    )
+  }
+
+  const data = (await response.json()) as {
+    course_id: string
+    has_access: boolean
+  }
+
+  return {
+    courseId: data.course_id,
+    hasAccess: Boolean(data.has_access),
+  }
+}
+
 async function canFetchLessonVideo(lessonId: string): Promise<boolean> {
   const response = await fetch(
     `${API_BASE_URL}/lessons/${lessonId}/video-url`,
@@ -259,20 +287,29 @@ async function canFetchLessonVideo(lessonId: string): Promise<boolean> {
   return response.ok
 }
 
-/**
- * Uses lesson video access as purchase signal when /my-courses is unavailable.
- */
+/** Checks DynamoDB course access (not whether a video file exists). */
 export async function hasPurchasedCourse(courseId: string): Promise<boolean> {
-  const lessons = await getCourseLessons(courseId)
-  if (lessons.length === 0) {
-    return false
+  const response = await fetch(`${API_BASE_URL}/courses/${courseId}/access`, {
+    headers: authHeaders(),
+  })
+
+  if (response.ok) {
+    const data = (await response.json()) as { has_access?: boolean }
+    return Boolean(data.has_access)
   }
 
-  const sorted = [...lessons].sort((a, b) => a.order - b.order)
-  const firstPaid =
-    sorted.find((l) => !l.isPreview) ?? sorted[0]
+  if (response.status === 404 || response.status === 501) {
+    const lessons = await getCourseLessons(courseId)
+    if (lessons.length === 0) {
+      return false
+    }
 
-  return canFetchLessonVideo(firstPaid.id)
+    const sorted = [...lessons].sort((a, b) => a.order - b.order)
+    const firstPaid = sorted.find((l) => !l.isPreview) ?? sorted[0]
+    return canFetchLessonVideo(firstPaid.id)
+  }
+
+  return false
 }
 
 interface CourseProgressApi {
