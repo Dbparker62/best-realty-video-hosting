@@ -9,13 +9,25 @@ import type {
 } from "./types"
 
 /**
- * Use `NEXT_PUBLIC_API_URL=/api` with the Next.js rewrite (see next.config.mjs) to avoid
- * browser CORS when the API does not send Access-Control-* headers.
- * Otherwise default to calling the FastAPI server directly.
+ * Browser calls use `/api` (Next.js rewrite → API Gateway) to avoid CORS.
+ * Override with NEXT_PUBLIC_API_URL only if you configure API Gateway CORS yourself.
  */
-export const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_URL ?? "https://36fjcwgqfc.execute-api.us-east-1.amazonaws.com"
-).replace(/\/$/, "")
+function resolveApiBaseUrl(): string {
+  const fromEnv = process.env.NEXT_PUBLIC_API_URL?.trim()
+  if (fromEnv) {
+    return fromEnv.replace(/\/$/, "")
+  }
+  if (typeof window !== "undefined") {
+    return "/api"
+  }
+  const vercelHost = process.env.VERCEL_URL?.trim()
+  if (vercelHost) {
+    return `https://${vercelHost.replace(/^https?:\/\//, "")}/api`
+  }
+  return "https://36fjcwgqfc.execute-api.us-east-1.amazonaws.com"
+}
+
+export const API_BASE_URL = resolveApiBaseUrl()
 
 function getAccessToken(): string | null {
   if (typeof window === "undefined") return null
