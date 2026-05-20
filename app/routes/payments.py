@@ -1,6 +1,7 @@
 import logging
 
 import stripe
+from botocore.exceptions import ClientError
 from fastapi import APIRouter, Depends, HTTPException, Request
 
 from app.config import (
@@ -8,12 +9,12 @@ from app.config import (
     STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET,
 )
+from app.models import schemas
 from app.services import payment_service
 from app.services.access_service import has_course_access
 from app.utils.auth import require_customer
 from app.utils.database import courses_table
-from app.models import schemas
-from app.utils.error import conflict, forbidden, not_found
+from app.utils.error import bad_request, conflict, forbidden, not_found
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +32,22 @@ def confirm_checkout(
     Fulfill purchase after Stripe redirect (works even if webhook is delayed or missing).
     Verifies the session belongs to the signed-in user and payment is complete.
     """
-    session = stripe.checkout.Session.retrieve(body.session_id)
+    if not STRIPE_SECRET_KEY:
+        bad_request(
+            "STRIPE_NOT_CONFIGURED",
+            "Stripe secret key is not configured on the API",
+        )
+
+    try:
+        session = stripe.checkout.Session.retrieve(body.session_id)
+    except stripe.error.StripeError as exc:
+        logger.exception("Stripe session retrieve failed: %s", body.session_id)
+        bad_request(
+            "STRIPE_ERROR",
+            str(exc.user_message) if hasattr(exc, "user_message") else str(exc),
+            {"session_id": body.session_id},
+        )
+
     session_dict = payment_service._stripe_session_dict(session)
     metadata = session_dict.get("metadata") or {}
 
@@ -60,10 +76,29 @@ def confirm_checkout(
             },
         )
 
-    result = payment_service.record_successful_purchase(session_dict)
+    try:
+        result = payment_service.record_successful_purchase(session_dict)
+    except HTTPException:
+        raise
+    except ClientError as exc:
+        error = exc.response.get("Error", {})
+        logger.exception("DynamoDB error during checkout confirm")
+        conflict(
+            "DATABASE_ERROR",
+            error.get("Message", "Database error while saving purchase"),
+            {"aws_code": error.get("Code")},
+        )
+    except Exception as exc:
+        logger.exception("Unexpected error during checkout confirm")
+        conflict(
+            "CONFIRM_FAILED",
+            str(exc) or "Could not confirm purchase",
+            {"session_id": body.session_id},
+        )
+
     return {
         "course_id": course_id,
-        "has_access": True,
+        "has_access": has_course_access(user["sub"], course_id),
         "already_recorded": result.get("already_recorded", False),
     }
 

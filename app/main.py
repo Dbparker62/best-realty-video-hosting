@@ -1,6 +1,9 @@
+import logging
 import os
 
-from fastapi import FastAPI
+from botocore.exceptions import ClientError
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from mangum import Mangum
 from app.routes.payments import router as payments_router
 from app.routes.users import router as users_router
@@ -12,7 +15,47 @@ from app.routes.admin import router as admin_router
 from app.routes.my_courses import router as my_courses_router
 from app.routes.progress import router as progress_router
 from fastapi.middleware.cors import CORSMiddleware
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="Real Estate Course Platform API")
+
+
+@app.exception_handler(HTTPException)
+async def http_exception_handler(_request: Request, exc: HTTPException):
+    detail = exc.detail
+    if not isinstance(detail, dict):
+        detail = {"error": {"code": "HTTP_ERROR", "message": str(detail)}}
+    return JSONResponse(status_code=exc.status_code, content=detail)
+
+
+@app.exception_handler(ClientError)
+async def dynamodb_exception_handler(_request: Request, exc: ClientError):
+    error = exc.response.get("Error", {})
+    logger.exception("DynamoDB client error: %s", error.get("Message", exc))
+    return JSONResponse(
+        status_code=503,
+        content={
+            "error": {
+                "code": "DYNAMODB_ERROR",
+                "message": error.get("Message", "Database error"),
+                "details": {"aws_code": error.get("Code")},
+            }
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(_request: Request, exc: Exception):
+    logger.exception("Unhandled API error")
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": {
+                "code": "INTERNAL_ERROR",
+                "message": str(exc) or "Internal server error",
+            }
+        },
+    )
 
 app.include_router(users_router)
 app.include_router(courses_router)

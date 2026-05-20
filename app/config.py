@@ -15,6 +15,9 @@ COGNITO_USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
 COGNITO_CLIENT_ID = os.getenv("COGNITO_CLIENT_ID")
 LESSONS_TABLE=os.getenv("LESSONS_TABLE")
 PURCHASES_TABLE = os.getenv("PURCHASES_TABLE", "course-platform-purchases")
+# DynamoDB key schema for course-platform-purchases (partition + sort key)
+PURCHASES_HASH_KEY = os.getenv("PURCHASES_HASH_KEY", "user_id")
+PURCHASES_RANGE_KEY = os.getenv("PURCHASES_RANGE_KEY", "course_id")
 COURSE_ACCESS_TABLE = os.getenv(
     "COURSE_ACCESS_TABLE", "course-platform-course-access"
 )
