@@ -1,13 +1,8 @@
 import logging
 
-from app.services.access_service import (
-    get_completed_lesson_ids,
-    get_last_watched_lesson_id,
-    get_lesson_position_seconds,
-    has_course_access,
-    save_lesson_progress_on_access,
-)
+from app.services.access_service import has_course_access
 from app.services.lesson_service import check_lesson_exists, list_lessons_for_course
+from app.services import progress_store
 from app.utils.error import forbidden, not_found
 
 logger = logging.getLogger(__name__)
@@ -34,8 +29,10 @@ def _ensure_can_track_progress(user: dict, course_id: str, lesson: dict) -> None
 def summarize_course_progress(user_id: str, course_id: str) -> dict:
     lessons = list_lessons_for_course(course_id)
     total_lessons = len(lessons)
-    completed_ids = get_completed_lesson_ids(user_id, course_id)
-    last_watched_lesson_id = get_last_watched_lesson_id(user_id, course_id)
+    completed_ids = progress_store.get_completed_lesson_ids(user_id, course_id)
+    last_watched_lesson_id = progress_store.get_last_watched_lesson_id(
+        user_id, course_id
+    )
 
     completed_count = 0
     lesson_progress = []
@@ -50,7 +47,7 @@ def summarize_course_progress(user_id: str, course_id: str) -> dict:
             {
                 "lesson_id": lesson_id,
                 "completed": completed,
-                "position_seconds": get_lesson_position_seconds(
+                "position_seconds": progress_store.get_lesson_position_seconds(
                     user_id, course_id, lesson_id
                 ),
                 "last_watched_at": None,
@@ -109,12 +106,22 @@ def upsert_lesson_progress(
 
     _ensure_can_track_progress(user, course_id, lesson)
 
-    user_id = user["sub"]
-
-    return save_lesson_progress_on_access(
-        user_id,
+    return progress_store.save_lesson_progress(
+        user["sub"],
         course_id,
         lesson_id,
-        completed=completed,
+        completed=bool(completed),
         position_seconds=position_seconds,
     )
+
+
+def mark_lesson_complete(user: dict, course_id: str, lesson_id: str) -> dict:
+    """Mark a lesson complete (writes to purchase row, returns full course progress)."""
+    upsert_lesson_progress(
+        user,
+        course_id,
+        lesson_id,
+        completed=True,
+        position_seconds=None,
+    )
+    return summarize_course_progress(user["sub"], course_id)

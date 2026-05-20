@@ -399,20 +399,46 @@ export async function getCourseProgress(
   return mapCourseProgressFromApi(data)
 }
 
+/** Mark one lesson complete — saves to your purchase row in DynamoDB. */
+export async function markLessonComplete(
+  courseId: string,
+  lessonId: string
+): Promise<CourseProgress> {
+  const response = await fetch(
+    `${API_BASE_URL}/courses/${courseId}/lessons/${lessonId}/complete`,
+    {
+      method: "POST",
+      headers: authHeaders(),
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error(await parseApiError(response))
+  }
+
+  const data = (await response.json()) as CourseProgressApi
+  return mapCourseProgressFromApi(data)
+}
+
 export async function updateLessonProgress(
   courseId: string,
   lessonId: string,
   payload: { completed?: boolean; positionSeconds?: number }
 ): Promise<CourseProgress> {
+  const body: Record<string, unknown> = {}
+  if (payload.completed === true) {
+    body.completed = true
+  }
+  if (payload.positionSeconds != null) {
+    body.position_seconds = payload.positionSeconds
+  }
+
   const response = await fetch(
     `${API_BASE_URL}/courses/${courseId}/lessons/${lessonId}/progress`,
     {
       method: "PUT",
       headers: authHeaders(),
-      body: JSON.stringify({
-        completed: payload.completed,
-        position_seconds: payload.positionSeconds,
-      }),
+      body: JSON.stringify(body),
     }
   )
 

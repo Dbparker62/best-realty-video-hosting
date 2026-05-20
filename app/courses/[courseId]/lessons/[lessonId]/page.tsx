@@ -10,6 +10,7 @@ import {
   getCourseProgress,
   getLessonVideoUrl,
   hasPurchasedCourse,
+  markLessonComplete,
   updateLessonProgress,
 } from "@/lib/api"
 import type { CourseProgress } from "@/lib/types"
@@ -102,7 +103,10 @@ export default function LessonPlayerPage() {
     data: courseProgress,
     mutate: mutateProgress,
     error: progressError,
-  } = useSWR(progressKey, () => getCourseProgress(courseId as string))
+    isLoading: progressLoading,
+  } = useSWR(progressKey, () => getCourseProgress(courseId as string), {
+    revalidateOnFocus: true,
+  })
 
   const currentLessonProgress = useMemo(
     () => courseProgress?.lessons.find((l) => l.lessonId === lessonId),
@@ -207,18 +211,37 @@ export default function LessonPlayerPage() {
     currentLessonProgress?.positionSeconds,
   ])
 
-  const handleMarkComplete = useCallback(() => {
-    if (!canAccess || isLessonCompleted) return
-    void persistProgress(
-      currentLessonProgress?.positionSeconds ?? 0,
-      true,
-      { optimistic: true }
-    )
+  const handleMarkComplete = useCallback(async () => {
+    if (!courseId || !lessonId || !canAccess || isLessonCompleted || isSaving) {
+      return
+    }
+
+    setIsSaving(true)
+    setStatusMessage(null)
+
+    try {
+      const updated = await markLessonComplete(courseId, lessonId)
+      await mutateProgress(updated, { revalidate: false })
+      void globalMutate("my-courses")
+      void globalMutate(["purchased", courseId])
+      setStatusMessage("Lesson marked complete!")
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not mark lesson complete. Try again."
+      setStatusMessage(message)
+      console.error("markLessonComplete failed:", message)
+    } finally {
+      setIsSaving(false)
+    }
   }, [
+    courseId,
+    lessonId,
     canAccess,
     isLessonCompleted,
-    persistProgress,
-    currentLessonProgress?.positionSeconds,
+    isSaving,
+    mutateProgress,
   ])
 
   useEffect(() => {
