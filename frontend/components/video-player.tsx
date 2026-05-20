@@ -13,11 +13,21 @@ type VideoElementWithWebKit = HTMLVideoElement & {
 interface VideoPlayerProps {
   videoUrl: string
   title: string
+  initialPositionSeconds?: number
+  onWatchUpdate?: (positionSeconds: number, durationSeconds: number) => void
+  onLessonComplete?: () => void
 }
 
-export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
+export function VideoPlayer({
+  videoUrl,
+  title,
+  initialPositionSeconds = 0,
+  onWatchUpdate,
+  onLessonComplete,
+}: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null)
   const hasRestoredTimeRef = useRef(false)
+  const hasCompletedRef = useRef(false)
   const lastTimeRef = useRef(0)
   const lastPersistedTimeRef = useRef(0)
   const wasPlayingBeforeHideRef = useRef(false)
@@ -27,8 +37,6 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   const [showControls, setShowControls] = useState(true)
 
   const normalizedVideoKey = (() => {
-    // Many video hosts use expiring/signed URLs (changing query params).
-    // Normalize so "same video" resumes across remounts.
     try {
       const u = new URL(videoUrl, typeof window !== "undefined" ? window.location.href : undefined)
       return `${u.origin}${u.pathname}`
@@ -41,33 +49,69 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
 
   const persistTime = () => {
     try {
-      // Avoid overwriting a good timestamp with a transient 0 during backgrounding.
       if (lastTimeRef.current > 0) {
         sessionStorage.setItem(storageKey, String(lastTimeRef.current))
         lastPersistedTimeRef.current = lastTimeRef.current
       }
     } catch {
-      // ignore (private mode / disabled storage)
+      // ignore
+    }
+  }
+
+  const maybeMarkComplete = (el: HTMLVideoElement) => {
+    if (
+      hasCompletedRef.current ||
+      !onLessonComplete ||
+      !Number.isFinite(el.duration) ||
+      el.duration <= 0
+    ) {
+      return
+    }
+    const ratio = el.currentTime / el.duration
+    if (el.ended || ratio >= 0.9) {
+      hasCompletedRef.current = true
+      onLessonComplete()
     }
   }
 
   const restoreTimeIfPossible = () => {
     const el = videoRef.current
     if (!el || hasRestoredTimeRef.current) return
-    try {
-      const raw = sessionStorage.getItem(storageKey)
-      const t = raw ? Number(raw) : 0
-      if (Number.isFinite(t) && t > 0 && Number.isFinite(el.duration) && el.duration > 0) {
-        el.currentTime = Math.min(t, Math.max(0, el.duration - 0.25))
-        lastTimeRef.current = el.currentTime
-        lastPersistedTimeRef.current = el.currentTime
+
+    const serverTime =
+      initialPositionSeconds > 0 ? initialPositionSeconds : 0
+    let targetTime = serverTime
+
+    if (targetTime <= 0) {
+      try {
+        const raw = sessionStorage.getItem(storageKey)
+        const t = raw ? Number(raw) : 0
+        if (Number.isFinite(t) && t > 0) {
+          targetTime = t
+        }
+      } catch {
+        // ignore
       }
-    } catch {
-      // ignore
-    } finally {
-      hasRestoredTimeRef.current = true
     }
+
+    if (
+      Number.isFinite(targetTime) &&
+      targetTime > 0 &&
+      Number.isFinite(el.duration) &&
+      el.duration > 0
+    ) {
+      el.currentTime = Math.min(targetTime, Math.max(0, el.duration - 0.25))
+      lastTimeRef.current = el.currentTime
+      lastPersistedTimeRef.current = el.currentTime
+    }
+
+    hasRestoredTimeRef.current = true
   }
+
+  useEffect(() => {
+    hasRestoredTimeRef.current = false
+    hasCompletedRef.current = false
+  }, [storageKey, initialPositionSeconds])
 
   useEffect(() => {
     const syncFromElement = () => {
@@ -76,17 +120,16 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
       const currentlyPlaying = !el.paused && !el.ended
       setIsPlaying(currentlyPlaying)
 
-      // If the tab is being hidden, capture the most recent time and whether we were playing.
       if (document.visibilityState === "hidden") {
         wasPlayingBeforeHideRef.current = currentlyPlaying
         if (Number.isFinite(el.currentTime) && el.currentTime > 0) {
           lastTimeRef.current = el.currentTime
         }
         persistTime()
+        onWatchUpdate?.(el.currentTime, el.duration)
         return
       }
 
-      // If we became visible again and the element got reset, put it back.
       if (
         document.visibilityState === "visible" &&
         lastPersistedTimeRef.current > 0 &&
@@ -109,11 +152,7 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
 
     document.addEventListener("visibilitychange", syncFromElement)
     return () => document.removeEventListener("visibilitychange", syncFromElement)
-  }, [])
-
-  useEffect(() => {
-    hasRestoredTimeRef.current = false
-  }, [storageKey])
+  }, [onWatchUpdate])
 
   useEffect(() => {
     return () => {
@@ -139,16 +178,27 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
   }
 
   const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      lastTimeRef.current = videoRef.current.currentTime
-      // Persist occasionally so switching UI tabs can restore accurately.
-      if (Math.abs(lastTimeRef.current - lastPersistedTimeRef.current) >= 1) {
-        persistTime()
-      }
-      const percent =
-        (videoRef.current.currentTime / videoRef.current.duration) * 100
-      setProgress(percent)
+    const el = videoRef.current
+    if (!el) return
+
+    lastTimeRef.current = el.currentTime
+    if (Math.abs(lastTimeRef.current - lastPersistedTimeRef.current) >= 1) {
+      persistTime()
     }
+
+    if (Number.isFinite(el.duration) && el.duration > 0) {
+      setProgress((el.currentTime / el.duration) * 100)
+      onWatchUpdate?.(el.currentTime, el.duration)
+      maybeMarkComplete(el)
+    }
+  }
+
+  const handleEnded = () => {
+    const el = videoRef.current
+    if (!el) return
+    setIsPlaying(false)
+    maybeMarkComplete(el)
+    onWatchUpdate?.(el.currentTime, el.duration)
   }
 
   const scrubToClientX = (target: HTMLDivElement, clientX: number) => {
@@ -196,12 +246,12 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
         onLoadedMetadata={restoreTimeIfPossible}
         onCanPlay={restoreTimeIfPossible}
         onTimeUpdate={handleTimeUpdate}
+        onEnded={handleEnded}
         onPlay={() => setIsPlaying(true)}
         onPause={() => setIsPlaying(false)}
         onClick={togglePlay}
       />
 
-      {/* Play overlay for initial state */}
       {!isPlaying && (
         <button
           onClick={togglePlay}
@@ -214,14 +264,12 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
         </button>
       )}
 
-      {/* Controls */}
       <div
         className={cn(
           "absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity",
           showControls ? "opacity-100" : "opacity-0"
         )}
       >
-        {/* Progress bar */}
         <div
           className="mb-3 h-2 cursor-pointer touch-manipulation rounded-full bg-white/30 md:h-1"
           onPointerDown={handleProgressPointer}
@@ -237,7 +285,6 @@ export function VideoPlayer({ videoUrl, title }: VideoPlayerProps) {
           />
         </div>
 
-        {/* Control buttons */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Button

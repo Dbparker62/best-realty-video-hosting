@@ -3,7 +3,7 @@
 import Link from "next/link"
 import type { Lesson } from "@/lib/types"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Lock, Play, Clock } from "lucide-react"
+import { CheckCircle, Lock, Play, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface LessonSidebarProps {
@@ -11,6 +11,7 @@ interface LessonSidebarProps {
   courseId: string
   currentLessonId: string
   hasPurchased: boolean
+  completedLessonIds?: Set<string>
 }
 
 export function LessonSidebar({
@@ -18,6 +19,7 @@ export function LessonSidebar({
   courseId,
   currentLessonId,
   hasPurchased,
+  completedLessonIds,
 }: LessonSidebarProps) {
   const sortedLessons = [...lessons].sort((a, b) => a.order - b.order)
 
@@ -38,6 +40,7 @@ export function LessonSidebar({
           {sortedLessons.map((lesson, index) => {
             const isActive = lesson.id === currentLessonId
             const accessible = canAccess(lesson)
+            const isCompleted = completedLessonIds?.has(lesson.id)
 
             return (
               <Link
@@ -55,19 +58,22 @@ export function LessonSidebar({
                 )}
                 onClick={(e) => !accessible && e.preventDefault()}
               >
-                {/* Lesson number/status */}
                 <div
                   className={cn(
                     "flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-medium",
-                    isActive
-                      ? "bg-primary text-primary-foreground"
-                      : !accessible
-                        ? "bg-muted text-muted-foreground"
-                        : "bg-primary/10 text-primary"
+                    isCompleted
+                      ? "bg-accent text-accent-foreground"
+                      : isActive
+                        ? "bg-primary text-primary-foreground"
+                        : !accessible
+                          ? "bg-muted text-muted-foreground"
+                          : "bg-primary/10 text-primary"
                   )}
                 >
                   {!accessible ? (
                     <Lock className="h-3.5 w-3.5" />
+                  ) : isCompleted ? (
+                    <CheckCircle className="h-3.5 w-3.5" />
                   ) : isActive ? (
                     <Play className="h-3.5 w-3.5" />
                   ) : (
@@ -75,7 +81,6 @@ export function LessonSidebar({
                   )}
                 </div>
 
-                {/* Lesson info */}
                 <div className="min-w-0 flex-1">
                   <p
                     className={cn(
@@ -91,6 +96,11 @@ export function LessonSidebar({
                     {lesson.isPreview && (
                       <span className="rounded bg-accent/20 px-1 text-accent">
                         Preview
+                      </span>
+                    )}
+                    {isCompleted && (
+                      <span className="rounded bg-accent/20 px-1 text-accent">
+                        Done
                       </span>
                     )}
                   </div>

@@ -8,6 +8,7 @@ from app.routes.auth import router as auth_router
 from app.routes.lessons import router as lessons_router
 from app.routes.admin import router as admin_router
 from app.routes.my_courses import router as my_courses_router
+from app.routes.progress import router as progress_router
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title="Real Estate Course Platform API")
 
@@ -19,6 +20,7 @@ app.include_router(lessons_router)
 app.include_router(payments_router)
 app.include_router(admin_router)
 app.include_router(my_courses_router)
+app.include_router(progress_router)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[

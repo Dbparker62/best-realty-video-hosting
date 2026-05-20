@@ -18,6 +18,9 @@ PURCHASES_TABLE = os.getenv("PURCHASES_TABLE", "course-platform-purchases")
 COURSE_ACCESS_TABLE = os.getenv(
     "COURSE_ACCESS_TABLE", "course-platform-course-access"
 )
+PROGRESS_TABLE = os.getenv(
+    "PROGRESS_TABLE", "course-platform-lesson-progress"
+)
 STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 CLOUDFRONT_DOMAIN = os.getenv("CLOUDFRONT_DOMAIN")

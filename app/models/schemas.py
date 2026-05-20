@@ -49,6 +49,34 @@ class PurchasedCourseOut(CourseOut):
     last_watched_lesson_id: Optional[str] = None
 
 
+class LessonProgressUpdate(BaseModel):
+    completed: Optional[bool] = None
+    position_seconds: Optional[int] = Field(None, ge=0)
+
+
+class LessonProgressOut(BaseModel):
+    lesson_id: str
+    completed: bool = False
+    position_seconds: Optional[int] = None
+    last_watched_at: Optional[str] = None
+
+
+class CourseLessonProgressOut(BaseModel):
+    lesson_id: str
+    completed: bool = False
+    position_seconds: Optional[int] = None
+    last_watched_at: Optional[str] = None
+
+
+class CourseProgressOut(BaseModel):
+    course_id: str
+    progress: int = 0
+    completed_lessons: int = 0
+    total_lessons: int = 0
+    last_watched_lesson_id: Optional[str] = None
+    lessons: list[CourseLessonProgressOut] = []
+
+
 class LessonCreate(BaseModel):
     course_id: str = Field(..., min_length=1, max_length=100)
     title: str = Field(..., min_length=1, max_length=100)

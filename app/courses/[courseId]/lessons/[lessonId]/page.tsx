@@ -1,21 +1,29 @@
 "use client"
 
-import { useMemo } from "react"
+import { useCallback, useEffect, useMemo, useRef } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import useSWR from "swr"
 import {
   getCourse,
   getCourseLessons,
+  getCourseProgress,
   getLessonVideoUrl,
   hasPurchasedCourse,
+  updateLessonProgress,
 } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { VideoPlayer } from "@/components/video-player"
 import { LessonSidebar } from "@/components/lesson-sidebar"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowLeft, ChevronLeft, ChevronRight, Lock } from "lucide-react"
+import {
+  ArrowLeft,
+  CheckCircle,
+  ChevronLeft,
+  ChevronRight,
+  Lock,
+} from "lucide-react"
 import type { Lesson } from "@/lib/types"
 
 export default function LessonPlayerPage() {
@@ -30,6 +38,8 @@ export default function LessonPlayerPage() {
   }, [params])
 
   const { canUseCustomerFeatures } = useAuth()
+  const lastSavedAtRef = useRef(0)
+  const savingRef = useRef(false)
 
   const { data: course } = useSWR(
     courseId ? ["course", courseId] : null,
@@ -55,16 +65,100 @@ export default function LessonPlayerPage() {
     currentLesson && (currentLesson.isPreview || purchased)
   )
 
+  const trackProgress = Boolean(canUseCustomerFeatures && courseId && canAccess)
+
+  const { data: courseProgress, mutate: mutateProgress } = useSWR(
+    trackProgress && courseId ? ["course-progress", courseId] : null,
+    () => getCourseProgress(courseId as string)
+  )
+
+  const currentLessonProgress = useMemo(
+    () => courseProgress?.lessons.find((l) => l.lessonId === lessonId),
+    [courseProgress, lessonId]
+  )
+
+  const isLessonCompleted = Boolean(currentLessonProgress?.completed)
+
+  const completedLessonIds = useMemo(
+    () =>
+      new Set(
+        courseProgress?.lessons
+          .filter((l) => l.completed)
+          .map((l) => l.lessonId) ?? []
+      ),
+    [courseProgress]
+  )
+
   const { data: videoData, isLoading: videoLoading } = useSWR(
     canAccess && lessonId ? ["video", lessonId] : null,
     () => getLessonVideoUrl(lessonId as string),
     {
-      // The video URL can be signed/expiring; revalidating on focus swaps the
-      // `src` and restarts playback when the user returns to the browser tab.
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
     }
   )
+
+  const saveProgress = useCallback(
+    async (positionSeconds: number, completed?: boolean) => {
+      if (!courseId || !lessonId || !canAccess || savingRef.current) return
+      savingRef.current = true
+      try {
+        await updateLessonProgress(courseId, lessonId, {
+          positionSeconds: Math.floor(positionSeconds),
+          completed,
+        })
+        await mutateProgress()
+      } finally {
+        savingRef.current = false
+      }
+    },
+    [courseId, lessonId, canAccess, mutateProgress]
+  )
+
+  const handleWatchUpdate = useCallback(
+    (positionSeconds: number, durationSeconds: number) => {
+      if (!canAccess) return
+      const now = Date.now()
+      if (now - lastSavedAtRef.current < 10000) return
+      lastSavedAtRef.current = now
+
+      const completed =
+        durationSeconds > 0 && positionSeconds / durationSeconds >= 0.9
+
+      void saveProgress(positionSeconds, completed ? true : undefined)
+    },
+    [canAccess, saveProgress]
+  )
+
+  const handleLessonComplete = useCallback(() => {
+    if (!canAccess || isLessonCompleted) return
+    void saveProgress(
+      currentLessonProgress?.positionSeconds ?? 0,
+      true
+    )
+  }, [
+    canAccess,
+    isLessonCompleted,
+    saveProgress,
+    currentLessonProgress?.positionSeconds,
+  ])
+
+  const handleMarkComplete = useCallback(() => {
+    if (!canAccess || isLessonCompleted) return
+    void saveProgress(
+      currentLessonProgress?.positionSeconds ?? 0,
+      true
+    )
+  }, [
+    canAccess,
+    isLessonCompleted,
+    saveProgress,
+    currentLessonProgress?.positionSeconds,
+  ])
+
+  useEffect(() => {
+    lastSavedAtRef.current = 0
+  }, [lessonId])
 
   const sortedLessons = useMemo(
     () => [...(lessons || [])].sort((a, b) => a.order - b.order),
@@ -119,7 +213,6 @@ export default function LessonPlayerPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Top Navigation */}
       <div className="border-b bg-card">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
           <Link
@@ -127,7 +220,9 @@ export default function LessonPlayerPage() {
             className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
-            <span className="hidden sm:inline">{course?.title || "Back to Course"}</span>
+            <span className="hidden sm:inline">
+              {course?.title || "Back to Course"}
+            </span>
             <span className="sm:hidden">Back</span>
           </Link>
 
@@ -152,10 +247,19 @@ export default function LessonPlayerPage() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {courseProgress && courseProgress.totalLessons > 0 && (
+          <p className="mb-4 text-sm text-muted-foreground">
+            Course progress:{" "}
+            <span className="font-medium text-foreground">
+              {courseProgress.progress}%
+            </span>{" "}
+            ({courseProgress.completedLessons}/{courseProgress.totalLessons}{" "}
+            lessons completed)
+          </p>
+        )}
+
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-          {/* Video Area */}
           <div>
             {canAccess ? (
               videoLoading ? (
@@ -164,6 +268,11 @@ export default function LessonPlayerPage() {
                 <VideoPlayer
                   videoUrl={videoData.url}
                   title={currentLesson.title}
+                  initialPositionSeconds={
+                    currentLessonProgress?.positionSeconds ?? 0
+                  }
+                  onWatchUpdate={handleWatchUpdate}
+                  onLessonComplete={handleLessonComplete}
                 />
               ) : (
                 <div className="flex aspect-video items-center justify-center rounded-xl bg-muted">
@@ -189,29 +298,44 @@ export default function LessonPlayerPage() {
               </div>
             )}
 
-            {/* Lesson Info */}
             <div className="mt-6">
-              <h1 className="text-2xl font-bold text-foreground">
-                {currentLesson.title}
-              </h1>
-              <p className="mt-3 text-muted-foreground">
-                {currentLesson.description}
-              </p>
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0 flex-1">
+                  <h1 className="text-2xl font-bold text-foreground">
+                    {currentLesson.title}
+                  </h1>
+                  <p className="mt-3 text-muted-foreground">
+                    {currentLesson.description}
+                  </p>
+                </div>
+                {canAccess && (
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant={isLessonCompleted ? "outline" : "default"}
+                    disabled={isLessonCompleted}
+                    className="shrink-0 self-start"
+                    onClick={handleMarkComplete}
+                  >
+                    <CheckCircle className="mr-1.5 h-4 w-4" />
+                    {isLessonCompleted ? "Completed" : "Mark complete"}
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Sidebar */}
           <div className="hidden h-[calc(100vh-200px)] lg:block">
             <LessonSidebar
               lessons={lessons || []}
               courseId={courseId}
               currentLessonId={lessonId}
               hasPurchased={!!purchased}
+              completedLessonIds={completedLessonIds}
             />
           </div>
         </div>
 
-        {/* Mobile Lesson List */}
         <div className="mt-8 lg:hidden">
           <h3 className="mb-4 font-semibold text-foreground">Course Content</h3>
           <LessonSidebar
@@ -219,6 +343,7 @@ export default function LessonPlayerPage() {
             courseId={courseId}
             currentLessonId={lessonId}
             hasPurchased={!!purchased}
+            completedLessonIds={completedLessonIds}
           />
         </div>
       </div>

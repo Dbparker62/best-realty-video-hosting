@@ -1,14 +1,6 @@
-from boto3.dynamodb.conditions import Attr
-
 from app.services.access_service import list_course_access_for_user
-from app.utils.database import courses_table, lessons_table
-
-
-def _count_lessons_for_course(course_id: str) -> int:
-    response = lessons_table.scan(
-        FilterExpression=Attr("course_id").eq(course_id)
-    )
-    return len(response.get("Items", []))
+from app.services.progress_service import summarize_course_progress
+from app.utils.database import courses_table
 
 
 def get_my_courses(user_id: str) -> list[dict]:
@@ -25,15 +17,15 @@ def get_my_courses(user_id: str) -> list[dict]:
         if not course:
             continue
 
-        total_lessons = _count_lessons_for_course(course_id)
+        summary = summarize_course_progress(user_id, course_id)
 
         result.append(
             {
                 **course,
-                "progress": 0,
-                "completed_lessons": 0,
-                "total_lessons": total_lessons,
-                "last_watched_lesson_id": None,
+                "progress": summary["progress"],
+                "completed_lessons": summary["completed_lessons"],
+                "total_lessons": summary["total_lessons"],
+                "last_watched_lesson_id": summary["last_watched_lesson_id"],
             }
         )
 

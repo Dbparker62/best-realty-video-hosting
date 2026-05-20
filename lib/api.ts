@@ -1,4 +1,12 @@
-import type { Course, Lesson, PurchasedCourse, User, VideoUrl } from "./types"
+import type {
+  Course,
+  CourseProgress,
+  Lesson,
+  LessonProgress,
+  PurchasedCourse,
+  User,
+  VideoUrl,
+} from "./types"
 
 /**
  * Use `NEXT_PUBLIC_API_URL=/api` with the Next.js rewrite (see next.config.mjs) to avoid
@@ -265,6 +273,95 @@ export async function hasPurchasedCourse(courseId: string): Promise<boolean> {
     sorted.find((l) => !l.isPreview) ?? sorted[0]
 
   return canFetchLessonVideo(firstPaid.id)
+}
+
+interface CourseProgressApi {
+  course_id: string
+  progress?: number
+  completed_lessons?: number
+  total_lessons?: number
+  last_watched_lesson_id?: string | null
+  lessons?: Array<{
+    lesson_id: string
+    completed?: boolean
+    position_seconds?: number | null
+    last_watched_at?: string | null
+  }>
+}
+
+function mapCourseProgressFromApi(data: CourseProgressApi): CourseProgress {
+  return {
+    courseId: data.course_id,
+    progress: Number(data.progress) || 0,
+    completedLessons: Number(data.completed_lessons) || 0,
+    totalLessons: Number(data.total_lessons) || 0,
+    lastWatchedLessonId: data.last_watched_lesson_id ?? undefined,
+    lessons: (data.lessons ?? []).map((row) => ({
+      lessonId: row.lesson_id,
+      completed: Boolean(row.completed),
+      positionSeconds:
+        row.position_seconds != null ? Number(row.position_seconds) : undefined,
+      lastWatchedAt: row.last_watched_at ?? undefined,
+    })),
+  }
+}
+
+export async function getCourseProgress(
+  courseId: string
+): Promise<CourseProgress | null> {
+  const response = await fetch(`${API_BASE_URL}/courses/${courseId}/progress`, {
+    headers: authHeaders(),
+  })
+
+  if (response.status === 401 || response.status === 403) {
+    return null
+  }
+
+  if (!response.ok) {
+    throw new Error("Failed to fetch course progress")
+  }
+
+  const data = (await response.json()) as CourseProgressApi
+  return mapCourseProgressFromApi(data)
+}
+
+export async function updateLessonProgress(
+  courseId: string,
+  lessonId: string,
+  payload: { completed?: boolean; positionSeconds?: number }
+): Promise<LessonProgress> {
+  const response = await fetch(
+    `${API_BASE_URL}/courses/${courseId}/lessons/${lessonId}/progress`,
+    {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({
+        completed: payload.completed,
+        position_seconds: payload.positionSeconds,
+      }),
+    }
+  )
+
+  if (!response.ok) {
+    throw new Error("Failed to update lesson progress")
+  }
+
+  const data = (await response.json()) as {
+    lesson_id: string
+    completed?: boolean
+    position_seconds?: number | null
+    last_watched_at?: string | null
+  }
+
+  return {
+    lessonId: data.lesson_id,
+    completed: Boolean(data.completed),
+    positionSeconds:
+      data.position_seconds != null
+        ? Number(data.position_seconds)
+        : undefined,
+    lastWatchedAt: data.last_watched_at ?? undefined,
+  }
 }
 
 export async function getLessonVideoUrl(lessonId: string): Promise<VideoUrl> {

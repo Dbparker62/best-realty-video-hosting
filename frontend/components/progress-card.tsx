@@ -75,7 +75,11 @@ export function ProgressCard({ course }: ProgressCardProps) {
             }
           >
             <Play className="mr-2 h-4 w-4" />
-            {isCompleted ? "Review Course" : "Continue Learning"}
+            {isCompleted
+              ? "Review Course"
+              : course.lastWatchedLessonId
+                ? "Continue Watching"
+                : "Start Course"}
           </Link>
         </Button>
       </CardFooter>

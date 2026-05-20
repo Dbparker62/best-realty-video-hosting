@@ -27,6 +27,22 @@ export interface PurchasedCourse extends Course {
   lastWatchedLessonId?: string
 }
 
+export interface LessonProgress {
+  lessonId: string
+  completed: boolean
+  positionSeconds?: number
+  lastWatchedAt?: string
+}
+
+export interface CourseProgress {
+  courseId: string
+  progress: number
+  completedLessons: number
+  totalLessons: number
+  lastWatchedLessonId?: string
+  lessons: LessonProgress[]
+}
+
 /** Cognito groups from `/auth/me` (e.g. `admin`, `customer`). */
 export interface User {
   id: string
