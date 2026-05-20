@@ -381,8 +381,18 @@ export async function getCourseProgress(
     return null
   }
 
+  if (response.status === 404) {
+    return {
+      courseId,
+      progress: 0,
+      completedLessons: 0,
+      totalLessons: 0,
+      lessons: [],
+    }
+  }
+
   if (!response.ok) {
-    throw new Error("Failed to fetch course progress")
+    throw new Error(await parseApiError(response))
   }
 
   const data = (await response.json()) as CourseProgressApi

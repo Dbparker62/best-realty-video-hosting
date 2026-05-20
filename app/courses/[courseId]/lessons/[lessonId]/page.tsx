@@ -162,11 +162,12 @@ export default function LessonPlayerPage() {
         }
       } catch (err) {
         await mutateProgress()
-        setStatusMessage(
+        const message =
           err instanceof Error
             ? err.message
             : "Could not save progress. Try again."
-        )
+        setStatusMessage(message)
+        console.error("Failed to save lesson progress:", message)
       } finally {
         savingRef.current = false
         setIsSaving(false)

@@ -16,9 +16,20 @@ def grant_course_access(user_id: str, course_id: str, source: str = "stripe"):
         "course_id": course_id,
         "access_granted_at": datetime.now(timezone.utc).isoformat(),
         "source": source,
+        "completed_lesson_ids": [],
+        "lesson_positions": {},
     }
 
     try:
+        existing = course_access_table.get_item(
+            Key={"user_id": user_id, "course_id": course_id}
+        )
+        if "Item" in existing:
+            item = dict(existing["Item"])
+            if "completed_lesson_ids" not in item:
+                item["completed_lesson_ids"] = []
+            if "lesson_positions" not in item:
+                item["lesson_positions"] = {}
         course_access_table.put_item(Item=sanitize_item(item))
     except ClientError as exc:
         logger.warning(
@@ -97,3 +108,127 @@ def list_course_access_for_user(user_id: str) -> list[dict]:
         )
 
     return fallback
+
+
+def _as_string_list(value) -> list[str]:
+    if not value:
+        return []
+    if isinstance(value, list):
+        return [str(v) for v in value if v]
+    return [str(value)]
+
+
+def _as_positions_map(value) -> dict[str, int]:
+    if not value or not isinstance(value, dict):
+        return {}
+    result: dict[str, int] = {}
+    for key, raw in value.items():
+        try:
+            result[str(key)] = max(0, int(raw))
+        except (TypeError, ValueError):
+            continue
+    return result
+
+
+def get_access_progress_record(user_id: str, course_id: str) -> dict:
+    """Load progress fields stored on the course access row (same table as purchases unlock)."""
+    item: dict = {}
+
+    try:
+        response = course_access_table.get_item(
+            Key={"user_id": user_id, "course_id": course_id}
+        )
+        item = dict(response.get("Item") or {})
+    except ClientError as exc:
+        logger.warning(
+            "Could not load access progress (user=%s course=%s): %s",
+            user_id,
+            course_id,
+            exc.response["Error"].get("Message", exc),
+        )
+
+    if not item and _has_access_via_purchases(user_id, course_id):
+        item = {
+            "user_id": user_id,
+            "course_id": course_id,
+            "completed_lesson_ids": [],
+            "lesson_positions": {},
+        }
+
+    return item
+
+
+def save_lesson_progress_on_access(
+    user_id: str,
+    course_id: str,
+    lesson_id: str,
+    *,
+    completed: bool | None = None,
+    position_seconds: int | None = None,
+) -> dict:
+    """
+    Persist lesson progress on the course access DynamoDB item.
+    Uses the same table/keys as purchase unlock (user_id + course_id).
+    """
+    item = get_access_progress_record(user_id, course_id)
+
+    if not item:
+        item = grant_course_access(user_id, course_id, source="progress")
+
+    now = datetime.now(timezone.utc).isoformat()
+    completed_ids = set(_as_string_list(item.get("completed_lesson_ids")))
+    positions = _as_positions_map(item.get("lesson_positions"))
+
+    item["user_id"] = user_id
+    item["course_id"] = course_id
+    item["last_watched_lesson_id"] = lesson_id
+    item["last_watched_at"] = now
+
+    if position_seconds is not None:
+        positions[lesson_id] = max(0, int(position_seconds))
+    item["lesson_positions"] = positions
+
+    if completed:
+        completed_ids.add(lesson_id)
+    item["completed_lesson_ids"] = sorted(completed_ids)
+
+    try:
+        course_access_table.put_item(Item=sanitize_item(item))
+    except ClientError as exc:
+        error = exc.response.get("Error", {})
+        logger.exception(
+            "Failed to save progress on access row user=%s course=%s: %s",
+            user_id,
+            course_id,
+            error.get("Message", exc),
+        )
+        from app.utils.error import conflict
+
+        conflict(
+            "PROGRESS_WRITE_FAILED",
+            "Could not save lesson progress",
+            {
+                "aws_code": error.get("Code"),
+                "aws_message": error.get("Message"),
+            },
+        )
+
+    return item
+
+
+def get_completed_lesson_ids(user_id: str, course_id: str) -> set[str]:
+    item = get_access_progress_record(user_id, course_id)
+    return set(_as_string_list(item.get("completed_lesson_ids")))
+
+
+def get_lesson_position_seconds(
+    user_id: str, course_id: str, lesson_id: str
+) -> int | None:
+    item = get_access_progress_record(user_id, course_id)
+    positions = _as_positions_map(item.get("lesson_positions"))
+    return positions.get(lesson_id)
+
+
+def get_last_watched_lesson_id(user_id: str, course_id: str) -> str | None:
+    item = get_access_progress_record(user_id, course_id)
+    return item.get("last_watched_lesson_id")
