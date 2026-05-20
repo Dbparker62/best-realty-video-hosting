@@ -10,7 +10,14 @@ from datetime import datetime, timezone
 from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
 
-from app.config import PURCHASES_HASH_KEY, PURCHASES_RANGE_KEY
+from app.config import (
+    COURSE_ACCESS_TABLE,
+    PROGRESS_TABLE,
+    PURCHASES_HASH_KEY,
+    PURCHASES_RANGE_KEY,
+    PURCHASES_TABLE,
+)
+from app.services import access_service
 from app.utils.database import progress_table, purchases_table
 from app.utils.dynamodb import sanitize_item
 from app.utils.error import conflict
@@ -111,6 +118,8 @@ def get_completed_lesson_ids(user_id: str, course_id: str) -> set[str]:
     if purchase:
         completed.update(_as_string_list(purchase.get("completed_lesson_ids")))
 
+    completed.update(access_service.get_completed_lesson_ids(user_id, course_id))
+
     for row in _list_progress_table_rows(user_id, course_id):
         if _normalize_completed(row.get("completed")):
             lesson_id = row.get("lesson_id")
@@ -135,7 +144,16 @@ def get_lesson_position_seconds(
 
     purchase = load_purchase_row(user_id, course_id)
     if purchase:
-        return _as_positions_map(purchase.get("lesson_positions")).get(lesson_id)
+        pos = _as_positions_map(purchase.get("lesson_positions")).get(lesson_id)
+        if pos is not None:
+            return pos
+
+    access_pos = access_service.get_lesson_position_seconds(
+        user_id, course_id, lesson_id
+    )
+    if access_pos is not None:
+        return access_pos
+
     return None
 
 
@@ -147,6 +165,10 @@ def get_last_watched_lesson_id(user_id: str, course_id: str) -> str | None:
     if purchase:
         last_id = purchase.get("last_watched_lesson_id")
         last_at = purchase.get("last_watched_at")
+
+    access_last = access_service.get_last_watched_lesson_id(user_id, course_id)
+    if access_last:
+        last_id = access_last
 
     for row in _list_progress_table_rows(user_id, course_id):
         watched_at = row.get("last_watched_at")
@@ -162,7 +184,7 @@ def _save_progress_table_row(
     course_id: str,
     lesson_id: str,
     *,
-    completed: bool,
+    completed: bool | None,
     position_seconds: int | None,
     now: str,
 ) -> dict:
@@ -173,11 +195,12 @@ def _save_progress_table_row(
         "course_id": course_id,
         "lesson_id": lesson_id,
         "last_watched_at": now,
-        "completed": completed,
     }
 
-    if completed:
-        item["completed_at"] = now
+    if completed is not None:
+        item["completed"] = completed
+        if completed:
+            item["completed_at"] = now
 
     if position_seconds is not None:
         item["position_seconds"] = max(0, int(position_seconds))
@@ -231,12 +254,13 @@ def save_lesson_progress(
     course_id: str,
     lesson_id: str,
     *,
-    completed: bool = False,
+    completed: bool | None = None,
     position_seconds: int | None = None,
 ) -> dict:
     now = datetime.now(timezone.utc).isoformat()
     progress_row = None
     purchase_row = None
+    access_row = None
     errors: list[str] = []
 
     try:
@@ -250,7 +274,7 @@ def save_lesson_progress(
         )
     except ClientError as exc:
         errors.append(
-            f"lesson-progress table: {exc.response.get('Error', {}).get('Message', exc)}"
+            f"{PROGRESS_TABLE}: {exc.response.get('Error', {}).get('Message', exc)}"
         )
 
     try:
@@ -258,16 +282,29 @@ def save_lesson_progress(
             user_id,
             course_id,
             lesson_id,
-            completed=completed,
+            completed=bool(completed),
             position_seconds=position_seconds,
             now=now,
         )
     except ClientError as exc:
         errors.append(
-            f"purchases table: {exc.response.get('Error', {}).get('Message', exc)}"
+            f"{PURCHASES_TABLE}: {exc.response.get('Error', {}).get('Message', exc)}"
         )
 
-    if not progress_row and not purchase_row:
+    try:
+        access_row = access_service.save_lesson_progress_on_access(
+            user_id,
+            course_id,
+            lesson_id,
+            completed=completed,
+            position_seconds=position_seconds,
+        )
+    except Exception as exc:
+        if hasattr(exc, "status_code"):
+            raise
+        errors.append(f"{COURSE_ACCESS_TABLE}: {exc}")
+
+    if not progress_row and not purchase_row and not access_row:
         conflict(
             "PROGRESS_WRITE_FAILED",
             "Could not save lesson progress",
@@ -276,13 +313,14 @@ def save_lesson_progress(
 
     logger.info(
         "Saved lesson progress user=%s course=%s lesson=%s completed=%s "
-        "(progress_table=%s purchase_row=%s)",
+        "(progress_table=%s purchase_row=%s access_table=%s)",
         user_id,
         course_id,
         lesson_id,
         completed,
         bool(progress_row),
         bool(purchase_row),
+        bool(access_row),
     )
 
-    return purchase_row or progress_row or {}
+    return purchase_row or access_row or progress_row or {}

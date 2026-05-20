@@ -64,7 +64,7 @@ export default function LessonPlayerPage() {
     return Array.isArray(raw) ? raw[0] : raw
   }, [params])
 
-  const { canUseCustomerFeatures } = useAuth()
+  const { isAuthenticated } = useAuth()
   const lastSavedAtRef = useRef(0)
   const savingRef = useRef(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -81,7 +81,7 @@ export default function LessonPlayerPage() {
   )
 
   const { data: purchased } = useSWR(
-    canUseCustomerFeatures && courseId ? ["purchased", courseId] : null,
+    isAuthenticated && courseId ? ["purchased", courseId] : null,
     () => hasPurchasedCourse(courseId as string)
   )
 
@@ -94,7 +94,7 @@ export default function LessonPlayerPage() {
     currentLesson && (currentLesson.isPreview || purchased)
   )
 
-  const trackProgress = Boolean(canUseCustomerFeatures && courseId && canAccess)
+  const trackProgress = Boolean(isAuthenticated && courseId && canAccess)
 
   const progressKey =
     trackProgress && courseId ? ["course-progress", courseId] : null
@@ -433,8 +433,8 @@ export default function LessonPlayerPage() {
                     </Button>
                     {statusMessage && (
                       <p
-                        className={`max-w-xs text-right text-xs ${
-                          statusMessage.includes("complete")
+                        className={`max-w-sm text-right text-sm font-medium ${
+                          statusMessage.toLowerCase().includes("complete")
                             ? "text-accent"
                             : "text-destructive"
                         }`}

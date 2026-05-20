@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends
 
 from app.models import schemas
 from app.services import progress_service
-from app.utils.auth import require_customer
+from app.utils.auth import require_authenticated_user
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +15,7 @@ router = APIRouter()
     "/courses/{course_id}/progress",
     response_model=schemas.CourseProgressOut,
 )
-def get_course_progress(course_id: str, user=Depends(require_customer)):
+def get_course_progress(course_id: str, user=Depends(require_authenticated_user)):
     logger.info("GET progress course=%s user=%s", course_id, user["sub"])
     return progress_service.get_course_progress(user, course_id)
 
@@ -27,7 +27,7 @@ def get_course_progress(course_id: str, user=Depends(require_customer)):
 def mark_lesson_complete(
     course_id: str,
     lesson_id: str,
-    user=Depends(require_customer),
+    user=Depends(require_authenticated_user),
 ):
     logger.info(
         "POST mark complete course=%s lesson=%s user=%s",
@@ -46,7 +46,7 @@ def update_lesson_progress(
     course_id: str,
     lesson_id: str,
     body: schemas.LessonProgressUpdate,
-    user=Depends(require_customer),
+    user=Depends(require_authenticated_user),
 ):
     logger.info(
         "PUT progress course=%s lesson=%s user=%s completed=%s",

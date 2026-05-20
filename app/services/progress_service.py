@@ -110,7 +110,7 @@ def upsert_lesson_progress(
         user["sub"],
         course_id,
         lesson_id,
-        completed=bool(completed),
+        completed=completed,
         position_seconds=position_seconds,
     )
 

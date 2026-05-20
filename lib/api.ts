@@ -52,19 +52,27 @@ function getAccessToken(): string | null {
   return localStorage.getItem("access_token")
 }
 
+function getIdToken(): string | null {
+  if (typeof window === "undefined") return null
+  return localStorage.getItem("id_token")
+}
+
 export function authHeaders(): HeadersInit {
   const token = getAccessToken()
+  const idToken = getIdToken()
 
-  if (!token) {
-    return {
-      "Content-Type": "application/json",
-    }
-  }
-
-  return {
+  const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
   }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+  if (idToken) {
+    headers["X-Id-Token"] = idToken
+  }
+
+  return headers
 }
 
 export function normalizeCognitoGroups(raw: unknown): string[] {
