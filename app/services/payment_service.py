@@ -6,6 +6,7 @@ from botocore.exceptions import ClientError
 
 from app.config import PURCHASES_HASH_KEY, PURCHASES_RANGE_KEY
 from app.services.access_service import grant_course_access, has_course_access
+from app.services.cognito_service import lookup_email_by_sub
 from app.utils.database import purchases_table
 from app.utils.dynamodb import sanitize_item
 from app.utils.error import bad_request, conflict
@@ -52,6 +53,21 @@ def _find_purchase(user_id: str, course_id: str, session_id: str) -> dict | None
     )
     items = scan.get("Items", [])
     return items[0] if items else None
+
+
+def _resolve_customer_email(
+    stripe_session: dict, metadata: dict, user_id: str
+) -> str | None:
+    """Email from checkout metadata (Cognito sign-in), Stripe, or Cognito lookup."""
+    for candidate in (
+        metadata.get("customer_email"),
+        (stripe_session.get("customer_details") or {}).get("email"),
+        stripe_session.get("customer_email"),
+    ):
+        if candidate and "@" in str(candidate):
+            return str(candidate).strip()
+
+    return lookup_email_by_sub(user_id)
 
 
 def _write_purchase(purchase_item: dict) -> None:
@@ -109,6 +125,7 @@ def record_successful_purchase(stripe_session) -> dict:
         )
 
     existing_item = _find_purchase(user_id, course_id, session_id)
+    customer_email = _resolve_customer_email(stripe_session, metadata, user_id)
 
     if existing_item:
         logger.info(
@@ -117,6 +134,10 @@ def record_successful_purchase(stripe_session) -> dict:
             user_id,
             course_id,
         )
+        if customer_email and not existing_item.get("customer_email"):
+            existing_item["customer_email"] = customer_email
+            _write_purchase(existing_item)
+
         access_item = None
         if has_course_access(user_id, course_id):
             access_item = {"user_id": user_id, "course_id": course_id}
@@ -131,13 +152,6 @@ def record_successful_purchase(stripe_session) -> dict:
             "access": access_item,
             "already_recorded": True,
         }
-
-    customer_details = stripe_session.get("customer_details") or {}
-    customer_email = (
-        customer_details.get("email")
-        or stripe_session.get("customer_email")
-        or None
-    )
 
     purchase_item = {
         PURCHASES_HASH_KEY: user_id,

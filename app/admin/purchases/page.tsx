@@ -130,9 +130,10 @@ export default function AdminPurchasesPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <p className="font-medium">{purchase.userEmail}</p>
-                        <p className="text-sm text-muted-foreground">
-                          ID: {purchase.userId}
+                        <p className="font-medium">
+                          {purchase.userEmail.includes("@")
+                            ? purchase.userEmail
+                            : "—"}
                         </p>
                       </TableCell>
                       <TableCell>

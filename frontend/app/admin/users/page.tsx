@@ -67,7 +67,7 @@ export default function AdminUsersPage() {
         <CardHeader>
           <CardTitle>Customers (from purchases)</CardTitle>
           <CardDescription>
-            Cognito users who completed checkout — email shown when Stripe provides it
+            Signed-in accounts that completed checkout (email from Cognito sign-up)
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -85,8 +85,7 @@ export default function AdminUsersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Email / ID</TableHead>
-                  <TableHead>Cognito user ID</TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Purchases</TableHead>
                   <TableHead>Courses</TableHead>
                 </TableRow>
@@ -95,9 +94,6 @@ export default function AdminUsersPage() {
                 {data.customers.map((customer) => (
                   <TableRow key={customer.userId}>
                     <TableCell className="font-medium">{customer.email}</TableCell>
-                    <TableCell className="font-mono text-xs text-muted-foreground">
-                      {customer.userId}
-                    </TableCell>
                     <TableCell>{customer.purchaseCount}</TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">

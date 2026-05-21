@@ -119,6 +119,7 @@ def create_checkout_session(
 
     course = course_response["Item"]
     user_id = user["sub"]
+    customer_email = (user.get("email") or "").strip()
 
     if has_course_access(user_id, course_id):
         conflict(
@@ -151,7 +152,13 @@ def create_checkout_session(
         metadata={
             "user_id": user_id,
             "course_id": course_id,
+            "customer_email": customer_email,
         },
+        **(
+            {"customer_email": customer_email}
+            if customer_email
+            else {}
+        ),
     )
 
     return {"checkout_url": session.url}

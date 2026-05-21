@@ -4,12 +4,37 @@ from fastapi import APIRouter, Depends
 
 from app.models import schemas
 from app.services import lesson_service
+from app.services.cognito_service import lookup_email_by_sub
 from app.utils.auth import require_admin
 from app.utils.database import purchases_table, courses_table, users_table
+from app.utils.dynamodb import sanitize_item
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+
+def _resolve_display_email(
+    stored: str, user_id: str, *, purchase_row: dict | None = None
+) -> str:
+    """Sign-in email for admin tables — never show raw Cognito sub as email."""
+    if stored and "@" in stored:
+        return stored.strip()
+    if user_id:
+        looked_up = lookup_email_by_sub(user_id)
+        if looked_up and "@" in looked_up:
+            if purchase_row is not None and not purchase_row.get("customer_email"):
+                purchase_row["customer_email"] = looked_up
+                try:
+                    purchases_table.put_item(Item=sanitize_item(purchase_row))
+                except Exception as exc:
+                    logger.warning(
+                        "Could not backfill customer_email for user=%s: %s",
+                        user_id,
+                        exc,
+                    )
+            return looked_up
+    return ""
 
 
 @router.get("/admin/courses/{course_id}/lessons", response_model=list[schemas.LessonOut])
@@ -34,14 +59,11 @@ def list_purchases_for_admin(user=Depends(require_admin)):
             cr = courses_table.get_item(Key={"id": course_id})
             course_title = cr.get("Item", {}).get("title") or ""
 
-        user_email = (
-            p.get("customer_email")
-            or p.get("email")
-            or ""
+        user_email = _resolve_display_email(
+            p.get("customer_email") or p.get("email") or "",
+            user_id,
+            purchase_row=p,
         )
-        if not user_email and user_id:
-            ur = users_table.get_item(Key={"id": user_id})
-            user_email = ur.get("Item", {}).get("email") or ""
 
         amount_cents = p.get("amount_total")
         if amount_cents is None:
@@ -61,7 +83,7 @@ def list_purchases_for_admin(user=Depends(require_admin)):
                 "course_id": course_id,
                 "course_title": course_title,
                 "user_id": user_id,
-                "user_email": user_email or user_id or "—",
+                "user_email": user_email or "—",
                 "amount": amount_dollars,
                 "purchased_at": p.get("created_at", ""),
                 "currency": p.get("currency", "usd"),
@@ -86,11 +108,12 @@ def list_users_for_admin(user=Depends(require_admin)):
         if not user_id:
             continue
 
+        stored_email = p.get("customer_email") or ""
         entry = customers_by_id.setdefault(
             user_id,
             {
                 "user_id": user_id,
-                "email": p.get("customer_email") or "",
+                "email": "",
                 "purchase_count": 0,
                 "course_ids": set(),
             },
@@ -99,16 +122,19 @@ def list_users_for_admin(user=Depends(require_admin)):
         course_id = p.get("course_id")
         if course_id:
             entry["course_ids"].add(course_id)
-        if not entry["email"] and p.get("customer_email"):
-            entry["email"] = p["customer_email"]
+        resolved = _resolve_display_email(stored_email, user_id, purchase_row=p)
+        if resolved:
+            entry["email"] = resolved
 
     customers = []
     for row in customers_by_id.values():
         course_ids = sorted(row.pop("course_ids", set()))
+        email = row.get("email") or _resolve_display_email("", row["user_id"])
         customers.append(
             {
-                **row,
-                "email": row["email"] or row["user_id"],
+                "user_id": row["user_id"],
+                "email": email or "—",
+                "purchase_count": row["purchase_count"],
                 "course_ids": course_ids,
             }
         )

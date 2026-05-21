@@ -78,13 +78,21 @@ def get_current_user(
     access_payload = _decode_cognito_token(token, expected_use="access")
     groups = _groups_from_payload(access_payload)
 
-    if not groups and x_id_token:
+    id_payload = None
+    if x_id_token:
         id_payload = _decode_cognito_token(x_id_token, expected_use="id")
-        groups = _groups_from_payload(id_payload)
+        if not groups:
+            groups = _groups_from_payload(id_payload)
+
+    email = access_payload.get("email")
+    if not email and id_payload:
+        email = id_payload.get("email")
+    if not email:
+        email = access_payload.get("username")
 
     return {
         "sub": access_payload.get("sub"),
-        "email": access_payload.get("email") or access_payload.get("username"),
+        "email": email,
         "username": access_payload.get("cognito:username")
         or access_payload.get("username"),
         "groups": groups,
