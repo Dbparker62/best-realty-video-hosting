@@ -75,7 +75,6 @@ def _decode_cognito_token(token: str, *, expected_use: str | None = None) -> dic
             algorithms=["RS256"],
             issuer=COGNITO_ISSUER,
             options={"verify_aud": False},
-            leeway=60,
         )
 
         token_use = payload.get("token_use")
