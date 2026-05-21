@@ -110,3 +110,15 @@ def require_customer(current_user=Depends(get_current_user)):
         raise HTTPException(status_code=403, detail="Customer access required")
 
     return current_user
+
+
+def require_admin_or_customer(current_user=Depends(get_current_user)):
+    groups = current_user["groups"]
+
+    if "customer" not in groups and "admin" not in groups:
+        raise HTTPException(
+            status_code=403,
+            detail="Customer or admin access required",
+        )
+
+    return current_user

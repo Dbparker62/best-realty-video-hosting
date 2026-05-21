@@ -76,6 +76,25 @@ export interface LessonFormData {
   isPreview: boolean
 }
 
+export interface AdminRegisteredUser {
+  id: string
+  email: string
+  name: string
+  isAdmin: boolean
+}
+
+export interface AdminCustomer {
+  userId: string
+  email: string
+  purchaseCount: number
+  courseIds: string[]
+}
+
+export interface AdminUsersResponse {
+  registeredUsers: AdminRegisteredUser[]
+  customers: AdminCustomer[]
+}
+
 export interface Purchase {
   id: string
   courseId: string

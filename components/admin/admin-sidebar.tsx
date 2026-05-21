@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, Video, Upload, CreditCard, Home, LogOut } from "lucide-react"
+import { BookOpen, Video, Upload, CreditCard, Home, LogOut, Users } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/auth-context"
@@ -12,6 +12,7 @@ const navItems = [
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
   { href: "/admin/uploads", label: "Uploads", icon: Upload },
   { href: "/admin/purchases", label: "Purchases", icon: CreditCard },
+  { href: "/admin/users", label: "Users", icon: Users },
 ]
 
 export function AdminSidebar() {

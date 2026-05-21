@@ -29,7 +29,7 @@ function resolveApiBaseUrl(): string {
 
 export const API_BASE_URL = resolveApiBaseUrl()
 
-async function parseApiError(response: Response): Promise<string> {
+export async function parseApiError(response: Response): Promise<string> {
   const text = await response.text()
   try {
     const data = JSON.parse(text) as {

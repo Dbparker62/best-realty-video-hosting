@@ -132,6 +132,13 @@ def record_successful_purchase(stripe_session) -> dict:
             "already_recorded": True,
         }
 
+    customer_details = stripe_session.get("customer_details") or {}
+    customer_email = (
+        customer_details.get("email")
+        or stripe_session.get("customer_email")
+        or None
+    )
+
     purchase_item = {
         PURCHASES_HASH_KEY: user_id,
         PURCHASES_RANGE_KEY: course_id,
@@ -142,6 +149,8 @@ def record_successful_purchase(stripe_session) -> dict:
         "status": stripe_session.get("payment_status") or "paid",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
+    if customer_email:
+        purchase_item["customer_email"] = customer_email
 
     _write_purchase(purchase_item)
 

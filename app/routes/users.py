@@ -7,7 +7,7 @@ from app.utils.database import users_table
 
 router = APIRouter()
 from fastapi import Depends
-from app.utils.auth import require_authenticated_user
+from app.utils.auth import require_admin, require_authenticated_user
 
 @router.get("/auth/me")
 def auth_me(user=Depends(require_authenticated_user)):
@@ -33,6 +33,6 @@ def create_user(user: schemas.UserCreate):
 
 
 @router.get("/users", response_model=list[schemas.UserOut])
-def list_users():
+def list_users(user=Depends(require_admin)):
     response = users_table.scan()
     return response.get("Items", [])

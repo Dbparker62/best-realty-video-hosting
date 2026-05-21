@@ -43,7 +43,17 @@ import {
   deleteLesson,
 } from "@/lib/admin-api"
 import type { AdminLesson, LessonFormData } from "@/lib/types"
-import { Plus, MoreHorizontal, Pencil, Trash2, Upload, ArrowLeft, Eye, Video } from "lucide-react"
+import {
+  Plus,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Upload,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Video,
+} from "lucide-react"
 
 export default function AdminLessonsPage() {
   const params = useParams()
@@ -85,6 +95,11 @@ export default function AdminLessonsPage() {
     mutate()
     setLessonToDelete(null)
     setDeleteDialogOpen(false)
+  }
+
+  const handleToggleLessonPublish = async (lesson: AdminLesson) => {
+    await updateLesson(lesson.id, { published: !lesson.published })
+    mutate()
   }
 
   const sortedLessons = lessons?.sort((a, b) => a.order - b.order)
@@ -220,7 +235,22 @@ export default function AdminLessonsPage() {
                             }}
                           >
                             <Upload className="mr-2 h-4 w-4" />
-                            Upload Video
+                            {lesson.videoKey ? "Replace video" : "Upload video"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleToggleLessonPublish(lesson)}
+                          >
+                            {lesson.published ? (
+                              <>
+                                <EyeOff className="mr-2 h-4 w-4" />
+                                Unpublish lesson
+                              </>
+                            ) : (
+                              <>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Publish lesson
+                              </>
+                            )}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem

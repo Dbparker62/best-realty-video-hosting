@@ -3,10 +3,12 @@ import {
   authHeaders,
   mapCourseFromApi,
   mapLessonFromApi,
+  parseApiError,
   type CourseApi,
 } from "./api"
 import type {
   AdminLesson,
+  AdminUsersResponse,
   Course,
   CourseFormData,
   LessonFormData,
@@ -41,7 +43,7 @@ export async function getAdminCourses(): Promise<Course[]> {
     headers: authHeaders(),
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch courses")
+    throw new Error(await parseApiError(response))
   }
   const data = (await response.json()) as CourseApi[]
   return data.map((row) => mapCourseFromApi(row))
@@ -63,8 +65,7 @@ export async function createCourse(data: CourseFormData): Promise<Course> {
     }),
   })
   if (!response.ok) {
-    const err = await response.text()
-    throw new Error(err || "Failed to create course")
+    throw new Error(await parseApiError(response))
   }
   const row = (await response.json()) as CourseApi
   return mapCourseFromApi(row)
@@ -86,7 +87,7 @@ export async function updateCourse(
     body: JSON.stringify(body),
   })
   if (!response.ok) {
-    throw new Error("Failed to update course")
+    throw new Error(await parseApiError(response))
   }
   const row = (await response.json()) as CourseApi
   return mapCourseFromApi(row)
@@ -98,16 +99,19 @@ export async function deleteCourse(courseId: string): Promise<void> {
     headers: authHeaders(),
   })
   if (!response.ok) {
-    throw new Error("Failed to delete course")
+    throw new Error(await parseApiError(response))
   }
 }
 
 export async function getAdminLessons(courseId: string): Promise<AdminLesson[]> {
-  const response = await fetch(`${API_BASE_URL}/courses/${courseId}/lessons`, {
-    headers: authHeaders(),
-  })
+  const response = await fetch(
+    `${API_BASE_URL}/admin/courses/${courseId}/lessons`,
+    {
+      headers: authHeaders(),
+    }
+  )
   if (!response.ok) {
-    throw new Error("Failed to fetch lessons")
+    throw new Error(await parseApiError(response))
   }
   const data = (await response.json()) as LessonOutApi[]
   return data.map(mapAdminLesson)
@@ -130,7 +134,7 @@ export async function createLesson(
     }),
   })
   if (!response.ok) {
-    throw new Error("Failed to create lesson")
+    throw new Error(await parseApiError(response))
   }
   const row = (await response.json()) as LessonOutApi
   return mapAdminLesson(row)
@@ -153,7 +157,7 @@ export async function updateLesson(
     body: JSON.stringify(body),
   })
   if (!response.ok) {
-    throw new Error("Failed to update lesson")
+    throw new Error(await parseApiError(response))
   }
   const row = (await response.json()) as LessonOutApi
   return mapAdminLesson(row)
@@ -165,7 +169,7 @@ export async function deleteLesson(lessonId: string): Promise<void> {
     headers: authHeaders(),
   })
   if (!response.ok) {
-    throw new Error("Failed to delete lesson")
+    throw new Error(await parseApiError(response))
   }
 }
 
@@ -186,7 +190,7 @@ export async function getVideoUploadUrl(
     }
   )
   if (!response.ok) {
-    throw new Error("Failed to get upload URL")
+    throw new Error(await parseApiError(response))
   }
   const data = (await response.json()) as {
     upload_url: string
@@ -217,7 +221,7 @@ export async function saveVideoKey(
     body: JSON.stringify(body),
   })
   if (!response.ok) {
-    throw new Error("Failed to save video key")
+    throw new Error(await parseApiError(response))
   }
 }
 
@@ -236,7 +240,7 @@ export async function getAdminPurchases(): Promise<Purchase[]> {
     headers: authHeaders(),
   })
   if (!response.ok) {
-    throw new Error("Failed to fetch purchases")
+    throw new Error(await parseApiError(response))
   }
   const rows = (await response.json()) as PurchaseApiRow[]
   return rows.map((p) => ({
@@ -248,4 +252,45 @@ export async function getAdminPurchases(): Promise<Purchase[]> {
     amount: p.amount,
     purchasedAt: p.purchased_at,
   }))
+}
+
+interface RegisteredUserApi {
+  id: string
+  email: string
+  full_name: string
+  is_admin?: boolean
+}
+
+interface CustomerApi {
+  user_id: string
+  email: string
+  purchase_count: number
+  course_ids: string[]
+}
+
+export async function getAdminUsers(): Promise<AdminUsersResponse> {
+  const response = await fetch(`${API_BASE_URL}/admin/users`, {
+    headers: authHeaders(),
+  })
+  if (!response.ok) {
+    throw new Error(await parseApiError(response))
+  }
+  const data = (await response.json()) as {
+    registered_users: RegisteredUserApi[]
+    customers: CustomerApi[]
+  }
+  return {
+    registeredUsers: (data.registered_users ?? []).map((u) => ({
+      id: u.id,
+      email: u.email,
+      name: u.full_name,
+      isAdmin: Boolean(u.is_admin),
+    })),
+    customers: (data.customers ?? []).map((c) => ({
+      userId: c.user_id,
+      email: c.email,
+      purchaseCount: c.purchase_count,
+      courseIds: c.course_ids ?? [],
+    })),
+  }
 }

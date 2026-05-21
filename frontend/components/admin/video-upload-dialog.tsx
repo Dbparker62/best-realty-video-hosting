@@ -145,9 +145,13 @@ export function VideoUploadDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Upload Video</DialogTitle>
+          <DialogTitle>
+            {lesson?.videoKey ? "Replace video" : "Upload video"}
+          </DialogTitle>
           <DialogDescription>
-            Upload a video for &quot;{lesson?.title}&quot;
+            {lesson?.videoKey
+              ? `Replace the video for "${lesson?.title}". The previous file stays in storage until you clean up S3.`
+              : `Upload a video for "${lesson?.title}"`}
           </DialogDescription>
         </DialogHeader>
 

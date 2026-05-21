@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 
 from app.models import schemas
-from app.utils.auth import require_admin, require_customer
+from app.utils.auth import require_admin, require_admin_or_customer
 from app.services import lesson_service
 
 router = APIRouter()
@@ -19,7 +19,7 @@ def create_lesson(
 @router.get("/courses/{course_id}/lessons", response_model=list[schemas.LessonOut])
 def list_lessons_for_course(
     course_id: str,
-    user=Depends(require_customer)
+    user=Depends(require_admin_or_customer),
 ):
     return lesson_service.list_lessons_for_course(course_id)
 
@@ -27,7 +27,7 @@ def list_lessons_for_course(
 @router.get("/lessons/{lesson_id}", response_model=schemas.LessonOut)
 def get_lesson(
     lesson_id: str,
-    user=Depends(require_customer)
+    user=Depends(require_admin_or_customer),
 ):
     return lesson_service.get_lesson(lesson_id)
 
