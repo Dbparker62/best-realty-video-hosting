@@ -140,10 +140,48 @@ export function mapLessonFromApi(raw: LessonApi): Lesson {
   }
 }
 
+async function refreshAccessToken(): Promise<boolean> {
+  if (typeof window === "undefined") return false
+  const refreshToken = localStorage.getItem("refresh_token")
+  if (!refreshToken) return false
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    })
+    if (!response.ok) return false
+
+    const data = (await response.json()) as {
+      access_token?: string
+      id_token?: string
+    }
+    if (data.access_token) {
+      localStorage.setItem("access_token", data.access_token)
+    }
+    if (data.id_token) {
+      localStorage.setItem("id_token", data.id_token)
+    }
+    return Boolean(data.access_token)
+  } catch {
+    return false
+  }
+}
+
 export async function fetchAuthMe(): Promise<User | null> {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, {
+  let response = await fetch(`${API_BASE_URL}/auth/me`, {
     headers: authHeaders(),
   })
+
+  if (response.status === 401) {
+    const refreshed = await refreshAccessToken()
+    if (refreshed) {
+      response = await fetch(`${API_BASE_URL}/auth/me`, {
+        headers: authHeaders(),
+      })
+    }
+  }
 
   if (!response.ok) {
     return null

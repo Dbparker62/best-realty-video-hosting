@@ -18,8 +18,15 @@ function AuthCallbackContent() {
       }
 
       try {
+        const redirectUri =
+          process.env.NEXT_PUBLIC_COGNITO_REDIRECT_URI ??
+          `${window.location.origin}/auth/callback`
+        const params = new URLSearchParams({
+          code,
+          redirect_uri: redirectUri,
+        })
         const response = await fetch(
-          `${API_BASE_URL}/auth/callback?code=${encodeURIComponent(code)}`
+          `${API_BASE_URL}/auth/callback?${params.toString()}`
         )
 
         if (!response.ok) {
