@@ -7,6 +7,7 @@ from botocore.exceptions import ClientError
 from app.config import PURCHASES_HASH_KEY, PURCHASES_RANGE_KEY
 from app.services.access_service import grant_course_access, has_course_access
 from app.services.cognito_service import lookup_email_by_sub
+from app.services.email_service import send_post_purchase_emails
 from app.utils.database import purchases_table
 from app.utils.dynamodb import sanitize_item
 from app.utils.error import bad_request, conflict
@@ -68,6 +69,13 @@ def _resolve_customer_email(
             return str(candidate).strip()
 
     return lookup_email_by_sub(user_id)
+
+
+def _count_purchases_for_user(user_id: str) -> int:
+    scan = purchases_table.scan(
+        FilterExpression=Attr("user_id").eq(user_id)
+    )
+    return len(scan.get("Items", []))
 
 
 def _write_purchase(purchase_item: dict) -> None:
@@ -153,6 +161,8 @@ def record_successful_purchase(stripe_session) -> dict:
             "already_recorded": True,
         }
 
+    is_first_purchase = _count_purchases_for_user(user_id) == 0
+
     purchase_item = {
         PURCHASES_HASH_KEY: user_id,
         PURCHASES_RANGE_KEY: course_id,
@@ -181,8 +191,21 @@ def record_successful_purchase(stripe_session) -> dict:
         course_id,
     )
 
+    email_results = send_post_purchase_emails(
+        customer_email=customer_email,
+        user_id=user_id,
+        course_id=course_id,
+        session_id=session_id,
+        amount_total=purchase_item.get("amount_total"),
+        is_first_purchase=is_first_purchase,
+    )
+    if email_results.get("confirmation_sent") or email_results.get("welcome_sent"):
+        purchase_item["emails_sent_at"] = datetime.now(timezone.utc).isoformat()
+        _write_purchase(purchase_item)
+
     return {
         "purchase": purchase_item,
         "access": access_item,
         "already_recorded": False,
+        "emails": email_results,
     }

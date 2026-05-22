@@ -30,3 +30,14 @@ CLOUDFRONT_DOMAIN = os.getenv("CLOUDFRONT_DOMAIN")
 FRONTEND_URL = os.getenv(
     "FRONTEND_URL", "https://best-realty-video-hosting.vercel.app"
 )
+
+# Transactional email (Amazon SES)
+EMAIL_FROM = os.getenv("EMAIL_FROM", "").strip()
+SUPPORT_EMAIL = os.getenv(
+    "SUPPORT_EMAIL", "support@bestrealtycourses.com"
+).strip()
+EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "true").lower() in (
+    "1",
+    "true",
+    "yes",
+)
