@@ -1,4 +1,4 @@
-"""Transactional email via Amazon SES (purchase confirmation + welcome)."""
+"""Transactional email via Amazon SES."""
 
 import logging
 
@@ -12,6 +12,7 @@ from app.config import (
     FRONTEND_URL,
     SUPPORT_EMAIL,
 )
+from app.services import email_templates as templates
 from app.utils.database import courses_table
 
 logger = logging.getLogger(__name__)
@@ -21,6 +22,10 @@ _ses = boto3.client("ses", region_name=AWS_REGION)
 
 def _is_configured() -> bool:
     return bool(EMAIL_ENABLED and EMAIL_FROM)
+
+
+def _support_address() -> str:
+    return SUPPORT_EMAIL or EMAIL_FROM
 
 
 def _format_amount(amount_total) -> str:
@@ -70,7 +75,7 @@ def _send_email(*, to_address: str, subject: str, html_body: str, text_body: str
                     "Html": {"Data": html_body, "Charset": "UTF-8"},
                 },
             },
-            ReplyToAddresses=[SUPPORT_EMAIL] if SUPPORT_EMAIL else [],
+            ReplyToAddresses=[_support_address()] if _support_address() else [],
         )
         logger.info("Sent email %r to %s", subject, to_address)
         return True
@@ -95,49 +100,27 @@ def send_purchase_confirmation_email(
     site = FRONTEND_URL.rstrip("/")
     my_courses_url = f"{site}/my-courses"
     course_url = f"{site}/courses/{course_id}"
-
-    subject = f"Purchase confirmed — {course_title}"
-    text_body = f"""Hi,
-
-Thank you for your purchase!
-
-Course: {course_title}
-Amount paid: {amount_display}
-Order reference: {session_id}
-
-Start learning: {my_courses_url}
-View course: {course_url}
-
-Questions? Reply to this email or contact {SUPPORT_EMAIL or EMAIL_FROM}.
-
-— Best Realty Courses
-"""
-
-    html_body = f"""<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-  <h2 style="color: #0f766e;">Purchase confirmed</h2>
-  <p>Thank you for your purchase. Your course is ready.</p>
-  <table style="margin: 16px 0; border-collapse: collapse;">
-    <tr><td style="padding: 4px 12px 4px 0;"><strong>Course</strong></td><td>{course_title}</td></tr>
-    <tr><td style="padding: 4px 12px 4px 0;"><strong>Amount</strong></td><td>{amount_display}</td></tr>
-    <tr><td style="padding: 4px 12px 4px 0;"><strong>Order</strong></td><td style="font-size: 12px;">{session_id}</td></tr>
-  </table>
-  <p>
-    <a href="{my_courses_url}" style="display: inline-block; background: #0f766e; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Go to My Courses</a>
-  </p>
-  <p style="font-size: 14px; color: #555;">
-    <a href="{course_url}">Open course page</a>
-  </p>
-  <p style="font-size: 13px; color: #777;">Questions? Contact {SUPPORT_EMAIL or EMAIL_FROM}</p>
-</body>
-</html>"""
+    support = _support_address()
 
     return _send_email(
         to_address=to_address,
-        subject=subject,
-        html_body=html_body,
-        text_body=text_body,
+        subject=templates.purchase_confirmation_subject(course_title=course_title),
+        text_body=templates.purchase_confirmation_text(
+            course_title=course_title,
+            amount_display=amount_display,
+            session_id=session_id,
+            my_courses_url=my_courses_url,
+            course_url=course_url,
+            support_email=support,
+        ),
+        html_body=templates.purchase_confirmation_html(
+            course_title=course_title,
+            amount_display=amount_display,
+            session_id=session_id,
+            my_courses_url=my_courses_url,
+            course_url=course_url,
+            support_email=support,
+        ),
     )
 
 
@@ -149,48 +132,21 @@ def send_welcome_email(
 ) -> bool:
     site = FRONTEND_URL.rstrip("/")
     my_courses_url = f"{site}/my-courses"
-
-    subject = "Welcome to Best Realty Courses"
-    text_body = f"""Hi,
-
-Welcome to Best Realty Courses — we're glad you're here.
-
-You now have lifetime access to {course_title}. Sign in anytime to watch lessons, track your progress, and pick up where you left off.
-
-Start learning: {my_courses_url}
-
-Tips:
-• Use the same email you signed up with to log in
-• Visit My Courses to see everything you've purchased
-• Mark lessons complete as you go to track progress
-
-Questions? {SUPPORT_EMAIL or EMAIL_FROM}
-
-— Best Realty Courses
-"""
-
-    html_body = f"""<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-  <h2 style="color: #0f766e;">Welcome to Best Realty Courses</h2>
-  <p>We're excited to have you. Your account is active and <strong>{course_title}</strong> is ready.</p>
-  <ul>
-    <li>Lifetime access to your course</li>
-    <li>Progress tracking across lessons</li>
-    <li>Continue watching from any device</li>
-  </ul>
-  <p>
-    <a href="{my_courses_url}" style="display: inline-block; background: #0f766e; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Go to My Courses</a>
-  </p>
-  <p style="font-size: 13px; color: #777;">Need help? {SUPPORT_EMAIL or EMAIL_FROM}</p>
-</body>
-</html>"""
+    support = _support_address()
 
     return _send_email(
         to_address=to_address,
-        subject=subject,
-        html_body=html_body,
-        text_body=text_body,
+        subject=templates.welcome_subject(),
+        text_body=templates.welcome_text(
+            course_title=course_title,
+            my_courses_url=my_courses_url,
+            support_email=support,
+        ),
+        html_body=templates.welcome_html(
+            course_title=course_title,
+            my_courses_url=my_courses_url,
+            support_email=support,
+        ),
     )
 
 
@@ -250,53 +206,34 @@ def send_questionnaire_score_email(
 ) -> bool:
     site = FRONTEND_URL.rstrip("/")
     courses_url = f"{site}/courses"
+    support = _support_address()
 
-    subject = f"Your real estate readiness score: {readiness_percent}%"
-    lines = "\n".join(
-        f"• {row.get('prompt', 'Question')}: {row.get('selected_label', '')}"
-        for row in breakdown
-    )
-    text_body = f"""Hi {name},
-
-Thanks for completing the Best Realty Courses readiness assessment.
-
-Your score: {score} / {max_score} ({readiness_percent}%)
-Recommendation: {readiness_label}
-
-Your answers:
-{lines}
-
-Explore our courses: {courses_url}
-
-Questions? {SUPPORT_EMAIL or EMAIL_FROM}
-
-— Best Realty Courses
-"""
-
-    breakdown_html = "".join(
-        f"<li><strong>{row.get('prompt', 'Question')}</strong><br/>"
-        f"{row.get('selected_label', '')}</li>"
-        for row in breakdown
-    )
-    html_body = f"""<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-  <h2 style="color: #0f766e;">Your Real Estate Readiness Score</h2>
-  <p>Hi {name},</p>
-  <p style="font-size: 28px; font-weight: bold; color: #0f766e;">{readiness_percent}%</p>
-  <p><strong>{readiness_label}</strong></p>
-  <p>Score: {score} out of {max_score} points</p>
-  <ul>{breakdown_html}</ul>
-  <p>
-    <a href="{courses_url}" style="display: inline-block; background: #0f766e; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Our Courses</a>
-  </p>
-  <p style="font-size: 13px; color: #777;">Questions? {SUPPORT_EMAIL or EMAIL_FROM}</p>
-</body>
-</html>"""
+    breakdown_lines = templates.format_breakdown_text(breakdown)
+    breakdown_html = templates.format_breakdown_html(breakdown)
 
     return _send_email(
         to_address=to_address,
-        subject=subject,
-        html_body=html_body,
-        text_body=text_body,
+        subject=templates.questionnaire_score_subject(
+            readiness_percent=readiness_percent
+        ),
+        text_body=templates.questionnaire_score_text(
+            name=name,
+            score=score,
+            max_score=max_score,
+            readiness_percent=readiness_percent,
+            readiness_label=readiness_label,
+            breakdown_lines=breakdown_lines,
+            courses_url=courses_url,
+            support_email=support,
+        ),
+        html_body=templates.questionnaire_score_html(
+            name=name,
+            score=score,
+            max_score=max_score,
+            readiness_percent=readiness_percent,
+            readiness_label=readiness_label,
+            breakdown_html=breakdown_html,
+            courses_url=courses_url,
+            support_email=support,
+        ),
     )
