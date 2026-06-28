@@ -1,5 +1,6 @@
 "use client"
 
+import Link from "next/link"
 import { useCallback } from "react"
 import useSWR from "swr"
 import { getCourses, initiateCheckout, getMyCourses } from "@/lib/api"
@@ -7,6 +8,7 @@ import { useAuth } from "@/lib/auth-context"
 import { CourseCard } from "@/components/course-card"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Building2, GraduationCap, TrendingUp, Award } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function CourseCatalog() {
   const { canUseCustomerFeatures } = useAuth()
@@ -45,6 +47,11 @@ export default function CourseCatalog() {
               Expert-led video courses designed for real estate preliscening. 
               Learn property valuation, market analysis, negotiation strategies, and more.
             </p>
+            <div className="mt-8 flex flex-wrap justify-center gap-3">
+              <Button asChild size="lg">
+                <Link href="/questionnaire">Take the readiness quiz</Link>
+              </Button>
+            </div>
           </div>
           
           {/* Stats */}
