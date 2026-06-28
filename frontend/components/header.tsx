@@ -54,6 +54,12 @@ export function Header() {
             >
               Courses
             </Link>
+            <Link
+              href="/questionnaire"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Readiness Quiz
+            </Link>
             {canUseCustomerFeatures && !authLoading && (
               <Link
                 href="/my-courses"
@@ -142,6 +148,13 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Courses
+              </Link>
+              <Link
+                href="/questionnaire"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Readiness Quiz
               </Link>
               {canUseCustomerFeatures && !authLoading && (
                 <Link

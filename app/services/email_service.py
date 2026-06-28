@@ -236,3 +236,67 @@ def send_post_purchase_emails(
         )
 
     return results
+
+
+def send_questionnaire_score_email(
+    *,
+    to_address: str,
+    name: str,
+    readiness_percent: int,
+    readiness_label: str,
+    score: int,
+    max_score: int,
+    breakdown: list[dict],
+) -> bool:
+    site = FRONTEND_URL.rstrip("/")
+    courses_url = f"{site}/courses"
+
+    subject = f"Your real estate readiness score: {readiness_percent}%"
+    lines = "\n".join(
+        f"• {row.get('prompt', 'Question')}: {row.get('selected_label', '')}"
+        for row in breakdown
+    )
+    text_body = f"""Hi {name},
+
+Thanks for completing the Best Realty Courses readiness assessment.
+
+Your score: {score} / {max_score} ({readiness_percent}%)
+Recommendation: {readiness_label}
+
+Your answers:
+{lines}
+
+Explore our courses: {courses_url}
+
+Questions? {SUPPORT_EMAIL or EMAIL_FROM}
+
+— Best Realty Courses
+"""
+
+    breakdown_html = "".join(
+        f"<li><strong>{row.get('prompt', 'Question')}</strong><br/>"
+        f"{row.get('selected_label', '')}</li>"
+        for row in breakdown
+    )
+    html_body = f"""<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+  <h2 style="color: #0f766e;">Your Real Estate Readiness Score</h2>
+  <p>Hi {name},</p>
+  <p style="font-size: 28px; font-weight: bold; color: #0f766e;">{readiness_percent}%</p>
+  <p><strong>{readiness_label}</strong></p>
+  <p>Score: {score} out of {max_score} points</p>
+  <ul>{breakdown_html}</ul>
+  <p>
+    <a href="{courses_url}" style="display: inline-block; background: #0f766e; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Our Courses</a>
+  </p>
+  <p style="font-size: 13px; color: #777;">Questions? {SUPPORT_EMAIL or EMAIL_FROM}</p>
+</body>
+</html>"""
+
+    return _send_email(
+        to_address=to_address,
+        subject=subject,
+        html_body=html_body,
+        text_body=text_body,
+    )

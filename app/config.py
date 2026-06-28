@@ -41,3 +41,10 @@ EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "true").lower() in (
     "true",
     "yes",
 )
+
+QUESTIONNAIRE_QUESTIONS_TABLE = os.getenv(
+    "QUESTIONNAIRE_QUESTIONS_TABLE", "course-platform-questionnaire-questions"
+)
+QUESTIONNAIRE_SUBMISSIONS_TABLE = os.getenv(
+    "QUESTIONNAIRE_SUBMISSIONS_TABLE", "course-platform-questionnaire-submissions"
+)

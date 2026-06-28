@@ -3,7 +3,7 @@ import logging
 from fastapi import APIRouter, Depends
 
 from app.models import schemas
-from app.services import lesson_service
+from app.services import lesson_service, questionnaire_service
 from app.services.cognito_service import lookup_email_by_sub
 from app.utils.auth import require_admin
 from app.utils.database import purchases_table, courses_table, users_table
@@ -144,3 +144,53 @@ def list_users_for_admin(user=Depends(require_admin)):
         "registered_users": registered,
         "customers": customers,
     }
+
+
+@router.get(
+    "/admin/questionnaire/questions",
+    response_model=list[schemas.QuestionnaireQuestionAdminOut],
+)
+def admin_list_questionnaire_questions(user=Depends(require_admin)):
+    return questionnaire_service.list_all_questions_admin()
+
+
+@router.post(
+    "/admin/questionnaire/questions",
+    response_model=schemas.QuestionnaireQuestionAdminOut,
+)
+def admin_create_questionnaire_question(
+    body: schemas.QuestionnaireQuestionCreate,
+    user=Depends(require_admin),
+):
+    return questionnaire_service.create_question(
+        body.model_dump(mode="json")
+    )
+
+
+@router.put(
+    "/admin/questionnaire/questions/{question_id}",
+    response_model=schemas.QuestionnaireQuestionAdminOut,
+)
+def admin_update_questionnaire_question(
+    question_id: str,
+    body: schemas.QuestionnaireQuestionUpdate,
+    user=Depends(require_admin),
+):
+    return questionnaire_service.update_question(
+        question_id,
+        body.model_dump(exclude_unset=True, mode="json"),
+    )
+
+
+@router.delete("/admin/questionnaire/questions/{question_id}")
+def admin_delete_questionnaire_question(
+    question_id: str,
+    user=Depends(require_admin),
+):
+    questionnaire_service.delete_question(question_id)
+    return {"message": "Question deleted", "id": question_id}
+
+
+@router.get("/admin/questionnaire/submissions")
+def admin_list_questionnaire_submissions(user=Depends(require_admin)):
+    return questionnaire_service.list_submissions_admin()

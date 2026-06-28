@@ -144,3 +144,68 @@ class VideoUploadResponse(BaseModel):
 class VideoUpdateRequest(BaseModel):
     video_s3_key: str = Field(..., min_length=1, max_length=500)
     duration_seconds: Optional[int] = Field(None, ge=0)
+
+
+class QuestionnaireOptionIn(BaseModel):
+    id: str = Field(..., min_length=1, max_length=50)
+    label: str = Field(..., min_length=1, max_length=500)
+    points: int = Field(..., ge=0, le=100)
+
+
+class QuestionnaireOptionOut(BaseModel):
+    id: str
+    label: str
+
+
+class QuestionnaireOptionAdminOut(QuestionnaireOptionOut):
+    points: int
+
+
+class QuestionnaireQuestionCreate(BaseModel):
+    prompt: str = Field(..., min_length=1, max_length=500)
+    order_index: int = Field(default=1, ge=0)
+    is_active: bool = True
+    options: list[QuestionnaireOptionIn] = Field(..., min_length=2)
+
+
+class QuestionnaireQuestionUpdate(BaseModel):
+    prompt: Optional[str] = Field(None, min_length=1, max_length=500)
+    order_index: Optional[int] = Field(None, ge=0)
+    is_active: Optional[bool] = None
+    options: Optional[list[QuestionnaireOptionIn]] = Field(None, min_length=2)
+
+
+class QuestionnaireQuestionPublicOut(BaseModel):
+    id: str
+    order_index: int
+    prompt: str
+    options: list[QuestionnaireOptionOut]
+
+
+class QuestionnaireQuestionAdminOut(BaseModel):
+    id: str
+    order_index: int
+    prompt: str
+    is_active: bool = True
+    options: list[QuestionnaireOptionAdminOut]
+
+
+class QuestionnaireAnswerIn(BaseModel):
+    question_id: str
+    option_id: str
+
+
+class QuestionnaireSubmitIn(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
+    answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
+
+
+class QuestionnaireSubmitOut(BaseModel):
+    submission_id: str
+    name: str
+    readiness_percent: int
+    readiness_label: str
+    score: int
+    max_score: int
+    email_sent: bool = False
