@@ -203,6 +203,8 @@ def send_questionnaire_score_email(
     score: int,
     max_score: int,
     breakdown: list[dict],
+    career_path_title: str,
+    roadmap: str,
 ) -> bool:
     site = FRONTEND_URL.rstrip("/")
     courses_url = f"{site}/courses"
@@ -214,24 +216,24 @@ def send_questionnaire_score_email(
     return _send_email(
         to_address=to_address,
         subject=templates.questionnaire_score_subject(
-            readiness_percent=readiness_percent
+            career_path_title=career_path_title
         ),
         text_body=templates.questionnaire_score_text(
             name=name,
-            score=score,
-            max_score=max_score,
             readiness_percent=readiness_percent,
             readiness_label=readiness_label,
+            career_path_title=career_path_title,
+            roadmap=roadmap,
             breakdown_lines=breakdown_lines,
             courses_url=courses_url,
             support_email=support,
         ),
         html_body=templates.questionnaire_score_html(
             name=name,
-            score=score,
-            max_score=max_score,
             readiness_percent=readiness_percent,
             readiness_label=readiness_label,
+            career_path_title=career_path_title,
+            roadmap=roadmap,
             breakdown_html=breakdown_html,
             courses_url=courses_url,
             support_email=support,

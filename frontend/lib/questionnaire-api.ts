@@ -13,6 +13,8 @@ export interface QuestionnaireQuestion {
   id: string
   orderIndex: number
   prompt: string
+  subtitle: string
+  allowMultiple: boolean
   options: QuestionnaireOption[]
 }
 
@@ -29,6 +31,9 @@ export interface QuestionnaireSubmitResult {
   name: string
   readinessPercent: number
   readinessLabel: string
+  careerPath: string
+  careerPathTitle: string
+  roadmap: string
   score: number
   maxScore: number
   emailSent: boolean
@@ -40,6 +45,7 @@ export interface QuestionnaireSubmissionAdmin {
   email: string
   readinessPercent: number
   readinessLabel: string
+  careerPath?: string
   score: number
   maxScore: number
   createdAt: string
@@ -49,6 +55,8 @@ interface QuestionPublicApi {
   id: string
   order_index: number
   prompt: string
+  subtitle?: string
+  allow_multiple?: boolean
   options: { id: string; label: string }[]
 }
 
@@ -65,6 +73,8 @@ function mapQuestion(raw: QuestionPublicApi): QuestionnaireQuestion {
     id: raw.id,
     orderIndex: raw.order_index,
     prompt: raw.prompt,
+    subtitle: raw.subtitle ?? "",
+    allowMultiple: Boolean(raw.allow_multiple),
     options: raw.options.map((o) => ({ id: o.id, label: o.label })),
   }
 }
@@ -95,7 +105,7 @@ export async function getQuestionnaireQuestions(): Promise<QuestionnaireQuestion
 export async function submitQuestionnaire(payload: {
   name: string
   email: string
-  answers: { questionId: string; optionId: string }[]
+  answers: { questionId: string; optionIds: string[] }[]
 }): Promise<QuestionnaireSubmitResult> {
   const response = await fetch(`${API_BASE_URL}/questionnaire/submit`, {
     method: "POST",
@@ -105,7 +115,7 @@ export async function submitQuestionnaire(payload: {
       email: payload.email,
       answers: payload.answers.map((a) => ({
         question_id: a.questionId,
-        option_id: a.optionId,
+        option_ids: a.optionIds,
       })),
     }),
   })
@@ -117,6 +127,9 @@ export async function submitQuestionnaire(payload: {
     name: string
     readiness_percent: number
     readiness_label: string
+    career_path: string
+    career_path_title: string
+    roadmap: string
     score: number
     max_score: number
     email_sent: boolean
@@ -126,6 +139,9 @@ export async function submitQuestionnaire(payload: {
     name: data.name,
     readinessPercent: data.readiness_percent,
     readinessLabel: data.readiness_label,
+    careerPath: data.career_path,
+    careerPathTitle: data.career_path_title,
+    roadmap: data.roadmap,
     score: data.score,
     maxScore: data.max_score,
     emailSent: data.email_sent,
@@ -238,6 +254,7 @@ export async function getAdminQuestionnaireSubmissions(): Promise<
     email: string
     readiness_percent: number
     readiness_label: string
+    career_path?: string
     score: number
     max_score: number
     created_at: string
@@ -248,6 +265,7 @@ export async function getAdminQuestionnaireSubmissions(): Promise<
     email: row.email,
     readinessPercent: row.readiness_percent,
     readinessLabel: row.readiness_label,
+    careerPath: row.career_path,
     score: row.score,
     maxScore: row.max_score,
     createdAt: row.created_at,

@@ -17,7 +17,8 @@ def _e(value: object) -> str:
 # Branding — change these once; used across all emails
 # ---------------------------------------------------------------------------
 
-BRAND_NAME = "Best Realty Courses"
+BRAND_NAME = "Best School Of Real Estate"
+BRAND_TAGLINE = "New Jersey real estate pre-licensing education"
 BRAND_COLOR = "#0f766e"  # teal accent for headings and buttons
 
 
@@ -164,46 +165,50 @@ def format_breakdown_html(breakdown: list[dict]) -> str:
     )
 
 
-def questionnaire_score_subject(*, readiness_percent: int) -> str:
-    return f"Your real estate readiness score: {readiness_percent}%"
+def questionnaire_score_subject(*, career_path_title: str) -> str:
+    return f"Your NJ real estate career profile — {career_path_title}"
 
 
 def questionnaire_score_text(
     *,
     name: str,
-    score: int,
-    max_score: int,
     readiness_percent: int,
     readiness_label: str,
+    career_path_title: str,
+    roadmap: str,
     breakdown_lines: str,
     courses_url: str,
     support_email: str,
 ) -> str:
     return f"""Hi {name},
 
-Thanks for completing the {BRAND_NAME} readiness assessment.
+Thanks for completing the {BRAND_NAME} career assessment.
 
-Your score: {score} / {max_score} ({readiness_percent}%)
-Recommendation: {readiness_label}
+{career_path_title} ({readiness_percent}% match)
+{readiness_label}
+
+Your personalized roadmap:
+{roadmap}
 
 Your answers:
 {breakdown_lines}
 
-Explore our courses: {courses_url}
+Next step — view our NJ pre-licensing courses: {courses_url}
 
 Questions? {support_email}
 
 — {BRAND_NAME}
+{BRAND_TAGLINE}
 """
 
 
 def questionnaire_score_html(
     *,
     name: str,
-    score: int,
-    max_score: int,
     readiness_percent: int,
     readiness_label: str,
+    career_path_title: str,
+    roadmap: str,
     breakdown_html: str,
     courses_url: str,
     support_email: str,
@@ -211,14 +216,16 @@ def questionnaire_score_html(
     return f"""<!DOCTYPE html>
 <html>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-  <h2 style="color: {BRAND_COLOR};">Your Real Estate Readiness Score</h2>
+  <h2 style="color: {BRAND_COLOR};">Your NJ Real Estate Career Profile</h2>
   <p>Hi {_e(name)},</p>
-  <p style="font-size: 28px; font-weight: bold; color: {BRAND_COLOR};">{readiness_percent}%</p>
+  <p style="font-size: 14px; color: #555;">{BRAND_TAGLINE}</p>
+  <p style="font-size: 22px; font-weight: bold; color: {BRAND_COLOR};">{_e(career_path_title)}</p>
+  <p style="font-size: 28px; font-weight: bold; color: {BRAND_COLOR};">{readiness_percent}% match</p>
   <p><strong>{_e(readiness_label)}</strong></p>
-  <p>Score: {score} out of {max_score} points</p>
+  <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{_e(roadmap)}</p>
   <ul>{breakdown_html}</ul>
   <p>
-    <a href="{_e(courses_url)}" style="display: inline-block; background: {BRAND_COLOR}; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View Our Courses</a>
+    <a href="{_e(courses_url)}" style="display: inline-block; background: {BRAND_COLOR}; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View NJ Pre-Licensing Courses</a>
   </p>
   <p style="font-size: 13px; color: #777;">Questions? {_e(support_email)}</p>
 </body>

@@ -22,7 +22,7 @@ def get_questionnaire_questions():
 def submit_questionnaire(body: schemas.QuestionnaireSubmitIn):
     """Score answers and optionally email the readiness result."""
     answers = [
-        {"question_id": a.question_id, "option_id": a.option_id}
+        {"question_id": a.question_id, "option_ids": a.option_ids}
         for a in body.answers
     ]
     return questionnaire_service.submit_questionnaire(

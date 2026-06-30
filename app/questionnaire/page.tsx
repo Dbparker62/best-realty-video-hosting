@@ -7,16 +7,38 @@ import Link from "next/link"
 import { ArrowLeft, ArrowRight, CheckCircle2, ClipboardList } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   getQuestionnaireQuestions,
   submitQuestionnaire,
+  type QuestionnaireQuestion,
   type QuestionnaireSubmitResult,
 } from "@/lib/questionnaire-api"
+
+type WizardStep =
+  | { type: "question"; questionIndex: number }
+  | { type: "name" }
+  | { type: "email" }
+
+function buildWizardSteps(questions: QuestionnaireQuestion[]): WizardStep[] {
+  const steps: WizardStep[] = []
+  questions.forEach((_, index) => {
+    steps.push({ type: "question", questionIndex: index })
+    if (index === 0) steps.push({ type: "name" })
+  })
+  steps.push({ type: "email" })
+  return steps
+}
+
+function firstName(fullName: string): string {
+  const trimmed = fullName.trim()
+  if (!trimmed) return "there"
+  return trimmed.split(/\s+/)[0] ?? trimmed
+}
 
 export default function QuestionnairePage() {
   const { data: questions, isLoading, error } = useSWR(
@@ -24,23 +46,65 @@ export default function QuestionnairePage() {
     getQuestionnaireQuestions
   )
 
-  const [step, setStep] = useState(0)
-  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const wizardSteps = useMemo(
+    () => (questions ? buildWizardSteps(questions) : []),
+    [questions]
+  )
+
+  const [stepIndex, setStepIndex] = useState(0)
+  const [answers, setAnswers] = useState<Record<string, string[]>>({})
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [result, setResult] = useState<QuestionnaireSubmitResult | null>(null)
 
-  const totalSteps = (questions?.length ?? 0) + 1
-  const onQuestionStep = questions && step < questions.length
-  const currentQuestion = onQuestionStep ? questions[step] : null
-  const progressPercent = totalSteps > 0 ? Math.round(((step + 1) / totalSteps) * 100) : 0
+  const currentStep = wizardSteps[stepIndex]
+  const currentQuestion =
+    currentStep?.type === "question" && questions
+      ? questions[currentStep.questionIndex]
+      : null
+
+  const progressPercent =
+    wizardSteps.length > 0
+      ? Math.round(((stepIndex + 1) / wizardSteps.length) * 100)
+      : 0
 
   const allQuestionsAnswered = useMemo(() => {
     if (!questions?.length) return false
-    return questions.every((q) => Boolean(answers[q.id]))
+    return questions.every((q) => (answers[q.id]?.length ?? 0) > 0)
   }, [questions, answers])
+
+  function toggleOption(questionId: string, optionId: string, allowMultiple: boolean) {
+    setAnswers((prev) => {
+      const current = prev[questionId] ?? []
+      if (!allowMultiple) {
+        return { ...prev, [questionId]: [optionId] }
+      }
+      if (current.includes(optionId)) {
+        const next = current.filter((id) => id !== optionId)
+        return { ...prev, [questionId]: next }
+      }
+      return { ...prev, [questionId]: [...current, optionId] }
+    })
+  }
+
+  function canContinue(): boolean {
+    if (!currentStep) return false
+    if (currentStep.type === "question" && currentQuestion) {
+      return (answers[currentQuestion.id]?.length ?? 0) > 0
+    }
+    if (currentStep.type === "name") return name.trim().length > 0
+    if (currentStep.type === "email") {
+      return allQuestionsAnswered && name.trim().length > 0 && email.trim().length > 0
+    }
+    return false
+  }
+
+  function handleNext() {
+    if (!canContinue()) return
+    setStepIndex((i) => Math.min(i + 1, wizardSteps.length - 1))
+  }
 
   async function handleFinalSubmit(e: FormEvent) {
     e.preventDefault()
@@ -54,7 +118,7 @@ export default function QuestionnairePage() {
         email: email.trim(),
         answers: questions.map((q) => ({
           questionId: q.id,
-          optionId: answers[q.id],
+          optionIds: answers[q.id] ?? [],
         })),
       })
       setResult(payload)
@@ -63,11 +127,6 @@ export default function QuestionnairePage() {
     } finally {
       setSubmitting(false)
     }
-  }
-
-  function handleNext() {
-    if (!currentQuestion || !answers[currentQuestion.id]) return
-    setStep((s) => s + 1)
   }
 
   if (result) {
@@ -79,31 +138,34 @@ export default function QuestionnairePage() {
               <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <CheckCircle2 className="h-8 w-8" />
               </div>
-              <CardTitle className="text-2xl">Your Real Estate Readiness Score</CardTitle>
+              <CardTitle className="text-2xl">
+                Your results are ready, {firstName(result.name)}.
+              </CardTitle>
               <CardDescription>
-                Hi {result.name}, here is how ready you are to join real estate.
+                Your personalized path to a New Jersey real estate license.
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6 text-center">
-              <div>
-                <p className="text-5xl font-bold text-primary">{result.readinessPercent}%</p>
+            <CardContent className="space-y-6">
+              <div className="text-center">
+                <p className="text-lg font-semibold text-primary">{result.careerPathTitle}</p>
+                <p className="mt-2 text-4xl font-bold text-primary">{result.readinessPercent}%</p>
                 <p className="mt-3 text-muted-foreground">{result.readinessLabel}</p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {result.score} of {result.maxScore} points
-                </p>
+              </div>
+              <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
+                {result.roadmap}
               </div>
               {result.emailSent ? (
-                <p className="rounded-lg bg-muted px-4 py-3 text-sm">
-                  We emailed your results to you. Check your inbox.
+                <p className="rounded-lg bg-muted px-4 py-3 text-center text-sm">
+                  We emailed your career profile and roadmap to you. Check your inbox.
                 </p>
               ) : (
-                <p className="rounded-lg bg-muted px-4 py-3 text-sm text-muted-foreground">
-                  Save this score — email delivery is not configured yet.
+                <p className="rounded-lg bg-muted px-4 py-3 text-center text-sm text-muted-foreground">
+                  Save this roadmap — email delivery is not configured yet.
                 </p>
               )}
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Button asChild>
-                  <Link href="/courses">Explore Courses</Link>
+                  <Link href="/courses">View NJ Pre-Licensing Courses</Link>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link href="/">Back to Home</Link>
@@ -111,6 +173,9 @@ export default function QuestionnairePage() {
               </div>
             </CardContent>
           </Card>
+          <p className="mt-8 text-center text-xs text-muted-foreground">
+            Best School Of Real Estate · New Jersey real estate pre-licensing education
+          </p>
         </div>
       </div>
     )
@@ -133,19 +198,17 @@ export default function QuestionnairePage() {
               <ClipboardList className="h-5 w-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Real Estate Readiness Quiz
-              </h1>
+              <h1 className="text-2xl font-bold text-foreground">NJ Real Estate Career Quiz</h1>
               <p className="text-sm text-muted-foreground">
-                Multiple choice — one question at a time. Your score shows how ready you are to join real estate.
+                Best School Of Real Estate — find your path to a New Jersey license.
               </p>
             </div>
           </div>
-          {!isLoading && questions && questions.length > 0 && (
+          {!isLoading && wizardSteps.length > 0 && (
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>
-                  Step {Math.min(step + 1, totalSteps)} of {totalSteps}
+                  Question {Math.min(stepIndex + 1, wizardSteps.length)} of {wizardSteps.length}
                 </span>
                 <span>{progressPercent}%</span>
               </div>
@@ -160,7 +223,6 @@ export default function QuestionnairePage() {
               <Skeleton className="h-6 w-3/4" />
               <Skeleton className="h-12 w-full" />
               <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
             </CardContent>
           </Card>
         ) : error ? (
@@ -169,58 +231,96 @@ export default function QuestionnairePage() {
               Could not load questions. Please try again later.
             </CardContent>
           </Card>
-        ) : !questions?.length ? (
+        ) : !questions?.length || !currentStep ? (
           <Card>
             <CardContent className="py-8 text-center text-muted-foreground">
               No questions available yet.
             </CardContent>
           </Card>
-        ) : onQuestionStep && currentQuestion ? (
+        ) : currentStep.type === "question" && currentQuestion ? (
           <Card>
             <CardHeader>
               <CardTitle className="text-lg leading-snug">{currentQuestion.prompt}</CardTitle>
-              <CardDescription>Select the answer that best describes you.</CardDescription>
+              {currentQuestion.subtitle && (
+                <CardDescription>{currentQuestion.subtitle}</CardDescription>
+              )}
             </CardHeader>
             <CardContent className="space-y-6">
-              <RadioGroup
-                value={answers[currentQuestion.id] ?? ""}
-                onValueChange={(value) =>
-                  setAnswers((prev) => ({ ...prev, [currentQuestion.id]: value }))
-                }
-                className="space-y-3"
-              >
-                {currentQuestion.options.map((option) => (
-                  <label
-                    key={option.id}
-                    htmlFor={`${currentQuestion.id}-${option.id}`}
-                    className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
-                  >
-                    <RadioGroupItem
-                      value={option.id}
-                      id={`${currentQuestion.id}-${option.id}`}
-                      className="mt-0.5"
-                    />
-                    <span className="text-sm leading-relaxed">{option.label}</span>
-                  </label>
-                ))}
-              </RadioGroup>
+              <div className="space-y-3">
+                {currentQuestion.options.map((option) => {
+                  const selected = (answers[currentQuestion.id] ?? []).includes(option.id)
+                  return (
+                    <label
+                      key={option.id}
+                      className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 ${
+                        selected ? "border-primary bg-primary/5" : ""
+                      }`}
+                    >
+                      <Checkbox
+                        checked={selected}
+                        onCheckedChange={() =>
+                          toggleOption(
+                            currentQuestion.id,
+                            option.id,
+                            currentQuestion.allowMultiple
+                          )
+                        }
+                        className="mt-0.5"
+                      />
+                      <span className="text-sm leading-relaxed">{option.label}</span>
+                    </label>
+                  )
+                })}
+              </div>
 
               <div className="flex justify-between gap-3 pt-2">
                 <Button
                   type="button"
                   variant="outline"
-                  disabled={step === 0}
-                  onClick={() => setStep((s) => Math.max(0, s - 1))}
+                  disabled={stepIndex === 0}
+                  onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
                 >
-                  Previous
+                  ← Back
                 </Button>
+                <Button type="button" disabled={!canContinue()} onClick={handleNext}>
+                  Continue →
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ) : currentStep.type === "name" ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>What is your name?</CardTitle>
+              <CardDescription>We&apos;ll personalize your career roadmap.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Bob"
+                  maxLength={100}
+                  autoFocus
+                />
+              </div>
+              {name.trim() && (
+                <p className="text-sm text-muted-foreground">
+                  Thanks, {firstName(name)}! A few more.
+                </p>
+              )}
+              <div className="flex justify-between gap-3">
                 <Button
                   type="button"
-                  disabled={!answers[currentQuestion.id]}
-                  onClick={handleNext}
+                  variant="outline"
+                  onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
                 >
-                  Next
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  ← Back
+                </Button>
+                <Button type="button" disabled={!canContinue()} onClick={handleNext}>
+                  Continue →
                 </Button>
               </div>
             </CardContent>
@@ -228,24 +328,16 @@ export default function QuestionnairePage() {
         ) : (
           <Card>
             <CardHeader>
-              <CardTitle>Get your readiness score</CardTitle>
+              <CardTitle>
+                Your results are ready, {firstName(name)}.
+              </CardTitle>
               <CardDescription>
-                Enter your name and email to see how ready you are to join real estate.
+                Tell us where to send your career profile and step-by-step roadmap to a New
+                Jersey license.
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleFinalSubmit} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full name</Label>
-                  <Input
-                    id="name"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    required
-                    maxLength={100}
-                    placeholder="Jane Smith"
-                  />
-                </div>
                 <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
@@ -255,6 +347,7 @@ export default function QuestionnairePage() {
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     placeholder="you@example.com"
+                    autoFocus
                   />
                 </div>
                 {submitError && (
@@ -264,21 +357,22 @@ export default function QuestionnairePage() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => setStep((s) => Math.max(0, s - 1))}
+                    onClick={() => setStepIndex((i) => Math.max(0, i - 1))}
                   >
-                    Previous
+                    ← Back
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={submitting || !allQuestionsAnswered || !name.trim() || !email.trim()}
-                  >
-                    {submitting ? "Calculating…" : "See my score"}
+                  <Button type="submit" disabled={submitting || !canContinue()}>
+                    {submitting ? "Building your profile…" : "Get my roadmap"}
                   </Button>
                 </div>
               </form>
             </CardContent>
           </Card>
         )}
+
+        <p className="mt-8 text-center text-xs text-muted-foreground">
+          Best School Of Real Estate · New Jersey real estate pre-licensing education
+        </p>
       </div>
     </div>
   )

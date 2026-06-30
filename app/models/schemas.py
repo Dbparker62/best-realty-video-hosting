@@ -163,15 +163,19 @@ class QuestionnaireOptionAdminOut(QuestionnaireOptionOut):
 
 class QuestionnaireQuestionCreate(BaseModel):
     prompt: str = Field(..., min_length=1, max_length=500)
+    subtitle: Optional[str] = Field(None, max_length=500)
     order_index: int = Field(default=1, ge=0)
     is_active: bool = True
+    allow_multiple: bool = False
     options: list[QuestionnaireOptionIn] = Field(..., min_length=2)
 
 
 class QuestionnaireQuestionUpdate(BaseModel):
     prompt: Optional[str] = Field(None, min_length=1, max_length=500)
+    subtitle: Optional[str] = Field(None, max_length=500)
     order_index: Optional[int] = Field(None, ge=0)
     is_active: Optional[bool] = None
+    allow_multiple: Optional[bool] = None
     options: Optional[list[QuestionnaireOptionIn]] = Field(None, min_length=2)
 
 
@@ -179,6 +183,8 @@ class QuestionnaireQuestionPublicOut(BaseModel):
     id: str
     order_index: int
     prompt: str
+    subtitle: str = ""
+    allow_multiple: bool = False
     options: list[QuestionnaireOptionOut]
 
 
@@ -192,7 +198,7 @@ class QuestionnaireQuestionAdminOut(BaseModel):
 
 class QuestionnaireAnswerIn(BaseModel):
     question_id: str
-    option_id: str
+    option_ids: list[str] = Field(..., min_length=1)
 
 
 class QuestionnaireSubmitIn(BaseModel):
@@ -206,6 +212,9 @@ class QuestionnaireSubmitOut(BaseModel):
     name: str
     readiness_percent: int
     readiness_label: str
+    career_path: str
+    career_path_title: str
+    roadmap: str
     score: int
     max_score: int
     email_sent: bool = False

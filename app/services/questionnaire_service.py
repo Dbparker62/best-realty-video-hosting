@@ -1,4 +1,4 @@
-"""Real estate readiness questionnaire — multiple choice scoring."""
+"""Real estate readiness questionnaire — NJ pre-licensing career paths."""
 
 import logging
 from datetime import datetime, timezone
@@ -16,41 +16,132 @@ from app.utils.error import bad_request, not_found
 
 logger = logging.getLogger(__name__)
 
+CAREER_PATHS = ("full_time", "part_time", "referral")
+
+PATH_TITLES = {
+    "full_time": "Full-Time Career Path",
+    "part_time": "Part-Time Career Path",
+    "referral": "Referral & Explore Path",
+}
+
+
+def _opt(
+    option_id: str,
+    label: str,
+    *,
+    points: int = 5,
+    full_time: int = 0,
+    part_time: int = 0,
+    referral: int = 0,
+) -> dict:
+    return {
+        "id": option_id,
+        "label": label,
+        "points": points,
+        "path_weights": {
+            "full_time": full_time,
+            "part_time": part_time,
+            "referral": referral,
+        },
+    }
+
+
 DEFAULT_QUESTIONS: list[dict] = [
     {
-        "id": "default-1",
+        "id": "nj-1",
         "order_index": 1,
-        "prompt": "Why are you looking into real estate?",
+        "prompt": "What's pulling you toward real estate?",
+        "subtitle": "Check all that apply — most people have more than one reason.",
+        "allow_multiple": True,
         "is_active": True,
         "options": [
-            {"id": "a", "label": "Career change — I want a full-time real estate career", "points": 10},
-            {"id": "b", "label": "Supplemental income alongside my current job", "points": 7},
-            {"id": "c", "label": "I'm curious and exploring my options", "points": 4},
-            {"id": "d", "label": "Not sure yet — just researching", "points": 2},
+            _opt("a", "Income potential & being my own boss", points=8, full_time=3, part_time=1),
+            _opt("b", "Flexibility and control over my schedule", points=7, part_time=3, full_time=1),
+            _opt("c", "I love homes, people, and making the deal", points=8, full_time=2, referral=1),
+            _opt("d", "A career change or a fresh start", points=8, full_time=3, part_time=2),
         ],
     },
     {
-        "id": "default-2",
+        "id": "nj-2",
         "order_index": 2,
-        "prompt": "What are you looking to get out of real estate?",
+        "prompt": "Where are you in your thinking right now?",
+        "subtitle": "Check all that apply.",
+        "allow_multiple": True,
         "is_active": True,
         "options": [
-            {"id": "a", "label": "Financial freedom and schedule flexibility", "points": 10},
-            {"id": "b", "label": "Building long-term wealth through property", "points": 9},
-            {"id": "c", "label": "Helping people find their dream homes", "points": 8},
-            {"id": "d", "label": "Quick profits / flipping only", "points": 5},
+            _opt("a", "Just curious and exploring", points=5, referral=4, part_time=1),
+            _opt("b", "Seriously considering it", points=7, part_time=3, full_time=1),
+            _opt("c", "Ready to start — I just need a plan", points=9, full_time=2, part_time=2),
+            _opt("d", "I've already decided. Let's go.", points=10, full_time=4),
         ],
     },
     {
-        "id": "default-3",
+        "id": "nj-3",
         "order_index": 3,
-        "prompt": "How much time are you planning on spending each week on real estate?",
+        "prompt": "How does your current situation look?",
+        "subtitle": "Check all that apply.",
+        "allow_multiple": True,
         "is_active": True,
         "options": [
-            {"id": "a", "label": "20+ hours — treating it like a real career", "points": 10},
-            {"id": "b", "label": "10–20 hours — serious part-time commitment", "points": 8},
-            {"id": "c", "label": "5–10 hours while keeping another job", "points": 5},
-            {"id": "d", "label": "Less than 5 hours per week", "points": 2},
+            _opt("a", "Working full-time, I'd start on the side", points=7, part_time=5),
+            _opt("b", "Between jobs / I have time now", points=9, full_time=5),
+            _opt("c", "Part-time or flexible hours", points=7, part_time=4),
+            _opt("d", "Retired or I have other income", points=6, referral=4, part_time=2),
+        ],
+    },
+    {
+        "id": "nj-4",
+        "order_index": 4,
+        "prompt": "New Jersey requires a 75-hour pre-licensing course before the state exam. How would you like to take it?",
+        "subtitle": "Check all that apply — this tells us which class format fits you best.",
+        "allow_multiple": True,
+        "is_active": True,
+        "options": [
+            _opt("a", "Live online via Zoom with an instructor", points=8),
+            _opt("b", "Self-paced online, on my own time", points=8, part_time=1),
+            _opt("c", "Either could work — I'm flexible", points=7, full_time=1, part_time=1),
+        ],
+    },
+    {
+        "id": "nj-5",
+        "order_index": 5,
+        "prompt": "The NJ state exam is 110 questions and you need 70% to pass. How do you feel about test-taking?",
+        "subtitle": "Check all that apply.",
+        "allow_multiple": True,
+        "is_active": True,
+        "options": [
+            _opt("a", "Confident — I test well", points=9, full_time=1),
+            _opt("b", "A little rusty, but I'll prepare", points=7, part_time=1),
+            _opt("c", "Tests make me nervous", points=5, referral=1, part_time=1),
+            _opt("d", "I'll want real support to pass", points=8, part_time=2),
+        ],
+    },
+    {
+        "id": "nj-6",
+        "order_index": 6,
+        "prompt": "Once you're licensed, what's your #1 goal?",
+        "subtitle": "Check all that apply — we'll help you build toward it.",
+        "allow_multiple": True,
+        "is_active": True,
+        "options": [
+            _opt("a", "Replace my current full-time income", points=10, full_time=5),
+            _opt("b", "Earn solid extra income on the side", points=8, part_time=5),
+            _opt("c", "Build a long-term career in real estate", points=9, full_time=4),
+            _opt("d", "Help people find the right home", points=7, referral=2, part_time=2, full_time=1),
+        ],
+    },
+    {
+        "id": "nj-7",
+        "order_index": 7,
+        "prompt": "Ideally, when would you want to be licensed and working?",
+        "subtitle": "Check all that apply.",
+        "allow_multiple": True,
+        "is_active": True,
+        "options": [
+            _opt("a", "As soon as possible (1–3 months)", points=10, full_time=4, part_time=2),
+            _opt("b", "Sometime this year", points=8, full_time=2, part_time=3),
+            _opt("c", "Within the next year", points=6, part_time=2, referral=2),
+            _opt("d", "Just gathering info for now", points=4, referral=4),
         ],
     },
 ]
@@ -98,6 +189,8 @@ def _public_question(question: dict) -> dict:
         "id": question["id"],
         "order_index": int(question.get("order_index") or 0),
         "prompt": question.get("prompt") or "",
+        "subtitle": question.get("subtitle") or "",
+        "allow_multiple": bool(question.get("allow_multiple", False)),
         "options": [
             {"id": o["id"], "label": o.get("label") or ""}
             for o in (question.get("options") or [])
@@ -123,6 +216,8 @@ def create_question(data: dict) -> dict:
         "id": str(uuid4()),
         "order_index": int(data.get("order_index") or 1),
         "prompt": (data.get("prompt") or "").strip(),
+        "subtitle": (data.get("subtitle") or "").strip(),
+        "allow_multiple": bool(data.get("allow_multiple", False)),
         "is_active": bool(data.get("is_active", True)),
         "options": data.get("options") or [],
     }
@@ -146,7 +241,7 @@ def update_question(question_id: str, data: dict) -> dict:
             "Set QUESTIONNAIRE_QUESTIONS_TABLE on the API to edit questions",
         )
 
-    for key in ("prompt", "order_index", "is_active", "options"):
+    for key in ("prompt", "subtitle", "order_index", "is_active", "allow_multiple", "options"):
         if key in data and data[key] is not None:
             existing[key] = data[key]
 
@@ -163,76 +258,177 @@ def delete_question(question_id: str) -> None:
     questionnaire_questions_table.delete_item(Key={"id": question_id})
 
 
-def readiness_label(percent: int) -> str:
-    if percent >= 85:
-        return "Excellent fit — You're highly ready to pursue a real estate career."
-    if percent >= 70:
-        return "Strong potential — Real estate aligns well with your goals and commitment."
-    if percent >= 50:
-        return "Moderate fit — With training and consistency, you could succeed in real estate."
-    if percent >= 35:
-        return "Early stage — Learn more about the industry before making a big commitment."
-    return "Low readiness — Real estate may not be the right fit for your goals and schedule right now."
+def _path_weights(option: dict) -> dict[str, int]:
+    weights = option.get("path_weights") or {}
+    return {
+        "full_time": int(weights.get("full_time") or 0),
+        "part_time": int(weights.get("part_time") or 0),
+        "referral": int(weights.get("referral") or 0),
+    }
+
+
+def _resolve_career_path(path_totals: dict[str, int]) -> str:
+    if not any(path_totals.values()):
+        return "part_time"
+
+    best_score = max(path_totals.values())
+    tied = [p for p in CAREER_PATHS if path_totals[p] == best_score]
+
+    if len(tied) == 1:
+        return tied[0]
+
+    priority = ("full_time", "part_time", "referral")
+    for path in priority:
+        if path in tied:
+            return path
+    return "part_time"
+
+
+def career_path_roadmap(path: str) -> str:
+    license_steps = (
+        "Complete New Jersey's 75-hour pre-licensing course, pass the 110-question "
+        "state exam (70% to pass), and submit your license application."
+    )
+
+    if path == "full_time":
+        return (
+            f"You're positioned for a full-time real estate career in New Jersey. "
+            f"{license_steps} With focused study, many students are licensed within "
+            "1–3 months. Our live Zoom or self-paced course gives you the structure "
+            "to go all-in and start building your business right away."
+        )
+    if path == "referral":
+        return (
+            f"You're a great fit to explore real estate through referrals and learning "
+            f"at your own pace — while still working toward your license. "
+            f"{license_steps} Start by referring friends and family, learn the business "
+            "hands-on, and scale up when you're ready."
+        )
+    return (
+        f"You're an ideal candidate for getting licensed part-time while keeping your "
+        f"current job. {license_steps} Many successful NJ agents started on the side — "
+        "evenings and weekends — then grew into full-time careers once their pipeline "
+        "was established."
+    )
+
+
+def career_path_label(path: str) -> str:
+    if path == "full_time":
+        return (
+            "Your next step is clear: enroll in our NJ pre-licensing course and pursue "
+            "your license full-time. You have the motivation and timeline to make real "
+            "estate your primary career."
+        )
+    if path == "referral":
+        return (
+            "You can enter real estate thoughtfully — get licensed, start with referrals, "
+            "and build confidence before going full-time. New Jersey requires the same "
+            "75-hour course and state exam either way, and we're here to guide you."
+        )
+    return (
+        "Getting your New Jersey license part-time is one of the smartest paths in — "
+        "keep your income steady while you learn, pass the state exam, and grow your "
+        "real estate business on your schedule."
+    )
+
+
+def readiness_label(percent: int, career_path: str) -> str:
+    path_name = PATH_TITLES.get(career_path, "Your career path")
+    return (
+        f"{path_name} — You're ready to take the next step toward your New Jersey "
+        f"real estate license ({percent}% match)."
+    )
 
 
 def _score_answers(answers: list[dict]) -> dict:
     questions = {q["id"]: q for q in list_all_questions_admin()}
+    answered_ids: set[str] = set()
     score = 0
     max_score = 0
     breakdown: list[dict] = []
+    path_totals = {p: 0 for p in CAREER_PATHS}
 
     for question in questions.values():
         opts = question.get("options") or []
         if opts:
-            max_score += max(int(o.get("points") or 0) for o in opts)
+            max_score += sum(int(o.get("points") or 0) for o in opts)
 
     for answer in answers:
         qid = answer.get("question_id")
-        oid = answer.get("option_id")
+        option_ids = answer.get("option_ids") or []
+        if not option_ids and answer.get("option_id"):
+            option_ids = [answer["option_id"]]
+
         question = questions.get(qid)
         if not question:
             continue
 
-        selected = None
-        for opt in question.get("options") or []:
-            if opt.get("id") == oid:
-                selected = opt
-                break
-
-        if not selected:
+        if not option_ids:
             bad_request(
-                "INVALID_ANSWER",
-                f"Invalid option for question {qid}",
-                {"question_id": qid, "option_id": oid},
+                "INCOMPLETE_ANSWERS",
+                f"Please select at least one answer for: {question.get('prompt')}",
+                {"question_id": qid},
             )
 
-        points = int(selected.get("points") or 0)
-        score += points
+        selected_labels: list[str] = []
+        question_points = 0
+
+        for oid in option_ids:
+            selected = None
+            for opt in question.get("options") or []:
+                if opt.get("id") == oid:
+                    selected = opt
+                    break
+
+            if not selected:
+                bad_request(
+                    "INVALID_ANSWER",
+                    f"Invalid option for question {qid}",
+                    {"question_id": qid, "option_id": oid},
+                )
+
+            points = int(selected.get("points") or 0)
+            question_points += points
+            selected_labels.append(str(selected.get("label") or ""))
+
+            weights = _path_weights(selected)
+            for path in CAREER_PATHS:
+                path_totals[path] += weights[path]
+
+        score += question_points
+        answered_ids.add(qid)
         breakdown.append(
             {
                 "question_id": qid,
                 "prompt": question.get("prompt"),
-                "selected_label": selected.get("label"),
-                "points": points,
+                "selected_label": "; ".join(selected_labels),
+                "points": question_points,
             }
         )
 
-    if len(breakdown) != len(questions):
+    if len(answered_ids) != len(questions):
         bad_request(
             "INCOMPLETE_ANSWERS",
             "Please answer every question",
-            {"answered": len(breakdown), "required": len(questions)},
+            {"answered": len(answered_ids), "required": len(questions)},
         )
 
-    percent = round((score / max_score) * 100) if max_score > 0 else 0
-    label = readiness_label(percent)
+    career_path = _resolve_career_path(path_totals)
+    raw_percent = round((score / max_score) * 100) if max_score > 0 else 0
+    readiness_percent = min(98, max(72, raw_percent))
+    roadmap = career_path_roadmap(career_path)
+    label = career_path_label(career_path)
 
     return {
         "score": score,
         "max_score": max_score,
-        "readiness_percent": percent,
+        "readiness_percent": readiness_percent,
         "readiness_label": label,
+        "career_path": career_path,
+        "career_path_title": PATH_TITLES[career_path],
+        "roadmap": roadmap,
         "breakdown": breakdown,
+        "path_totals": path_totals,
     }
 
 
@@ -258,6 +454,9 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         "max_score": scored["max_score"],
         "readiness_percent": scored["readiness_percent"],
         "readiness_label": scored["readiness_label"],
+        "career_path": scored["career_path"],
+        "career_path_title": scored["career_path_title"],
+        "roadmap": scored["roadmap"],
         "created_at": now,
     }
 
@@ -280,6 +479,8 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         score=scored["score"],
         max_score=scored["max_score"],
         breakdown=scored["breakdown"],
+        career_path_title=scored["career_path_title"],
+        roadmap=scored["roadmap"],
     )
 
     return {
@@ -287,6 +488,9 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         "name": name,
         "readiness_percent": scored["readiness_percent"],
         "readiness_label": scored["readiness_label"],
+        "career_path": scored["career_path"],
+        "career_path_title": scored["career_path_title"],
+        "roadmap": scored["roadmap"],
         "score": scored["score"],
         "max_score": scored["max_score"],
         "email_sent": email_sent,
