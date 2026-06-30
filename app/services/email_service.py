@@ -10,6 +10,7 @@ from app.config import (
     EMAIL_ENABLED,
     EMAIL_FROM,
     FRONTEND_URL,
+    SCHOOL_WEBSITE_URL,
     SUPPORT_EMAIL,
 )
 from app.services import email_templates as templates
@@ -205,8 +206,7 @@ def send_questionnaire_score_email(
     career_path_title: str,
     roadmap: str,
 ) -> bool:
-    site = FRONTEND_URL.rstrip("/")
-    courses_url = f"{site}/courses"
+    courses_url = SCHOOL_WEBSITE_URL
     support = _support_address()
 
     breakdown_lines = templates.format_breakdown_text(breakdown)

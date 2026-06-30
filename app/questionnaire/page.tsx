@@ -19,6 +19,9 @@ import {
   type QuestionnaireSubmitResult,
 } from "@/lib/questionnaire-api"
 
+const SCHOOL_WEBSITE_URL =
+  process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "http://bestschoolofrealestate.biz"
+
 type WizardStep =
   | { type: "question"; questionIndex: number }
   | { type: "name" }
@@ -164,7 +167,13 @@ export default function QuestionnairePage() {
               )}
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                 <Button asChild>
-                  <Link href="/courses">View NJ Pre-Licensing Courses</Link>
+                  <a
+                    href={SCHOOL_WEBSITE_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    View NJ Pre-Licensing Courses
+                  </a>
                 </Button>
                 <Button variant="outline" asChild>
                   <Link href="/">Back to Home</Link>

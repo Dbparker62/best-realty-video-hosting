@@ -30,6 +30,9 @@ CLOUDFRONT_DOMAIN = os.getenv("CLOUDFRONT_DOMAIN")
 FRONTEND_URL = os.getenv(
     "FRONTEND_URL", "https://best-realty-video-hosting.vercel.app"
 )
+SCHOOL_WEBSITE_URL = os.getenv(
+    "SCHOOL_WEBSITE_URL", "http://bestschoolofrealestate.biz"
+).rstrip("/")
 
 # Transactional email (Amazon SES)
 EMAIL_FROM = os.getenv("EMAIL_FROM", "").strip()
