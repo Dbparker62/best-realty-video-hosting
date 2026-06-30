@@ -147,9 +147,8 @@ export default function QuestionnairePage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="text-center">
-                <p className="text-lg font-semibold text-primary">{result.careerPathTitle}</p>
-                <p className="mt-2 text-4xl font-bold text-primary">{result.readinessPercent}%</p>
-                <p className="mt-3 text-muted-foreground">{result.readinessLabel}</p>
+                <p className="text-2xl font-semibold text-primary">{result.careerPathTitle}</p>
+                <p className="mt-4 text-muted-foreground">{result.readinessLabel}</p>
               </div>
               <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">
                 {result.roadmap}
@@ -208,9 +207,8 @@ export default function QuestionnairePage() {
             <div className="space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>
-                  Question {Math.min(stepIndex + 1, wizardSteps.length)} of {wizardSteps.length}
+                  Step {Math.min(stepIndex + 1, wizardSteps.length)} of {wizardSteps.length}
                 </span>
-                <span>{progressPercent}%</span>
               </div>
               <Progress value={progressPercent} className="h-2" />
             </div>

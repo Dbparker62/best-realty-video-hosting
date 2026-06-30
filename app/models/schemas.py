@@ -210,7 +210,6 @@ class QuestionnaireSubmitIn(BaseModel):
 class QuestionnaireSubmitOut(BaseModel):
     submission_id: str
     name: str
-    readiness_percent: int
     readiness_label: str
     career_path: str
     career_path_title: str

@@ -198,7 +198,6 @@ def send_questionnaire_score_email(
     *,
     to_address: str,
     name: str,
-    readiness_percent: int,
     readiness_label: str,
     score: int,
     max_score: int,
@@ -220,7 +219,6 @@ def send_questionnaire_score_email(
         ),
         text_body=templates.questionnaire_score_text(
             name=name,
-            readiness_percent=readiness_percent,
             readiness_label=readiness_label,
             career_path_title=career_path_title,
             roadmap=roadmap,
@@ -230,7 +228,6 @@ def send_questionnaire_score_email(
         ),
         html_body=templates.questionnaire_score_html(
             name=name,
-            readiness_percent=readiness_percent,
             readiness_label=readiness_label,
             career_path_title=career_path_title,
             roadmap=roadmap,

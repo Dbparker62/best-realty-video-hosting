@@ -332,12 +332,8 @@ def career_path_label(path: str) -> str:
     )
 
 
-def readiness_label(percent: int, career_path: str) -> str:
-    path_name = PATH_TITLES.get(career_path, "Your career path")
-    return (
-        f"{path_name} — You're ready to take the next step toward your New Jersey "
-        f"real estate license ({percent}% match)."
-    )
+def readiness_label(career_path: str) -> str:
+    return career_path_label(career_path)
 
 
 def _score_answers(answers: list[dict]) -> dict:
@@ -414,15 +410,12 @@ def _score_answers(answers: list[dict]) -> dict:
         )
 
     career_path = _resolve_career_path(path_totals)
-    raw_percent = round((score / max_score) * 100) if max_score > 0 else 0
-    readiness_percent = min(98, max(72, raw_percent))
     roadmap = career_path_roadmap(career_path)
     label = career_path_label(career_path)
 
     return {
         "score": score,
         "max_score": max_score,
-        "readiness_percent": readiness_percent,
         "readiness_label": label,
         "career_path": career_path,
         "career_path_title": PATH_TITLES[career_path],
@@ -452,7 +445,6 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         "answers": answers,
         "score": scored["score"],
         "max_score": scored["max_score"],
-        "readiness_percent": scored["readiness_percent"],
         "readiness_label": scored["readiness_label"],
         "career_path": scored["career_path"],
         "career_path_title": scored["career_path_title"],
@@ -474,7 +466,6 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
     email_sent = send_questionnaire_score_email(
         to_address=email,
         name=name,
-        readiness_percent=scored["readiness_percent"],
         readiness_label=scored["readiness_label"],
         score=scored["score"],
         max_score=scored["max_score"],
@@ -486,7 +477,6 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
     return {
         "submission_id": submission_id,
         "name": name,
-        "readiness_percent": scored["readiness_percent"],
         "readiness_label": scored["readiness_label"],
         "career_path": scored["career_path"],
         "career_path_title": scored["career_path_title"],

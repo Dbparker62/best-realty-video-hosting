@@ -257,7 +257,7 @@ export default function AdminQuestionnairePage() {
                 <TableRow>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Score</TableHead>
+                  <TableHead>Career path</TableHead>
                   <TableHead>Submitted</TableHead>
                 </TableRow>
               </TableHeader>
@@ -266,8 +266,8 @@ export default function AdminQuestionnairePage() {
                   <TableRow key={row.id}>
                     <TableCell className="font-medium">{row.name}</TableCell>
                     <TableCell>{row.email}</TableCell>
-                    <TableCell>
-                      {row.readinessPercent}% ({row.score}/{row.maxScore})
+                    <TableCell className="text-sm capitalize">
+                      {row.careerPath?.replace("_", " ") ?? "—"}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
                       {row.createdAt

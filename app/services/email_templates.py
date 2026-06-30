@@ -172,7 +172,6 @@ def questionnaire_score_subject(*, career_path_title: str) -> str:
 def questionnaire_score_text(
     *,
     name: str,
-    readiness_percent: int,
     readiness_label: str,
     career_path_title: str,
     roadmap: str,
@@ -184,7 +183,7 @@ def questionnaire_score_text(
 
 Thanks for completing the {BRAND_NAME} career assessment.
 
-{career_path_title} ({readiness_percent}% match)
+{career_path_title}
 {readiness_label}
 
 Your personalized roadmap:
@@ -205,7 +204,6 @@ Questions? {support_email}
 def questionnaire_score_html(
     *,
     name: str,
-    readiness_percent: int,
     readiness_label: str,
     career_path_title: str,
     roadmap: str,
@@ -220,7 +218,6 @@ def questionnaire_score_html(
   <p>Hi {_e(name)},</p>
   <p style="font-size: 14px; color: #555;">{BRAND_TAGLINE}</p>
   <p style="font-size: 22px; font-weight: bold; color: {BRAND_COLOR};">{_e(career_path_title)}</p>
-  <p style="font-size: 28px; font-weight: bold; color: {BRAND_COLOR};">{readiness_percent}% match</p>
   <p><strong>{_e(readiness_label)}</strong></p>
   <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{_e(roadmap)}</p>
   <ul>{breakdown_html}</ul>

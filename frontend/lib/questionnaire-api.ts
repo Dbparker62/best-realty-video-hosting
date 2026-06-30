@@ -29,7 +29,6 @@ export interface QuestionnaireQuestionAdmin {
 export interface QuestionnaireSubmitResult {
   submissionId: string
   name: string
-  readinessPercent: number
   readinessLabel: string
   careerPath: string
   careerPathTitle: string
@@ -125,7 +124,6 @@ export async function submitQuestionnaire(payload: {
   const data = (await response.json()) as {
     submission_id: string
     name: string
-    readiness_percent: number
     readiness_label: string
     career_path: string
     career_path_title: string
@@ -137,7 +135,6 @@ export async function submitQuestionnaire(payload: {
   return {
     submissionId: data.submission_id,
     name: data.name,
-    readinessPercent: data.readiness_percent,
     readinessLabel: data.readiness_label,
     careerPath: data.career_path,
     careerPathTitle: data.career_path_title,
