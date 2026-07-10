@@ -218,3 +218,13 @@ class QuestionnaireSubmitOut(BaseModel):
     max_score: int
     email_sent: bool = False
     lead_notification_sent: bool = False
+
+
+class LeadershipQuestionnaireSubmitOut(BaseModel):
+    submission_id: str
+    name: str
+    outcome: str
+    outcome_title: str
+    outcome_summary: str
+    roadmap: str
+    lead_notification_sent: bool = False

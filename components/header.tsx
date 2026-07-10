@@ -58,7 +58,13 @@ export function Header() {
               href="/questionnaire"
               className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
-              Readiness Quiz
+              License Quiz
+            </Link>
+            <Link
+              href="/questionnaire/leadership"
+              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Team / Broker Quiz
             </Link>
             {canUseCustomerFeatures && !authLoading && (
               <Link
@@ -154,7 +160,14 @@ export function Header() {
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Readiness Quiz
+                License Quiz
+              </Link>
+              <Link
+                href="/questionnaire/leadership"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Team / Broker Quiz
               </Link>
               {canUseCustomerFeatures && !authLoading && (
                 <Link

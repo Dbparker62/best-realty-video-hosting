@@ -14,6 +14,7 @@ from app.routes.lessons import router as lessons_router
 from app.routes.admin import router as admin_router
 from app.routes.my_courses import router as my_courses_router
 from app.routes.progress import router as progress_router
+from app.routes.leadership_questionnaire import router as leadership_questionnaire_router
 from app.routes.questionnaire import router as questionnaire_router
 from fastapi.middleware.cors import CORSMiddleware
 logger = logging.getLogger(__name__)
@@ -70,6 +71,7 @@ app.include_router(admin_router)
 app.include_router(my_courses_router)
 app.include_router(progress_router)
 app.include_router(questionnaire_router)
+app.include_router(leadership_questionnaire_router)
 _cors_origins = [
     "http://localhost:3000",
     "https://best-realty-video-hosting.vercel.app",

@@ -289,3 +289,66 @@ def questionnaire_lead_html(
   <p style="font-size: 13px; color: #777;">Reply to this email to contact {_e(name)}.</p>
 </body>
 </html>"""
+
+
+# ---------------------------------------------------------------------------
+# Leadership questionnaire lead (Team vs Broker of Record)
+# ---------------------------------------------------------------------------
+
+
+def leadership_lead_subject(*, name: str) -> str:
+    return f"New leadership quiz lead: {name}"
+
+
+def leadership_lead_text(
+    *,
+    name: str,
+    email: str,
+    outcome_title: str,
+    outcome_summary: str,
+    roadmap: str,
+    breakdown_lines: str,
+) -> str:
+    return f"""A new lead completed the Team vs Broker of Record leadership quiz.
+
+Name: {name}
+Email: {email}
+(Reply to this email to reach them directly.)
+
+Recommended path: {outcome_title}
+Summary: {outcome_summary}
+
+Roadmap shown to the lead:
+{roadmap}
+
+Their answers:
+{breakdown_lines}
+"""
+
+
+def leadership_lead_html(
+    *,
+    name: str,
+    email: str,
+    outcome_title: str,
+    outcome_summary: str,
+    roadmap: str,
+    breakdown_html: str,
+) -> str:
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+  <h2 style="color: {BRAND_COLOR};">New Leadership Quiz Lead</h2>
+  <p style="font-size: 14px; color: #555;">Team vs Broker of Record assessment</p>
+  <table style="margin: 16px 0; border-collapse: collapse;">
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Name</strong></td><td>{_e(name)}</td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Email</strong></td><td><a href="mailto:{_e(email)}">{_e(email)}</a></td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Outcome</strong></td><td>{_e(outcome_title)}</td></tr>
+  </table>
+  <p><strong>{_e(outcome_summary)}</strong></p>
+  <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{_e(roadmap)}</p>
+  <h3 style="font-size: 16px;">Their answers</h3>
+  <ul>{breakdown_html}</ul>
+  <p style="font-size: 13px; color: #777;">Reply to this email to contact {_e(name)}.</p>
+</body>
+</html>"""

@@ -294,3 +294,43 @@ def send_questionnaire_lead_notification_email(
         ),
         reply_to=lead_email,
     )
+
+
+def send_leadership_lead_notification_email(
+    *,
+    lead_name: str,
+    lead_email: str,
+    outcome_title: str,
+    outcome_summary: str,
+    roadmap: str,
+    breakdown: list[dict],
+) -> bool:
+    """Notify staff of a leadership quiz lead. Reply-To is the lead's email."""
+    if not QUESTIONNAIRE_LEAD_EMAIL or "@" not in QUESTIONNAIRE_LEAD_EMAIL:
+        logger.info("QUESTIONNAIRE_LEAD_EMAIL unset — skipping leadership lead notification")
+        return False
+
+    breakdown_lines = templates.format_breakdown_text(breakdown)
+    breakdown_html = templates.format_breakdown_html(breakdown)
+
+    return _send_email(
+        to_address=QUESTIONNAIRE_LEAD_EMAIL,
+        subject=templates.leadership_lead_subject(name=lead_name),
+        text_body=templates.leadership_lead_text(
+            name=lead_name,
+            email=lead_email,
+            outcome_title=outcome_title,
+            outcome_summary=outcome_summary,
+            roadmap=roadmap,
+            breakdown_lines=breakdown_lines,
+        ),
+        html_body=templates.leadership_lead_html(
+            name=lead_name,
+            email=lead_email,
+            outcome_title=outcome_title,
+            outcome_summary=outcome_summary,
+            roadmap=roadmap,
+            breakdown_html=breakdown_html,
+        ),
+        reply_to=lead_email,
+    )
