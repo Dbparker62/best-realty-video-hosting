@@ -6,6 +6,9 @@ from uuid import uuid4
 
 from botocore.exceptions import ClientError
 
+from app.config import (
+    QUESTIONNAIRE_SEND_USER_EMAIL,
+)
 from app.services.email_service import (
     send_questionnaire_lead_notification_email,
     send_questionnaire_score_email,
@@ -466,17 +469,6 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
                 exc.response.get("Error", {}).get("Message", exc),
             )
 
-    email_sent = send_questionnaire_score_email(
-        to_address=email,
-        name=name,
-        readiness_label=scored["readiness_label"],
-        score=scored["score"],
-        max_score=scored["max_score"],
-        breakdown=scored["breakdown"],
-        career_path_title=scored["career_path_title"],
-        roadmap=scored["roadmap"],
-    )
-
     lead_notification_sent = send_questionnaire_lead_notification_email(
         lead_name=name,
         lead_email=email,
@@ -484,6 +476,35 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         breakdown=scored["breakdown"],
         career_path_title=scored["career_path_title"],
         roadmap=scored["roadmap"],
+    )
+
+    email_sent = False
+    if QUESTIONNAIRE_SEND_USER_EMAIL:
+        email_sent = send_questionnaire_score_email(
+            to_address=email,
+            name=name,
+            readiness_label=scored["readiness_label"],
+            score=scored["score"],
+            max_score=scored["max_score"],
+            breakdown=scored["breakdown"],
+            career_path_title=scored["career_path_title"],
+            roadmap=scored["roadmap"],
+        )
+    else:
+        logger.info(
+            "Skipping quiz taker results email for %s (QUESTIONNAIRE_SEND_USER_EMAIL=false)",
+            email,
+        )
+
+    logger.info(
+        "Questionnaire submit id=%s name=%r email=%s career_path=%s "
+        "lead_email_sent=%s user_email_sent=%s",
+        submission_id,
+        name,
+        email,
+        scored["career_path"],
+        lead_notification_sent,
+        email_sent,
     )
 
     return {

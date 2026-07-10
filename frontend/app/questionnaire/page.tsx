@@ -160,9 +160,13 @@ export default function QuestionnairePage() {
                 <p className="rounded-lg bg-muted px-4 py-3 text-center text-sm">
                   We emailed your career profile and roadmap to you. Check your inbox.
                 </p>
+              ) : result.leadNotificationSent ? (
+                <p className="rounded-lg bg-muted px-4 py-3 text-center text-sm">
+                  Our team received your results and will reach out at the email you provided.
+                </p>
               ) : (
                 <p className="rounded-lg bg-muted px-4 py-3 text-center text-sm text-muted-foreground">
-                  Save this roadmap — email delivery is not configured yet.
+                  Your roadmap is shown above — save it for your records.
                 </p>
               )}
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">

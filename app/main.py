@@ -18,6 +18,8 @@ from app.routes.questionnaire import router as questionnaire_router
 from fastapi.middleware.cors import CORSMiddleware
 logger = logging.getLogger(__name__)
 
+logging.getLogger().setLevel(logging.INFO)
+
 app = FastAPI(title="Real Estate Course Platform API")
 
 

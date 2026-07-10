@@ -48,6 +48,11 @@ EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "true").lower() in (
 QUESTIONNAIRE_LEAD_EMAIL = os.getenv(
     "QUESTIONNAIRE_LEAD_EMAIL", "jerseybest@msn.com"
 ).strip()
+# Off by default — SES sandbox cannot email unverified quiz takers.
+# Set true after SES production access to email results to the person who took the quiz.
+QUESTIONNAIRE_SEND_USER_EMAIL = os.getenv(
+    "QUESTIONNAIRE_SEND_USER_EMAIL", "false"
+).lower() in ("1", "true", "yes")
 
 QUESTIONNAIRE_QUESTIONS_TABLE = os.getenv(
     "QUESTIONNAIRE_QUESTIONS_TABLE", "course-platform-questionnaire-questions"

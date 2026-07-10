@@ -36,6 +36,7 @@ export interface QuestionnaireSubmitResult {
   score: number
   maxScore: number
   emailSent: boolean
+  leadNotificationSent: boolean
 }
 
 export interface QuestionnaireSubmissionAdmin {
@@ -131,6 +132,7 @@ export async function submitQuestionnaire(payload: {
     score: number
     max_score: number
     email_sent: boolean
+    lead_notification_sent: boolean
   }
   return {
     submissionId: data.submission_id,
@@ -142,6 +144,7 @@ export async function submitQuestionnaire(payload: {
     score: data.score,
     maxScore: data.max_score,
     emailSent: data.email_sent,
+    leadNotificationSent: data.lead_notification_sent,
   }
 }
 

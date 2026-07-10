@@ -67,9 +67,10 @@ def _send_email(
 
     if not _is_configured():
         logger.info(
-            "Email not sent (SES disabled or EMAIL_FROM unset): %s → %s",
+            "Email not sent (SES disabled or EMAIL_FROM unset): %s → %s | subject=%r",
             EMAIL_FROM,
             to_address,
+            subject,
         )
         return False
 
@@ -90,7 +91,12 @@ def _send_email(
                 else ([_support_address()] if _support_address() else [])
             ),
         )
-        logger.info("Sent email %r to %s", subject, to_address)
+        logger.info(
+            "SES email sent: to=%s subject=%r reply_to=%s",
+            to_address,
+            subject,
+            reply_to or _support_address() or "—",
+        )
         return True
     except ClientError as exc:
         error = exc.response.get("Error", {})
