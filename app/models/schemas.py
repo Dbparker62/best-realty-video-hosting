@@ -217,3 +217,4 @@ class QuestionnaireSubmitOut(BaseModel):
     score: int
     max_score: int
     email_sent: bool = False
+    lead_notification_sent: bool = False

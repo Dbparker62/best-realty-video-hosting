@@ -227,3 +227,65 @@ def questionnaire_score_html(
   <p style="font-size: 13px; color: #777;">Questions? {_e(support_email)}</p>
 </body>
 </html>"""
+
+
+# ---------------------------------------------------------------------------
+# Questionnaire lead notification (sent to staff when someone completes quiz)
+# ---------------------------------------------------------------------------
+
+
+def questionnaire_lead_subject(*, name: str) -> str:
+    return f"New career quiz lead: {name}"
+
+
+def questionnaire_lead_text(
+    *,
+    name: str,
+    email: str,
+    career_path_title: str,
+    readiness_label: str,
+    roadmap: str,
+    breakdown_lines: str,
+) -> str:
+    return f"""A new lead completed the NJ real estate career quiz.
+
+Name: {name}
+Email: {email}
+(Reply to this email to reach them directly.)
+
+Career path: {career_path_title}
+Summary: {readiness_label}
+
+Roadmap shown to the lead:
+{roadmap}
+
+Their answers:
+{breakdown_lines}
+"""
+
+
+def questionnaire_lead_html(
+    *,
+    name: str,
+    email: str,
+    career_path_title: str,
+    readiness_label: str,
+    roadmap: str,
+    breakdown_html: str,
+) -> str:
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+  <h2 style="color: {BRAND_COLOR};">New Career Quiz Lead</h2>
+  <table style="margin: 16px 0; border-collapse: collapse;">
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Name</strong></td><td>{_e(name)}</td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Email</strong></td><td><a href="mailto:{_e(email)}">{_e(email)}</a></td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Career path</strong></td><td>{_e(career_path_title)}</td></tr>
+  </table>
+  <p><strong>{_e(readiness_label)}</strong></p>
+  <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{_e(roadmap)}</p>
+  <h3 style="font-size: 16px;">Their answers</h3>
+  <ul>{breakdown_html}</ul>
+  <p style="font-size: 13px; color: #777;">Reply to this email to contact {_e(name)}.</p>
+</body>
+</html>"""

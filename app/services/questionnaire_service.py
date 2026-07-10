@@ -6,7 +6,10 @@ from uuid import uuid4
 
 from botocore.exceptions import ClientError
 
-from app.services.email_service import send_questionnaire_score_email
+from app.services.email_service import (
+    send_questionnaire_lead_notification_email,
+    send_questionnaire_score_email,
+)
 from app.utils.database import (
     questionnaire_questions_table,
     questionnaire_submissions_table,
@@ -474,6 +477,15 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         roadmap=scored["roadmap"],
     )
 
+    lead_notification_sent = send_questionnaire_lead_notification_email(
+        lead_name=name,
+        lead_email=email,
+        readiness_label=scored["readiness_label"],
+        breakdown=scored["breakdown"],
+        career_path_title=scored["career_path_title"],
+        roadmap=scored["roadmap"],
+    )
+
     return {
         "submission_id": submission_id,
         "name": name,
@@ -484,6 +496,7 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         "score": scored["score"],
         "max_score": scored["max_score"],
         "email_sent": email_sent,
+        "lead_notification_sent": lead_notification_sent,
     }
 
 

@@ -10,6 +10,7 @@ from app.config import (
     EMAIL_ENABLED,
     EMAIL_FROM,
     FRONTEND_URL,
+    QUESTIONNAIRE_LEAD_EMAIL,
     SCHOOL_WEBSITE_URL,
     SUPPORT_EMAIL,
 )
@@ -52,7 +53,14 @@ def _load_course_title(course_id: str) -> str:
         return "Your course"
 
 
-def _send_email(*, to_address: str, subject: str, html_body: str, text_body: str) -> bool:
+def _send_email(
+    *,
+    to_address: str,
+    subject: str,
+    html_body: str,
+    text_body: str,
+    reply_to: str | None = None,
+) -> bool:
     if not to_address or "@" not in to_address:
         logger.warning("Skipping email — invalid recipient: %s", to_address)
         return False
@@ -76,7 +84,11 @@ def _send_email(*, to_address: str, subject: str, html_body: str, text_body: str
                     "Html": {"Data": html_body, "Charset": "UTF-8"},
                 },
             },
-            ReplyToAddresses=[_support_address()] if _support_address() else [],
+            ReplyToAddresses=(
+                [reply_to]
+                if reply_to
+                else ([_support_address()] if _support_address() else [])
+            ),
         )
         logger.info("Sent email %r to %s", subject, to_address)
         return True
@@ -235,4 +247,44 @@ def send_questionnaire_score_email(
             courses_url=courses_url,
             support_email=support,
         ),
+    )
+
+
+def send_questionnaire_lead_notification_email(
+    *,
+    lead_name: str,
+    lead_email: str,
+    readiness_label: str,
+    breakdown: list[dict],
+    career_path_title: str,
+    roadmap: str,
+) -> bool:
+    """Notify staff of a new quiz lead. Reply-To is set to the lead's email."""
+    if not QUESTIONNAIRE_LEAD_EMAIL or "@" not in QUESTIONNAIRE_LEAD_EMAIL:
+        logger.info("QUESTIONNAIRE_LEAD_EMAIL unset — skipping lead notification")
+        return False
+
+    breakdown_lines = templates.format_breakdown_text(breakdown)
+    breakdown_html = templates.format_breakdown_html(breakdown)
+
+    return _send_email(
+        to_address=QUESTIONNAIRE_LEAD_EMAIL,
+        subject=templates.questionnaire_lead_subject(name=lead_name),
+        text_body=templates.questionnaire_lead_text(
+            name=lead_name,
+            email=lead_email,
+            career_path_title=career_path_title,
+            readiness_label=readiness_label,
+            roadmap=roadmap,
+            breakdown_lines=breakdown_lines,
+        ),
+        html_body=templates.questionnaire_lead_html(
+            name=lead_name,
+            email=lead_email,
+            career_path_title=career_path_title,
+            readiness_label=readiness_label,
+            roadmap=roadmap,
+            breakdown_html=breakdown_html,
+        ),
+        reply_to=lead_email,
     )

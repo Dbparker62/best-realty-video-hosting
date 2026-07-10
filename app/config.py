@@ -44,6 +44,10 @@ EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "true").lower() in (
     "true",
     "yes",
 )
+# Staff inbox — notified when someone completes the career quiz
+QUESTIONNAIRE_LEAD_EMAIL = os.getenv(
+    "QUESTIONNAIRE_LEAD_EMAIL", "jerseybest@msn.com"
+).strip()
 
 QUESTIONNAIRE_QUESTIONS_TABLE = os.getenv(
     "QUESTIONNAIRE_QUESTIONS_TABLE", "course-platform-questionnaire-questions"
