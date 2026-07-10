@@ -308,7 +308,7 @@ export default function QuestionnairePage() {
                   id="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="Bob"
+                  placeholder="Name"
                   maxLength={100}
                   autoFocus
                 />
