@@ -44,10 +44,15 @@ EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "true").lower() in (
     "true",
     "yes",
 )
-# Staff inbox — notified when someone completes the career quiz
-QUESTIONNAIRE_LEAD_EMAIL = os.getenv(
-    "QUESTIONNAIRE_LEAD_EMAIL", "bruceparkerteam@gmail.com"
-).strip()
+# Staff inboxes — notified when someone completes a quiz (comma-separated)
+QUESTIONNAIRE_LEAD_EMAILS = [
+    addr.strip()
+    for addr in os.getenv(
+        "QUESTIONNAIRE_LEAD_EMAIL",
+        "bruceparkerteam@gmail.com,btestrealtyhp@gmail.com",
+    ).split(",")
+    if "@" in addr
+]
 # Off by default — SES sandbox cannot email unverified quiz takers.
 # Set true after SES production access to email results to the person who took the quiz.
 QUESTIONNAIRE_SEND_USER_EMAIL = os.getenv(

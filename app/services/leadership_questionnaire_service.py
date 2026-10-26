@@ -287,9 +287,12 @@ def _score_answers(answers: list[dict]) -> dict:
     }
 
 
-def submit(name: str, email: str, answers: list[dict]) -> dict:
+def submit(
+    name: str, email: str, answers: list[dict], *, phone: str | None = None
+) -> dict:
     name = (name or "").strip()
     email = (email or "").strip().lower()
+    phone = (phone or "").strip() or None
 
     if not name:
         bad_request("NAME_REQUIRED", "Name is required")
@@ -305,6 +308,7 @@ def submit(name: str, email: str, answers: list[dict]) -> dict:
         "quiz_type": "leadership",
         "name": name,
         "email": email,
+        "phone": phone,
         "answers": answers,
         "outcome": scored["outcome"],
         "outcome_title": scored["outcome_title"],
@@ -325,6 +329,7 @@ def submit(name: str, email: str, answers: list[dict]) -> dict:
     lead_notification_sent = send_leadership_lead_notification_email(
         lead_name=name,
         lead_email=email,
+        lead_phone=phone,
         outcome_title=scored["outcome_title"],
         outcome_summary=scored["outcome_summary"],
         roadmap=scored["roadmap"],

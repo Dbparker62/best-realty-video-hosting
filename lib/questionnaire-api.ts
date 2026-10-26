@@ -105,6 +105,7 @@ export async function getQuestionnaireQuestions(): Promise<QuestionnaireQuestion
 export async function submitQuestionnaire(payload: {
   name: string
   email: string
+  phone?: string
   answers: { questionId: string; optionIds: string[] }[]
 }): Promise<QuestionnaireSubmitResult> {
   const response = await fetch(`${API_BASE_URL}/questionnaire/submit`, {
@@ -113,6 +114,7 @@ export async function submitQuestionnaire(payload: {
     body: JSON.stringify({
       name: payload.name,
       email: payload.email,
+      phone: payload.phone || null,
       answers: payload.answers.map((a) => ({
         question_id: a.questionId,
         option_ids: a.optionIds,

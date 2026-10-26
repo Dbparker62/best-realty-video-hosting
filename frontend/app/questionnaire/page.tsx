@@ -58,6 +58,7 @@ export default function QuestionnairePage() {
   const [answers, setAnswers] = useState<Record<string, string[]>>({})
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [phone, setPhone] = useState("")
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [result, setResult] = useState<QuestionnaireSubmitResult | null>(null)
@@ -119,6 +120,7 @@ export default function QuestionnairePage() {
       const payload = await submitQuestionnaire({
         name: name.trim(),
         email: email.trim(),
+        phone: phone.trim(),
         answers: questions.map((q) => ({
           questionId: q.id,
           optionIds: answers[q.id] ?? [],
@@ -359,6 +361,20 @@ export default function QuestionnairePage() {
                     required
                     placeholder="you@example.com"
                     autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">
+                    Phone number <span className="text-muted-foreground">(optional)</span>
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    autoComplete="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    maxLength={30}
+                    placeholder="(555) 555-5555"
                   />
                 </div>
                 {submitError && (

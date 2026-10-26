@@ -13,6 +13,14 @@ def _e(value: object) -> str:
     return escape(str(value if value is not None else ""))
 
 
+def _phone_html(phone: str | None) -> str:
+    """Tap-to-call link for a lead's phone, or a placeholder when blank."""
+    if not phone:
+        return '<span style="color: #777;">Not provided</span>'
+    digits = "".join(ch for ch in phone if ch.isdigit() or ch == "+")
+    return f'<a href="tel:{_e(digits)}">{_e(phone)}</a>'
+
+
 # ---------------------------------------------------------------------------
 # Branding — change these once; used across all emails
 # ---------------------------------------------------------------------------
@@ -242,6 +250,7 @@ def questionnaire_lead_text(
     *,
     name: str,
     email: str,
+    phone: str | None,
     career_path_title: str,
     readiness_label: str,
     roadmap: str,
@@ -251,6 +260,7 @@ def questionnaire_lead_text(
 
 Name: {name}
 Email: {email}
+Phone: {phone or 'Not provided'}
 (Reply to this email to reach them directly.)
 
 Career path: {career_path_title}
@@ -268,6 +278,7 @@ def questionnaire_lead_html(
     *,
     name: str,
     email: str,
+    phone: str | None,
     career_path_title: str,
     readiness_label: str,
     roadmap: str,
@@ -280,6 +291,7 @@ def questionnaire_lead_html(
   <table style="margin: 16px 0; border-collapse: collapse;">
     <tr><td style="padding: 4px 12px 4px 0;"><strong>Name</strong></td><td>{_e(name)}</td></tr>
     <tr><td style="padding: 4px 12px 4px 0;"><strong>Email</strong></td><td><a href="mailto:{_e(email)}">{_e(email)}</a></td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Phone</strong></td><td>{_phone_html(phone)}</td></tr>
     <tr><td style="padding: 4px 12px 4px 0;"><strong>Career path</strong></td><td>{_e(career_path_title)}</td></tr>
   </table>
   <p><strong>{_e(readiness_label)}</strong></p>
@@ -304,6 +316,7 @@ def leadership_lead_text(
     *,
     name: str,
     email: str,
+    phone: str | None,
     outcome_title: str,
     outcome_summary: str,
     roadmap: str,
@@ -313,6 +326,7 @@ def leadership_lead_text(
 
 Name: {name}
 Email: {email}
+Phone: {phone or 'Not provided'}
 (Reply to this email to reach them directly.)
 
 Recommended path: {outcome_title}
@@ -330,6 +344,7 @@ def leadership_lead_html(
     *,
     name: str,
     email: str,
+    phone: str | None,
     outcome_title: str,
     outcome_summary: str,
     roadmap: str,
@@ -343,6 +358,7 @@ def leadership_lead_html(
   <table style="margin: 16px 0; border-collapse: collapse;">
     <tr><td style="padding: 4px 12px 4px 0;"><strong>Name</strong></td><td>{_e(name)}</td></tr>
     <tr><td style="padding: 4px 12px 4px 0;"><strong>Email</strong></td><td><a href="mailto:{_e(email)}">{_e(email)}</a></td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Phone</strong></td><td>{_phone_html(phone)}</td></tr>
     <tr><td style="padding: 4px 12px 4px 0;"><strong>Outcome</strong></td><td>{_e(outcome_title)}</td></tr>
   </table>
   <p><strong>{_e(outcome_summary)}</strong></p>

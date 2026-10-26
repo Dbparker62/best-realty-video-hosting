@@ -27,4 +27,5 @@ def submit_leadership_questionnaire(body: schemas.QuestionnaireSubmitIn):
         body.name,
         str(body.email),
         answers,
+        phone=body.phone,
     )

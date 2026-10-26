@@ -10,7 +10,7 @@ from app.config import (
     EMAIL_ENABLED,
     EMAIL_FROM,
     FRONTEND_URL,
-    QUESTIONNAIRE_LEAD_EMAIL,
+    QUESTIONNAIRE_LEAD_EMAILS,
     SCHOOL_WEBSITE_URL,
     SUPPORT_EMAIL,
 )
@@ -55,13 +55,15 @@ def _load_course_title(course_id: str) -> str:
 
 def _send_email(
     *,
-    to_address: str,
+    to_address: str | list[str],
     subject: str,
     html_body: str,
     text_body: str,
     reply_to: str | None = None,
 ) -> bool:
-    if not to_address or "@" not in to_address:
+    recipients = [to_address] if isinstance(to_address, str) else list(to_address)
+    recipients = [addr for addr in recipients if addr and "@" in addr]
+    if not recipients:
         logger.warning("Skipping email — invalid recipient: %s", to_address)
         return False
 
@@ -77,7 +79,7 @@ def _send_email(
     try:
         _ses.send_email(
             Source=EMAIL_FROM,
-            Destination={"ToAddresses": [to_address]},
+            Destination={"ToAddresses": recipients},
             Message={
                 "Subject": {"Data": subject, "Charset": "UTF-8"},
                 "Body": {
@@ -260,13 +262,14 @@ def send_questionnaire_lead_notification_email(
     *,
     lead_name: str,
     lead_email: str,
+    lead_phone: str | None = None,
     readiness_label: str,
     breakdown: list[dict],
     career_path_title: str,
     roadmap: str,
 ) -> bool:
     """Notify staff of a new quiz lead. Reply-To is set to the lead's email."""
-    if not QUESTIONNAIRE_LEAD_EMAIL or "@" not in QUESTIONNAIRE_LEAD_EMAIL:
+    if not QUESTIONNAIRE_LEAD_EMAILS:
         logger.info("QUESTIONNAIRE_LEAD_EMAIL unset — skipping lead notification")
         return False
 
@@ -274,11 +277,12 @@ def send_questionnaire_lead_notification_email(
     breakdown_html = templates.format_breakdown_html(breakdown)
 
     return _send_email(
-        to_address=QUESTIONNAIRE_LEAD_EMAIL,
+        to_address=QUESTIONNAIRE_LEAD_EMAILS,
         subject=templates.questionnaire_lead_subject(name=lead_name),
         text_body=templates.questionnaire_lead_text(
             name=lead_name,
             email=lead_email,
+            phone=lead_phone,
             career_path_title=career_path_title,
             readiness_label=readiness_label,
             roadmap=roadmap,
@@ -287,6 +291,7 @@ def send_questionnaire_lead_notification_email(
         html_body=templates.questionnaire_lead_html(
             name=lead_name,
             email=lead_email,
+            phone=lead_phone,
             career_path_title=career_path_title,
             readiness_label=readiness_label,
             roadmap=roadmap,
@@ -300,13 +305,14 @@ def send_leadership_lead_notification_email(
     *,
     lead_name: str,
     lead_email: str,
+    lead_phone: str | None = None,
     outcome_title: str,
     outcome_summary: str,
     roadmap: str,
     breakdown: list[dict],
 ) -> bool:
     """Notify staff of a leadership quiz lead. Reply-To is the lead's email."""
-    if not QUESTIONNAIRE_LEAD_EMAIL or "@" not in QUESTIONNAIRE_LEAD_EMAIL:
+    if not QUESTIONNAIRE_LEAD_EMAILS:
         logger.info("QUESTIONNAIRE_LEAD_EMAIL unset — skipping leadership lead notification")
         return False
 
@@ -314,11 +320,12 @@ def send_leadership_lead_notification_email(
     breakdown_html = templates.format_breakdown_html(breakdown)
 
     return _send_email(
-        to_address=QUESTIONNAIRE_LEAD_EMAIL,
+        to_address=QUESTIONNAIRE_LEAD_EMAILS,
         subject=templates.leadership_lead_subject(name=lead_name),
         text_body=templates.leadership_lead_text(
             name=lead_name,
             email=lead_email,
+            phone=lead_phone,
             outcome_title=outcome_title,
             outcome_summary=outcome_summary,
             roadmap=roadmap,
@@ -327,6 +334,7 @@ def send_leadership_lead_notification_email(
         html_body=templates.leadership_lead_html(
             name=lead_name,
             email=lead_email,
+            phone=lead_phone,
             outcome_title=outcome_title,
             outcome_summary=outcome_summary,
             roadmap=roadmap,

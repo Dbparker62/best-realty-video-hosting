@@ -204,6 +204,7 @@ class QuestionnaireAnswerIn(BaseModel):
 class QuestionnaireSubmitIn(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
+    phone: str | None = Field(None, max_length=30)
     answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
 
 

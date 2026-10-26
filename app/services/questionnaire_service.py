@@ -431,9 +431,12 @@ def _score_answers(answers: list[dict]) -> dict:
     }
 
 
-def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
+def submit_questionnaire(
+    name: str, email: str, answers: list[dict], *, phone: str | None = None
+) -> dict:
     name = (name or "").strip()
     email = (email or "").strip().lower()
+    phone = (phone or "").strip() or None
 
     if not name:
         bad_request("NAME_REQUIRED", "Name is required")
@@ -448,6 +451,7 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
         "id": submission_id,
         "name": name,
         "email": email,
+        "phone": phone,
         "answers": answers,
         "score": scored["score"],
         "max_score": scored["max_score"],
@@ -472,6 +476,7 @@ def submit_questionnaire(name: str, email: str, answers: list[dict]) -> dict:
     lead_notification_sent = send_questionnaire_lead_notification_email(
         lead_name=name,
         lead_email=email,
+        lead_phone=phone,
         readiness_label=scored["readiness_label"],
         breakdown=scored["breakdown"],
         career_path_title=scored["career_path_title"],
