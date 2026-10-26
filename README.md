@@ -2,7 +2,7 @@
 
 A deployed video course platform built for Best Realty to manage, sell, and securely deliver online course content.
 
-Live site: https://best-realty-video-hosting.vercel.app/
+Live site: https://www.bestacademyofrealestate.com/
 
 ## What It Does
 

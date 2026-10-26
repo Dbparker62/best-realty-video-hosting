@@ -28,7 +28,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 CLOUDFRONT_DOMAIN = os.getenv("CLOUDFRONT_DOMAIN")
 FRONTEND_URL = os.getenv(
-    "FRONTEND_URL", "https://best-realty-video-hosting.vercel.app"
+    "FRONTEND_URL", "https://www.bestacademyofrealestate.com"
 )
 SCHOOL_WEBSITE_URL = os.getenv(
     "SCHOOL_WEBSITE_URL", "http://bestschoolofrealestate.biz"
@@ -46,7 +46,7 @@ EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "true").lower() in (
 )
 # Staff inbox — notified when someone completes the career quiz
 QUESTIONNAIRE_LEAD_EMAIL = os.getenv(
-    "QUESTIONNAIRE_LEAD_EMAIL", "jerseybest@msn.com"
+    "QUESTIONNAIRE_LEAD_EMAIL", "bruceparkerteam@gmail.com"
 ).strip()
 # Off by default — SES sandbox cannot email unverified quiz takers.
 # Set true after SES production access to email results to the person who took the quiz.

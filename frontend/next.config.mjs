@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const backendOrigin =
-  process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://36fjcwgqfc.execute-api.us-east-1.amazonaws.com"
+  process.env.BACKEND_URL ?? process.env.NEXT_PUBLIC_BACKEND_URL ?? "https://api.bestacademyofrealestate.com"
 
 const nextConfig = {
   typescript: {

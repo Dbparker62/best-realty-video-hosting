@@ -74,6 +74,8 @@ app.include_router(questionnaire_router)
 app.include_router(leadership_questionnaire_router)
 _cors_origins = [
     "http://localhost:3000",
+    "https://www.bestacademyofrealestate.com",
+    "https://bestacademyofrealestate.com",
     "https://best-realty-video-hosting.vercel.app",
 ]
 _extra_origins = os.getenv("CORS_ALLOWED_ORIGINS", "")

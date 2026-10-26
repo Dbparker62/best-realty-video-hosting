@@ -24,7 +24,7 @@ function resolveApiBaseUrl(): string {
   if (vercelHost) {
     return `https://${vercelHost.replace(/^https?:\/\//, "")}/api`
   }
-  return "https://36fjcwgqfc.execute-api.us-east-1.amazonaws.com"
+  return "https://api.bestacademyofrealestate.com"
 }
 
 export const API_BASE_URL = resolveApiBaseUrl()
