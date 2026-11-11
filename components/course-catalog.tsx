@@ -7,9 +7,16 @@ import { getCourses, initiateCheckout, getMyCourses } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { CourseCard } from "@/components/course-card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Building2, GraduationCap, TrendingUp, Award } from "lucide-react"
+import { ArrowRight, Award, Building2, GraduationCap, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Course } from "@/lib/types"
+
+const STATS = [
+  { icon: Building2, value: "20+", label: "Years of Experience" },
+  { icon: GraduationCap, value: "1000+", label: "Students Enrolled" },
+  { icon: TrendingUp, value: "95%", label: "Pass Rate" },
+  { icon: Award, value: "50+", label: "Hours of Content" },
+]
 
 /** Hero + course grid. `initialCourses` comes from the server so the list is in the page HTML. */
 export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] }) {
@@ -38,70 +45,71 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <section className="border-b bg-card">
-        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
+      <section className="relative overflow-hidden border-b bg-gradient-to-b from-primary/[0.07] via-card to-card">
+        {/* Soft background glows */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -top-32 left-1/2 h-96 w-[48rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -bottom-40 right-0 h-80 w-80 rounded-full bg-accent/10 blur-3xl"
+        />
+        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
           <div className="text-center">
-            <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Master the New Jersey Real Estate Exam
+            <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-background/80 px-4 py-1.5 text-xs font-medium text-primary shadow-sm backdrop-blur">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              New Jersey Real Estate Pre-Licensing
+            </span>
+            <h1 className="mx-auto mt-6 max-w-4xl text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+              Master the{" "}
+              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                New Jersey
+              </span>{" "}
+              Real Estate Exam
             </h1>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
               Expert-led video courses designed for New Jersey real estate pre-licensing. 
               Learn property valuation, market analysis, negotiation strategies, and more.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button asChild size="lg">
-                <Link href="/questionnaire">Take the readiness quiz</Link>
+              <Button asChild size="lg" className="h-12 px-8 text-base shadow-lg shadow-primary/20">
+                <Link href="/questionnaire">
+                  Take the readiness quiz
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
+              <Button asChild size="lg" variant="outline" className="h-12 bg-background/80 px-8 text-base">
+                <a href="#courses">Browse Courses</a>
               </Button>
             </div>
           </div>
           
           {/* Stats */}
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="flex items-center gap-4 rounded-xl border bg-background p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Building2 className="h-6 w-6" />
+          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {STATS.map(({ icon: Icon, value, label }) => (
+              <div
+                key={label}
+                className="flex items-center gap-4 rounded-2xl border bg-background/80 p-5 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
+                  <Icon className="h-6 w-6" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold text-foreground">{value}</p>
+                  <p className="text-sm text-muted-foreground">{label}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">20+</p>
-                <p className="text-sm text-muted-foreground">Years of Experience</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 rounded-xl border bg-background p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <GraduationCap className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">1000+</p>
-                <p className="text-sm text-muted-foreground">Students Enrolled</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 rounded-xl border bg-background p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <TrendingUp className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">95%</p>
-                <p className="text-sm text-muted-foreground">Pass Rate</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4 rounded-xl border bg-background p-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                <Award className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold text-foreground">50+</p>
-                <p className="text-sm text-muted-foreground">Hours of Content</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* Course Grid */}
-      <section className="py-16">
+      <section id="courses" className="scroll-mt-20 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-foreground">
+            <h2 className="text-3xl font-bold tracking-tight text-foreground">
               Available Courses
             </h2>
             <p className="mt-2 text-muted-foreground">

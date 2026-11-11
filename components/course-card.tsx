@@ -5,7 +5,7 @@ import type { Course } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Clock, BookOpen, User } from "lucide-react"
+import { Clock, BookOpen, GraduationCap, User } from "lucide-react"
 
 interface CourseCardProps {
   course: Course
@@ -15,8 +15,13 @@ interface CourseCardProps {
 
 export function CourseCard({ course, onBuy, isPurchased }: CourseCardProps) {
   return (
-    <Card className="flex h-full flex-col overflow-hidden transition-shadow hover:shadow-lg">
+    <Card className="group relative flex h-full flex-col overflow-hidden rounded-2xl py-0 transition-all duration-200 hover:-translate-y-1 hover:border-primary/30 hover:shadow-xl hover:shadow-primary/5">
+      {/* Accent strip */}
+      <div aria-hidden className="h-1.5 bg-gradient-to-r from-primary via-primary/70 to-accent" />
       <CardHeader className="pb-3">
+        <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary transition-colors group-hover:bg-primary group-hover:text-primary-foreground">
+          <GraduationCap className="h-5 w-5" />
+        </div>
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-lg font-semibold leading-tight text-card-foreground">
             {course.title}
@@ -54,7 +59,7 @@ export function CourseCard({ course, onBuy, isPurchased }: CourseCardProps) {
         </div>
       </CardContent>
       <CardFooter className="flex items-center justify-between border-t bg-muted/30 px-6 py-4">
-        <span className="text-xl font-bold text-foreground">
+        <span className="text-2xl font-bold tracking-tight text-foreground">
           ${course.price}
         </span>
         <div className="flex gap-2">

@@ -4,7 +4,7 @@ import type { FormEvent, ReactNode } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import useSWR from "swr"
 import Link from "next/link"
-import { ArrowLeft, CheckCircle2, Mail } from "lucide-react"
+import { ArrowLeft, ArrowRight, CheckCircle2, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -228,27 +228,36 @@ export function QuizWizard({
 
   if (result) {
     return (
-      <div className="min-h-screen bg-background">
-        <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
-          <Card className="border-primary/20">
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <CheckCircle2 className="h-8 w-8" />
+      <div className="min-h-screen bg-gradient-to-b from-primary/[0.06] via-background to-background">
+        <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+          <Card className="overflow-hidden rounded-2xl border-primary/15 py-0 shadow-xl shadow-primary/10">
+            <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 px-6 py-10 text-center text-primary-foreground">
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl"
+              />
+              <div className="relative">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-white/15 ring-4 ring-white/10">
+                  <CheckCircle2 className="h-8 w-8" />
+                </div>
+                <h2 className="text-2xl font-bold">
+                  Here are your results, {firstName(result.name)}.
+                </h2>
+                <p className="mt-1 text-sm text-primary-foreground/80">{resultDescription}</p>
+                <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
+                  Your result
+                </p>
+                <p className="mt-1 text-3xl font-bold tracking-tight">{result.title}</p>
               </div>
-              <CardTitle className="text-2xl">
-                Here are your results, {firstName(result.name)}.
-              </CardTitle>
-              <CardDescription>{resultDescription}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="text-center">
-                <p className="text-2xl font-semibold text-primary">{result.title}</p>
-              </div>
+            </div>
+            <CardContent className="space-y-6 px-6 py-8 sm:px-8">
               {result.lean && <ResultLeanBar lean={result.lean} />}
-              <p className="text-center text-muted-foreground">{result.summary}</p>
-              <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">{result.roadmap}</div>
-              <p className="flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-3 text-center text-sm">
-                <Mail className="h-4 w-4 shrink-0 text-primary" />
+              <p className="text-center text-lg font-medium text-foreground">{result.summary}</p>
+              <div className="rounded-xl border-l-4 border-primary bg-muted/60 p-5 text-sm leading-relaxed">
+                {result.roadmap}
+              </div>
+              <p className="flex items-center justify-center gap-2 rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-center text-sm text-foreground">
+                <Mail className="h-4 w-4 shrink-0 text-accent" />
                 {result.emailSent
                   ? `We just emailed a copy to ${email.trim()}, and our team will be in touch.`
                   : result.leadNotificationSent
@@ -256,12 +265,13 @@ export function QuizWizard({
                     : "Save this page for your records."}
               </p>
               <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-                <Button asChild>
+                <Button asChild size="lg" className="shadow-lg shadow-primary/20">
                   <a href={cta.href} target="_blank" rel="noopener noreferrer">
                     {cta.label}
+                    <ArrowRight className="h-4 w-4" />
                   </a>
                 </Button>
-                <Button variant="outline" asChild>
+                <Button variant="outline" size="lg" asChild>
                   <Link href="/">Back to Home</Link>
                 </Button>
               </div>
@@ -273,9 +283,15 @@ export function QuizWizard({
     )
   }
 
+  const cardClass = "rounded-2xl border-primary/10 shadow-lg shadow-primary/5"
+  const optionClass =
+    "group flex cursor-pointer items-center gap-4 rounded-xl border bg-card p-4 transition-all hover:border-primary/40 hover:bg-primary/[0.03] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+  const letterClass =
+    "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-muted text-xs font-semibold text-muted-foreground transition-colors"
+
   return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-b from-primary/[0.06] via-background to-background">
+      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
         <Link
           href="/"
           className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -285,51 +301,58 @@ export function QuizWizard({
         </Link>
 
         <div className="mb-8">
-          <div className="mb-3 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <div className="mb-5 flex items-center gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/20">
               {icon}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">{title}</h1>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
               <p className="text-sm text-muted-foreground">{subtitle}</p>
             </div>
           </div>
           {!isLoading && wizardSteps.length > 0 && (
             <div className="space-y-2">
-              <div className="text-xs text-muted-foreground">
-                {currentStep?.type === "question"
-                  ? `Question ${currentStep.questionIndex + 1} of ${questionCount}`
-                  : "Last step — your results"}
+              <div className="flex items-center justify-between text-xs font-medium text-muted-foreground">
+                <span>
+                  {currentStep?.type === "question"
+                    ? `Question ${currentStep.questionIndex + 1} of ${questionCount}`
+                    : "Last step — your results"}
+                </span>
+                <span className="text-primary">{Math.round(progressPercent)}%</span>
               </div>
-              <Progress value={progressPercent} className="h-2" />
+              <Progress value={progressPercent} className="h-2.5" />
             </div>
           )}
         </div>
 
         {isLoading ? (
-          <Card>
+          <Card className={cardClass}>
             <CardContent className="space-y-4 pt-6">
               <Skeleton className="h-6 w-3/4" />
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
+              <Skeleton className="h-14 w-full" />
             </CardContent>
           </Card>
         ) : error ? (
-          <Card>
+          <Card className={cardClass}>
             <CardContent className="py-8 text-center text-destructive">
               Could not load questions. Please try again later.
             </CardContent>
           </Card>
         ) : !questionCount || !currentStep ? (
-          <Card>
+          <Card className={cardClass}>
             <CardContent className="py-8 text-center text-muted-foreground">
               No questions available yet.
             </CardContent>
           </Card>
         ) : currentStep.type === "question" && currentQuestion ? (
-          <Card>
+          <Card
+            key={currentQuestion.id}
+            className={`${cardClass} animate-in fade-in slide-in-from-right-4 duration-300`}
+          >
             <CardHeader>
-              <CardTitle className="text-lg leading-snug">{currentQuestion.prompt}</CardTitle>
+              <CardTitle className="text-xl leading-snug">{currentQuestion.prompt}</CardTitle>
               {currentQuestion.subtitle && (
                 <CardDescription>{currentQuestion.subtitle}</CardDescription>
               )}
@@ -342,16 +365,16 @@ export function QuizWizard({
                     return (
                       <label
                         key={option.id}
-                        className={`flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 ${
-                          selected ? "border-primary bg-primary/5" : ""
+                        className={`${optionClass} ${
+                          selected ? "border-primary bg-primary/5 ring-1 ring-primary" : ""
                         }`}
                       >
                         <Checkbox
                           checked={selected}
                           onCheckedChange={() => toggleMultiple(currentQuestion.id, option.id)}
-                          className="mt-0.5"
+                          className="h-5 w-5"
                         />
-                        <span className="text-sm leading-relaxed">{option.label}</span>
+                        <span className="text-sm font-medium leading-relaxed">{option.label}</span>
                       </label>
                     )
                   })}
@@ -362,25 +385,32 @@ export function QuizWizard({
                   onValueChange={(value) => selectSingle(currentQuestion.id, value)}
                   className="space-y-3"
                 >
-                  {currentQuestion.options.map((option) => (
+                  {currentQuestion.options.map((option, i) => (
                     <label
                       key={option.id}
                       htmlFor={`${currentQuestion.id}-${option.id}`}
-                      className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 transition-colors hover:bg-muted/50 has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5"
+                      className={`${optionClass} has-[[data-state=checked]]:border-primary has-[[data-state=checked]]:bg-primary/5 has-[[data-state=checked]]:ring-1 has-[[data-state=checked]]:ring-primary`}
                     >
+                      {/* The radio stays for keyboard and screen readers; the letter badge is the visual. */}
                       <RadioGroupItem
                         value={option.id}
                         id={`${currentQuestion.id}-${option.id}`}
-                        className="mt-0.5"
+                        className="sr-only"
                       />
-                      <span className="text-sm leading-relaxed">{option.label}</span>
+                      <span
+                        aria-hidden
+                        className={`${letterClass} group-has-[[data-state=checked]]:border-primary group-has-[[data-state=checked]]:bg-primary group-has-[[data-state=checked]]:text-primary-foreground`}
+                      >
+                        {String.fromCharCode(65 + i)}
+                      </span>
+                      <span className="text-sm font-medium leading-relaxed">{option.label}</span>
                     </label>
                   ))}
                 </RadioGroup>
               )}
 
               <div className="flex justify-between gap-3 pt-2">
-                <Button type="button" variant="outline" disabled={stepIndex === 0} onClick={goBack}>
+                <Button type="button" variant="ghost" disabled={stepIndex === 0} onClick={goBack}>
                   ← Back
                 </Button>
                 <Button
@@ -394,26 +424,28 @@ export function QuizWizard({
             </CardContent>
           </Card>
         ) : (
-          <Card>
+          <Card className={`${cardClass} animate-in fade-in slide-in-from-right-4 duration-300`}>
             <CardHeader>
-              <CardTitle>Your results are ready!</CardTitle>
+              <CardTitle className="text-xl">Your results are ready!</CardTitle>
               <CardDescription>
                 Tell us where to send {resultsNoun}. We&apos;ll email them to you right away.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {previewLoading ? (
-                <div className="space-y-2 rounded-lg border border-primary/20 bg-primary/5 p-4">
+                <div className="space-y-2 rounded-xl border border-primary/20 bg-primary/5 p-5">
                   <Skeleton className="h-4 w-24" />
                   <Skeleton className="h-6 w-2/3" />
                   <Skeleton className="h-4 w-full" />
                 </div>
               ) : preview ? (
-                <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
-                  <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] to-accent/[0.06] p-5">
+                  <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     Your result
                   </p>
-                  <p className="mt-1 text-xl font-semibold text-primary">{preview.resultTitle}</p>
+                  <p className="mt-1 text-2xl font-bold tracking-tight text-primary">
+                    {preview.resultTitle}
+                  </p>
                   {preview.lean && <ResultLeanBar lean={preview.lean} className="mt-4" />}
                   <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {preview.teaser}
@@ -426,6 +458,7 @@ export function QuizWizard({
                   <Label htmlFor="quiz-name">First name</Label>
                   <Input
                     id="quiz-name"
+                    className="h-11"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     autoComplete="given-name"
@@ -438,6 +471,7 @@ export function QuizWizard({
                   <Label htmlFor="quiz-email">Email</Label>
                   <Input
                     id="quiz-email"
+                    className="h-11"
                     type="email"
                     autoComplete="email"
                     inputMode="email"
@@ -470,6 +504,7 @@ export function QuizWizard({
                   </Label>
                   <Input
                     id="quiz-phone"
+                    className="h-11"
                     type="tel"
                     autoComplete="tel"
                     value={phone}
@@ -480,10 +515,15 @@ export function QuizWizard({
                 </div>
                 {submitError && <p className="text-sm text-destructive">{submitError}</p>}
                 <div className="flex justify-between gap-3 pt-2">
-                  <Button type="button" variant="outline" onClick={goBack}>
+                  <Button type="button" variant="ghost" onClick={goBack}>
                     ← Back
                   </Button>
-                  <Button type="submit" disabled={!canSubmit}>
+                  <Button
+                    type="submit"
+                    size="lg"
+                    disabled={!canSubmit}
+                    className="shadow-lg shadow-primary/20"
+                  >
                     {submitting ? "Sending your results…" : "Email me my results"}
                   </Button>
                 </div>

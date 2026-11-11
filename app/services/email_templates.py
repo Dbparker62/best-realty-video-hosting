@@ -27,7 +27,10 @@ def _phone_html(phone: str | None) -> str:
 
 BRAND_NAME = "Best School Of Real Estate"
 BRAND_TAGLINE = "New Jersey real estate pre-licensing education"
-BRAND_COLOR = "#0f766e"  # teal accent for headings and buttons
+BRAND_COLOR = "#1f3b5c"  # navy (matches the website) for headings and buttons
+BRAND_COLOR_DARK = "#0f2238"  # gradient end in the results-email header
+BRAND_ACCENT = "#0f766e"  # teal accent stripe
+EMAIL_BG = "#eef2f7"  # page background behind the email card
 
 
 # ---------------------------------------------------------------------------
@@ -173,6 +176,133 @@ def format_breakdown_html(breakdown: list[dict]) -> str:
     )
 
 
+def format_breakdown_rows_html(breakdown: list[dict]) -> str:
+    """Answer rows for the styled results emails (question small, answer bold)."""
+    return "".join(
+        f'<tr><td style="padding: 12px 0; border-bottom: 1px solid #e5e9f0;">'
+        f'<div style="font-size: 13px; color: #64748b; line-height: 1.4;">{_e(row.get("prompt", "Question"))}</div>'
+        f'<div style="font-size: 15px; color: #0f172a; font-weight: bold; line-height: 1.5; padding-top: 2px;">'
+        f'{_e(row.get("selected_label", ""))}</div></td></tr>'
+        for row in breakdown
+    )
+
+
+def _results_email_html(
+    *,
+    heading: str,
+    subheading: str,
+    name: str,
+    result_title: str,
+    summary: str,
+    roadmap: str,
+    breakdown_rows_html: str,
+    cta_url: str,
+    cta_label: str,
+    support_email: str,
+    footer_note: str,
+) -> str:
+    """
+    Shared layout for the quiz results emails sent to quiz takers.
+    Table-based with inline styles so it renders the same in Gmail, Outlook and phones.
+    """
+    support_line = f" or write to {_e(support_email)}" if support_email else ""
+    roadmap_html = _e(roadmap).replace("\n", "<br/>")
+    font = "Arial, Helvetica, sans-serif"
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>{_e(heading)}</title>
+</head>
+<body style="margin: 0; padding: 0; background: {EMAIL_BG}; -webkit-text-size-adjust: 100%;">
+  <!-- Inbox preview text -->
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0;">Your result: {_e(result_title)}. {_e(summary)}</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: {EMAIL_BG};">
+    <tr>
+      <td align="center" style="padding: 32px 12px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; font-family: {font};">
+
+          <!-- Brand -->
+          <tr>
+            <td align="center" style="padding: 0 0 20px; font-size: 15px; font-weight: bold; color: {BRAND_COLOR}; letter-spacing: 0.3px;">
+              {BRAND_NAME}
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(15, 34, 56, 0.08);">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                <!-- Hero -->
+                <tr>
+                  <td align="center" bgcolor="{BRAND_COLOR}" style="background: {BRAND_COLOR}; background-image: linear-gradient(135deg, {BRAND_COLOR} 0%, {BRAND_COLOR_DARK} 100%); padding: 36px 28px; border-radius: 16px 16px 0 0;">
+                    <div style="font-size: 13px; color: #c7d7ea; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold;">{_e(heading)}</div>
+                    <div style="font-size: 15px; color: #e2ebf5; padding-top: 6px;">{_e(subheading)}</div>
+                    <div style="font-size: 28px; line-height: 1.25; color: #ffffff; font-weight: bold; padding-top: 18px;">{_e(result_title)}</div>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding: 32px 28px 8px; color: #0f172a; font-size: 15px; line-height: 1.6;">
+                    <p style="margin: 0 0 12px;">Hi {_e(name)},</p>
+                    <p style="margin: 0 0 24px; font-size: 17px; font-weight: bold; color: #0f172a;">{_e(summary)}</p>
+
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td style="background: #f1f5f9; border-left: 4px solid {BRAND_ACCENT}; border-radius: 8px; padding: 18px 20px; font-size: 15px; line-height: 1.65; color: #1e293b;">
+                          {roadmap_html}
+                        </td>
+                      </tr>
+                    </table>
+
+                    <!-- CTA -->
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 28px auto;">
+                      <tr>
+                        <td align="center" bgcolor="{BRAND_COLOR}" style="border-radius: 10px; background: {BRAND_COLOR};">
+                          <a href="{_e(cta_url)}" target="_blank" style="display: inline-block; padding: 14px 32px; font-family: {font}; font-size: 16px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px;">{_e(cta_label)} &rarr;</a>
+                        </td>
+                      </tr>
+                    </table>
+
+                    <div style="font-size: 13px; font-weight: bold; color: #64748b; text-transform: uppercase; letter-spacing: 1px; padding-top: 4px;">Your answers</div>
+                    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top: 4px;">
+                      {breakdown_rows_html}
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Sign-off -->
+                <tr>
+                  <td style="padding: 20px 28px 32px; font-size: 14px; line-height: 1.6; color: #475569;">
+                    Questions? Just reply to this email{support_line}.
+                    <div style="padding-top: 12px; color: #0f172a; font-weight: bold;">&mdash; {BRAND_NAME}</div>
+                    <div style="font-size: 13px; color: #64748b;">{BRAND_TAGLINE}</div>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 20px 16px 0; font-size: 12px; line-height: 1.5; color: #94a3b8;">
+              {_e(footer_note)}
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
+
+
 def questionnaire_score_subject(*, career_path_title: str) -> str:
     return f"Your NJ real estate career profile — {career_path_title}"
 
@@ -217,27 +347,23 @@ def questionnaire_score_html(
     readiness_label: str,
     career_path_title: str,
     roadmap: str,
-    breakdown_html: str,
+    breakdown_rows_html: str,
     courses_url: str,
     support_email: str,
 ) -> str:
-    return f"""<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-  <h2 style="color: {BRAND_COLOR};">Your NJ Real Estate Career Profile</h2>
-  <p>Hi {_e(name)},</p>
-  <p style="font-size: 14px; color: #555;">{BRAND_TAGLINE}</p>
-  <p style="font-size: 22px; font-weight: bold; color: {BRAND_COLOR};">{_e(career_path_title)}</p>
-  <p><strong>{_e(readiness_label)}</strong></p>
-  <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{_e(roadmap)}</p>
-  <ul>{breakdown_html}</ul>
-  <p>
-    <a href="{_e(courses_url)}" style="display: inline-block; background: {BRAND_COLOR}; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View NJ Pre-Licensing Courses</a>
-  </p>
-  <p style="font-size: 13px; color: #777;">Questions? Just reply to this email{f" or write to {_e(support_email)}" if support_email else ""}.</p>
-  <p style="font-size: 12px; color: #999;">You're receiving this because you took our career quiz and asked for your results.</p>
-</body>
-</html>"""
+    return _results_email_html(
+        heading="Your NJ Real Estate Career Profile",
+        subheading=BRAND_TAGLINE,
+        name=name,
+        result_title=career_path_title,
+        summary=readiness_label,
+        roadmap=roadmap,
+        breakdown_rows_html=breakdown_rows_html,
+        cta_url=courses_url,
+        cta_label="View NJ Pre-Licensing Courses",
+        support_email=support_email,
+        footer_note="You're receiving this because you took our career quiz and asked for your results.",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -428,26 +554,20 @@ def leadership_score_html(
     outcome_title: str,
     outcome_summary: str,
     roadmap: str,
-    breakdown_html: str,
+    breakdown_rows_html: str,
     school_url: str,
     support_email: str,
 ) -> str:
-    support_line = f" or write to {_e(support_email)}" if support_email else ""
-    return f"""<!DOCTYPE html>
-<html>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
-  <h2 style="color: {BRAND_COLOR};">Your Leadership Results</h2>
-  <p>Hi {_e(name)},</p>
-  <p style="font-size: 14px; color: #555;">Team or Broker of Record assessment</p>
-  <p style="font-size: 22px; font-weight: bold; color: {BRAND_COLOR};">{_e(outcome_title)}</p>
-  <p><strong>{_e(outcome_summary)}</strong></p>
-  <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{_e(roadmap)}</p>
-  <h3 style="font-size: 16px;">Your answers</h3>
-  <ul>{breakdown_html}</ul>
-  <p>
-    <a href="{_e(school_url)}" style="display: inline-block; background: {BRAND_COLOR}; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Visit {BRAND_NAME}</a>
-  </p>
-  <p style="font-size: 13px; color: #777;">Questions? Just reply to this email{support_line}.</p>
-  <p style="font-size: 12px; color: #999;">You're receiving this because you took the assessment and asked for your results.</p>
-</body>
-</html>"""
+    return _results_email_html(
+        heading="Your Leadership Results",
+        subheading="Team or Broker of Record assessment",
+        name=name,
+        result_title=outcome_title,
+        summary=outcome_summary,
+        roadmap=roadmap,
+        breakdown_rows_html=breakdown_rows_html,
+        cta_url=school_url,
+        cta_label=f"Visit {BRAND_NAME}",
+        support_email=support_email,
+        footer_note="You're receiving this because you took the assessment and asked for your results.",
+    )

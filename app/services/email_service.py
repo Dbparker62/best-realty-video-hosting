@@ -236,7 +236,7 @@ def send_questionnaire_score_email(
     support = _support_address()
 
     breakdown_lines = templates.format_breakdown_text(breakdown)
-    breakdown_html = templates.format_breakdown_html(breakdown)
+    breakdown_rows_html = templates.format_breakdown_rows_html(breakdown)
 
     return _send_email(
         to_address=to_address,
@@ -257,7 +257,7 @@ def send_questionnaire_score_email(
             readiness_label=readiness_label,
             career_path_title=career_path_title,
             roadmap=roadmap,
-            breakdown_html=breakdown_html,
+            breakdown_rows_html=breakdown_rows_html,
             courses_url=courses_url,
             support_email=support,
         ),
@@ -385,7 +385,7 @@ def send_leadership_score_email(
             outcome_title=outcome_title,
             outcome_summary=outcome_summary,
             roadmap=roadmap,
-            breakdown_html=templates.format_breakdown_html(breakdown),
+            breakdown_rows_html=templates.format_breakdown_rows_html(breakdown),
             school_url=SCHOOL_WEBSITE_URL,
             support_email=support,
         ),
