@@ -1,3 +1,4 @@
+import { attributionPayload } from "./attribution"
 import { API_BASE_URL, parseApiError } from "./api"
 import type { QuestionnaireQuestion } from "./questionnaire-api"
 
@@ -53,6 +54,7 @@ export async function submitLeadershipQuestionnaire(payload: {
       name: payload.name,
       email: payload.email,
       phone: payload.phone || null,
+      attribution: attributionPayload(),
       answers: payload.answers.map((a) => ({
         question_id: a.questionId,
         option_ids: a.optionIds,

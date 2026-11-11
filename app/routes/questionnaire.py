@@ -30,4 +30,7 @@ def submit_questionnaire(body: schemas.QuestionnaireSubmitIn):
         str(body.email),
         answers,
         phone=body.phone,
+        attribution=(
+            body.attribution.model_dump(exclude_none=True) if body.attribution else None
+        ),
     )

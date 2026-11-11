@@ -18,6 +18,12 @@ import {
   type QuestionnaireQuestion,
   type QuestionnaireSubmitResult,
 } from "@/lib/questionnaire-api"
+import {
+  trackQuizSubmit,
+  trackQuizSubmitError,
+  useQuizFunnelTracking,
+  type QuizStepInfo,
+} from "@/lib/analytics"
 
 const SCHOOL_WEBSITE_URL =
   process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "http://bestschoolofrealestate.biz"
@@ -68,6 +74,17 @@ export default function QuestionnairePage() {
     currentStep?.type === "question" && questions
       ? questions[currentStep.questionIndex]
       : null
+
+  const trackedStep = useMemo<QuizStepInfo | undefined>(() => {
+    if (!currentStep) return undefined
+    if (currentStep.type !== "question") return { type: currentStep.type }
+    const q = questions?.[currentStep.questionIndex]
+    return q
+      ? { type: "question", questionId: q.id, questionNumber: currentStep.questionIndex + 1 }
+      : undefined
+  }, [currentStep, questions])
+
+  useQuizFunnelTracking("career", trackedStep, stepIndex, wizardSteps.length)
 
   const progressPercent =
     wizardSteps.length > 0
@@ -127,7 +144,9 @@ export default function QuestionnairePage() {
         })),
       })
       setResult(payload)
+      trackQuizSubmit("career", payload.careerPath)
     } catch (err) {
+      trackQuizSubmitError("career")
       setSubmitError(err instanceof Error ? err.message : "Could not submit")
     } finally {
       setSubmitting(false)

@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/lib/auth-context'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
+import { TrackingScripts } from '@/components/tracking-scripts'
 import './globals.css'
 
 const inter = Inter({ 
@@ -48,6 +49,7 @@ export default function RootLayout({
           <Footer />
         </AuthProvider>
         {process.env.NODE_ENV === 'production' && <Analytics />}
+        <TrackingScripts />
       </body>
     </html>
   )

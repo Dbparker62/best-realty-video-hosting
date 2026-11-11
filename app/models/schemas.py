@@ -201,11 +201,25 @@ class QuestionnaireAnswerIn(BaseModel):
     option_ids: list[str] = Field(..., min_length=1)
 
 
+class LeadAttributionIn(BaseModel):
+    """Where the lead came from (UTM tags / referrer), captured by the browser."""
+
+    utm_source: str | None = Field(None, max_length=300)
+    utm_medium: str | None = Field(None, max_length=300)
+    utm_campaign: str | None = Field(None, max_length=300)
+    utm_content: str | None = Field(None, max_length=300)
+    utm_term: str | None = Field(None, max_length=300)
+    referrer: str | None = Field(None, max_length=300)
+    landing_page: str | None = Field(None, max_length=300)
+    inferred_source: str | None = Field(None, max_length=300)
+
+
 class QuestionnaireSubmitIn(BaseModel):
     name: str = Field(..., min_length=1, max_length=100)
     email: EmailStr
     phone: str | None = Field(None, max_length=30)
     answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
+    attribution: LeadAttributionIn | None = None
 
 
 class QuestionnaireSubmitOut(BaseModel):

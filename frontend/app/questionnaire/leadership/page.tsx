@@ -18,6 +18,12 @@ import {
   type LeadershipSubmitResult,
 } from "@/lib/leadership-questionnaire-api"
 import type { QuestionnaireQuestion } from "@/lib/questionnaire-api"
+import {
+  trackQuizSubmit,
+  trackQuizSubmitError,
+  useQuizFunnelTracking,
+  type QuizStepInfo,
+} from "@/lib/analytics"
 
 const SCHOOL_WEBSITE_URL =
   process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "http://bestschoolofrealestate.biz"
@@ -69,6 +75,17 @@ export default function LeadershipQuestionnairePage() {
       ? questions[currentStep.questionIndex]
       : null
 
+  const trackedStep = useMemo<QuizStepInfo | undefined>(() => {
+    if (!currentStep) return undefined
+    if (currentStep.type !== "question") return { type: currentStep.type }
+    const q = questions?.[currentStep.questionIndex]
+    return q
+      ? { type: "question", questionId: q.id, questionNumber: currentStep.questionIndex + 1 }
+      : undefined
+  }, [currentStep, questions])
+
+  useQuizFunnelTracking("leadership", trackedStep, stepIndex, wizardSteps.length)
+
   const progressPercent =
     wizardSteps.length > 0
       ? Math.round(((stepIndex + 1) / wizardSteps.length) * 100)
@@ -113,7 +130,9 @@ export default function LeadershipQuestionnairePage() {
         })),
       })
       setResult(payload)
+      trackQuizSubmit("leadership", payload.outcome)
     } catch (err) {
+      trackQuizSubmitError("leadership")
       setSubmitError(err instanceof Error ? err.message : "Could not submit")
     } finally {
       setSubmitting(false)

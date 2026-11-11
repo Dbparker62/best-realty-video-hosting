@@ -9,6 +9,7 @@ from botocore.exceptions import ClientError
 from app.services.email_service import send_leadership_lead_notification_email
 from app.utils.database import questionnaire_submissions_table
 from app.utils.dynamodb import sanitize_item
+from app.utils.attribution import lead_source_label
 from app.utils.error import bad_request
 
 logger = logging.getLogger(__name__)
@@ -288,7 +289,12 @@ def _score_answers(answers: list[dict]) -> dict:
 
 
 def submit(
-    name: str, email: str, answers: list[dict], *, phone: str | None = None
+    name: str,
+    email: str,
+    answers: list[dict],
+    *,
+    phone: str | None = None,
+    attribution: dict | None = None,
 ) -> dict:
     name = (name or "").strip()
     email = (email or "").strip().lower()
@@ -314,6 +320,8 @@ def submit(
         "outcome_title": scored["outcome_title"],
         "outcome_summary": scored["outcome_summary"],
         "roadmap": scored["roadmap"],
+        "attribution": attribution or None,
+        "lead_source": lead_source_label(attribution),
         "created_at": now,
     }
 
@@ -334,14 +342,17 @@ def submit(
         outcome_summary=scored["outcome_summary"],
         roadmap=scored["roadmap"],
         breakdown=scored["breakdown"],
+        attribution=attribution,
     )
 
     logger.info(
-        "Leadership questionnaire submit id=%s name=%r email=%s outcome=%s lead_email_sent=%s",
+        "Leadership questionnaire submit id=%s name=%r email=%s outcome=%s source=%s "
+        "lead_email_sent=%s",
         submission_id,
         name,
         email,
         scored["outcome"],
+        submission["lead_source"],
         lead_notification_sent,
     )
 

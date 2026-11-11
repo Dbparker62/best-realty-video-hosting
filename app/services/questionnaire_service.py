@@ -18,6 +18,7 @@ from app.utils.database import (
     questionnaire_submissions_table,
 )
 from app.utils.dynamodb import sanitize_item
+from app.utils.attribution import lead_source_label
 from app.utils.error import bad_request, not_found
 
 logger = logging.getLogger(__name__)
@@ -432,7 +433,12 @@ def _score_answers(answers: list[dict]) -> dict:
 
 
 def submit_questionnaire(
-    name: str, email: str, answers: list[dict], *, phone: str | None = None
+    name: str,
+    email: str,
+    answers: list[dict],
+    *,
+    phone: str | None = None,
+    attribution: dict | None = None,
 ) -> dict:
     name = (name or "").strip()
     email = (email or "").strip().lower()
@@ -459,6 +465,8 @@ def submit_questionnaire(
         "career_path": scored["career_path"],
         "career_path_title": scored["career_path_title"],
         "roadmap": scored["roadmap"],
+        "attribution": attribution or None,
+        "lead_source": lead_source_label(attribution),
         "created_at": now,
     }
 
@@ -481,6 +489,7 @@ def submit_questionnaire(
         breakdown=scored["breakdown"],
         career_path_title=scored["career_path_title"],
         roadmap=scored["roadmap"],
+        attribution=attribution,
     )
 
     email_sent = False
@@ -502,12 +511,13 @@ def submit_questionnaire(
         )
 
     logger.info(
-        "Questionnaire submit id=%s name=%r email=%s career_path=%s "
+        "Questionnaire submit id=%s name=%r email=%s career_path=%s source=%s "
         "lead_email_sent=%s user_email_sent=%s",
         submission_id,
         name,
         email,
         scored["career_path"],
+        submission["lead_source"],
         lead_notification_sent,
         email_sent,
     )

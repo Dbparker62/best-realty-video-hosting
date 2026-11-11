@@ -15,6 +15,7 @@ from app.config import (
     SUPPORT_EMAIL,
 )
 from app.services import email_templates as templates
+from app.utils.attribution import lead_source_label
 from app.utils.database import courses_table
 
 logger = logging.getLogger(__name__)
@@ -267,6 +268,7 @@ def send_questionnaire_lead_notification_email(
     breakdown: list[dict],
     career_path_title: str,
     roadmap: str,
+    attribution: dict | None = None,
 ) -> bool:
     """Notify staff of a new quiz lead. Reply-To is set to the lead's email."""
     if not QUESTIONNAIRE_LEAD_EMAILS:
@@ -283,6 +285,7 @@ def send_questionnaire_lead_notification_email(
             name=lead_name,
             email=lead_email,
             phone=lead_phone,
+            lead_source=lead_source_label(attribution),
             career_path_title=career_path_title,
             readiness_label=readiness_label,
             roadmap=roadmap,
@@ -292,6 +295,7 @@ def send_questionnaire_lead_notification_email(
             name=lead_name,
             email=lead_email,
             phone=lead_phone,
+            lead_source=lead_source_label(attribution),
             career_path_title=career_path_title,
             readiness_label=readiness_label,
             roadmap=roadmap,
@@ -310,6 +314,7 @@ def send_leadership_lead_notification_email(
     outcome_summary: str,
     roadmap: str,
     breakdown: list[dict],
+    attribution: dict | None = None,
 ) -> bool:
     """Notify staff of a leadership quiz lead. Reply-To is the lead's email."""
     if not QUESTIONNAIRE_LEAD_EMAILS:
@@ -326,6 +331,7 @@ def send_leadership_lead_notification_email(
             name=lead_name,
             email=lead_email,
             phone=lead_phone,
+            lead_source=lead_source_label(attribution),
             outcome_title=outcome_title,
             outcome_summary=outcome_summary,
             roadmap=roadmap,
@@ -335,6 +341,7 @@ def send_leadership_lead_notification_email(
             name=lead_name,
             email=lead_email,
             phone=lead_phone,
+            lead_source=lead_source_label(attribution),
             outcome_title=outcome_title,
             outcome_summary=outcome_summary,
             roadmap=roadmap,
