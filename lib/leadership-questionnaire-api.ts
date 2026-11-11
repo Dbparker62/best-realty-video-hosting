@@ -1,6 +1,11 @@
 import { attributionPayload } from "./attribution"
 import { API_BASE_URL, parseApiError } from "./api"
-import type { QuestionnaireQuestion, QuizPreview } from "./questionnaire-api"
+import {
+  mapLean,
+  type QuestionnaireQuestion,
+  type QuizPreview,
+  type ResultLean,
+} from "./questionnaire-api"
 
 export interface LeadershipSubmitResult {
   submissionId: string
@@ -9,6 +14,7 @@ export interface LeadershipSubmitResult {
   outcomeTitle: string
   outcomeSummary: string
   roadmap: string
+  lean?: ResultLean
   emailSent: boolean
   leadNotificationSent: boolean
 }
@@ -55,8 +61,18 @@ export async function previewLeadershipQuestionnaire(
   if (!response.ok) {
     throw new Error(await parseApiError(response))
   }
-  const data = (await response.json()) as { result: string; result_title: string; teaser: string }
-  return { result: data.result, resultTitle: data.result_title, teaser: data.teaser }
+  const data = (await response.json()) as {
+    result: string
+    result_title: string
+    teaser: string
+    lean?: { left_label: string; right_label: string; position: number } | null
+  }
+  return {
+    result: data.result,
+    resultTitle: data.result_title,
+    teaser: data.teaser,
+    lean: mapLean(data.lean),
+  }
 }
 
 export async function submitLeadershipQuestionnaire(payload: {
@@ -89,6 +105,7 @@ export async function submitLeadershipQuestionnaire(payload: {
     outcome_title: string
     outcome_summary: string
     roadmap: string
+    lean?: { left_label: string; right_label: string; position: number } | null
     email_sent?: boolean
     lead_notification_sent: boolean
   }
@@ -99,6 +116,7 @@ export async function submitLeadershipQuestionnaire(payload: {
     outcomeTitle: data.outcome_title,
     outcomeSummary: data.outcome_summary,
     roadmap: data.roadmap,
+    lean: mapLean(data.lean),
     emailSent: Boolean(data.email_sent),
     leadNotificationSent: data.lead_notification_sent,
   }

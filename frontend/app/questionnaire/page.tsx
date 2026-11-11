@@ -24,6 +24,7 @@ async function submitCareerQuiz(contact: QuizContact, answers: QuizAnswer[]): Pr
     title: r.careerPathTitle,
     summary: r.readinessLabel,
     roadmap: r.roadmap,
+    lean: r.lean,
     emailSent: r.emailSent,
     leadNotificationSent: r.leadNotificationSent,
   }

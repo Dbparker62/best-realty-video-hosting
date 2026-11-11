@@ -19,6 +19,7 @@ from app.utils.database import (
 )
 from app.utils.dynamodb import sanitize_item
 from app.utils.attribution import lead_source_label
+from app.utils.lean import lean
 from app.utils.error import bad_request, not_found
 
 logger = logging.getLogger(__name__)
@@ -235,20 +236,28 @@ def _path_weights(option: dict) -> dict[str, int]:
 
 
 def _resolve_career_path(path_totals: dict[str, int]) -> str:
-    if not any(path_totals.values()):
-        return "part_time"
-
-    best_score = max(path_totals.values())
-    tied = [p for p in CAREER_PATHS if path_totals[p] == best_score]
-
-    if len(tied) == 1:
-        return tied[0]
-
-    priority = ("full_time", "part_time", "referral")
-    for path in priority:
-        if path in tied:
-            return path
+    """
+    Two sides: Agent (full-time + part-time points) vs Referral.
+    Agent wins ties and any time its combined points match or beat Referral,
+    so the result leans toward getting licensed and practicing. Within Agent,
+    full-time beats part-time on a tie.
+    """
+    agent = path_totals["full_time"] + path_totals["part_time"]
+    if path_totals["referral"] > agent:
+        return "referral"
+    if path_totals["full_time"] >= path_totals["part_time"] and path_totals["full_time"] > 0:
+        return "full_time"
     return "part_time"
+
+
+def career_lean(path_totals: dict[str, int]) -> dict:
+    """Referral (left) <-> Agent (right) bar position."""
+    return lean(
+        left_label="Referral",
+        right_label="Agent",
+        left=path_totals["referral"],
+        right=path_totals["full_time"] + path_totals["part_time"],
+    )
 
 
 def career_path_roadmap(path: str) -> str:
@@ -397,6 +406,7 @@ def _score_answers(answers: list[dict]) -> dict:
         "roadmap": roadmap,
         "breakdown": breakdown,
         "path_totals": path_totals,
+        "lean": career_lean(path_totals),
     }
 
 
@@ -424,6 +434,7 @@ def preview_answers(answers: list[dict]) -> dict:
         "result": path,
         "result_title": scored["career_path_title"],
         "teaser": PATH_TEASERS[path],
+        "lean": scored["lean"],
     }
 
 
@@ -526,6 +537,7 @@ def submit_questionnaire(
         "roadmap": scored["roadmap"],
         "score": scored["score"],
         "max_score": scored["max_score"],
+        "lean": scored["lean"],
         "email_sent": email_sent,
         "lead_notification_sent": lead_notification_sent,
     }

@@ -28,6 +28,7 @@ async function submitLeadershipQuiz(
     title: r.outcomeTitle,
     summary: r.outcomeSummary,
     roadmap: r.roadmap,
+    lean: r.lean,
     emailSent: r.emailSent,
     leadNotificationSent: r.leadNotificationSent,
   }

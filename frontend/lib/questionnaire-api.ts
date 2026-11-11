@@ -27,11 +27,26 @@ export interface QuestionnaireQuestionAdmin {
   options: QuestionnaireOptionAdmin[]
 }
 
+/** Two-sided result bar. position 0 = fully left, 100 = fully right. */
+export interface ResultLean {
+  leftLabel: string
+  rightLabel: string
+  position: number
+}
+
 /** Result teaser shown before the contact form (nothing saved or emailed). */
 export interface QuizPreview {
   result: string
   resultTitle: string
   teaser: string
+  lean?: ResultLean
+}
+
+type ResultLeanApi = { left_label: string; right_label: string; position: number }
+
+export function mapLean(raw: ResultLeanApi | null | undefined): ResultLean | undefined {
+  if (!raw) return undefined
+  return { leftLabel: raw.left_label, rightLabel: raw.right_label, position: raw.position }
 }
 
 export interface QuestionnaireSubmitResult {
@@ -43,6 +58,7 @@ export interface QuestionnaireSubmitResult {
   roadmap: string
   score: number
   maxScore: number
+  lean?: ResultLean
   emailSent: boolean
   leadNotificationSent: boolean
 }
@@ -123,8 +139,18 @@ export async function previewQuestionnaire(
   if (!response.ok) {
     throw new Error(await parseApiError(response))
   }
-  const data = (await response.json()) as { result: string; result_title: string; teaser: string }
-  return { result: data.result, resultTitle: data.result_title, teaser: data.teaser }
+  const data = (await response.json()) as {
+    result: string
+    result_title: string
+    teaser: string
+    lean?: ResultLeanApi | null
+  }
+  return {
+    result: data.result,
+    resultTitle: data.result_title,
+    teaser: data.teaser,
+    lean: mapLean(data.lean),
+  }
 }
 
 export async function submitQuestionnaire(payload: {
@@ -159,6 +185,7 @@ export async function submitQuestionnaire(payload: {
     roadmap: string
     score: number
     max_score: number
+    lean?: ResultLeanApi | null
     email_sent: boolean
     lead_notification_sent: boolean
   }
@@ -171,6 +198,7 @@ export async function submitQuestionnaire(payload: {
     roadmap: data.roadmap,
     score: data.score,
     maxScore: data.max_score,
+    lean: mapLean(data.lean),
     emailSent: data.email_sent,
     leadNotificationSent: data.lead_notification_sent,
   }

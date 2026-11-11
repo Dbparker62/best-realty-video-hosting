@@ -13,7 +13,8 @@ import { Label } from "@/components/ui/label"
 import { Progress } from "@/components/ui/progress"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Skeleton } from "@/components/ui/skeleton"
-import type { QuestionnaireQuestion, QuizPreview } from "@/lib/questionnaire-api"
+import type { QuestionnaireQuestion, QuizPreview, ResultLean } from "@/lib/questionnaire-api"
+import { ResultLeanBar } from "@/components/quiz/result-lean-bar"
 import {
   trackQuizSubmit,
   trackQuizSubmitError,
@@ -40,6 +41,7 @@ export interface QuizResult {
   title: string
   summary: string
   roadmap: string
+  lean?: ResultLean
   emailSent: boolean
   leadNotificationSent: boolean
 }
@@ -234,8 +236,9 @@ export function QuizWizard({
             <CardContent className="space-y-6">
               <div className="text-center">
                 <p className="text-2xl font-semibold text-primary">{result.title}</p>
-                <p className="mt-4 text-muted-foreground">{result.summary}</p>
               </div>
+              {result.lean && <ResultLeanBar lean={result.lean} />}
+              <p className="text-center text-muted-foreground">{result.summary}</p>
               <div className="rounded-lg bg-muted p-4 text-sm leading-relaxed">{result.roadmap}</div>
               <p className="flex items-center justify-center gap-2 rounded-lg bg-muted px-4 py-3 text-center text-sm">
                 <Mail className="h-4 w-4 shrink-0 text-primary" />
@@ -404,7 +407,8 @@ export function QuizWizard({
                     Your result
                   </p>
                   <p className="mt-1 text-xl font-semibold text-primary">{preview.resultTitle}</p>
-                  <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+                  {preview.lean && <ResultLeanBar lean={preview.lean} className="mt-4" />}
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
                     {preview.teaser}
                   </p>
                 </div>

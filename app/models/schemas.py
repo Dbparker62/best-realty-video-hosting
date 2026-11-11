@@ -226,12 +226,21 @@ class QuestionnairePreviewIn(BaseModel):
     answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
 
 
+class ResultLeanOut(BaseModel):
+    """Two-sided result bar. position 0 = fully left, 100 = fully right."""
+
+    left_label: str
+    right_label: str
+    position: int
+
+
 class QuestionnairePreviewOut(BaseModel):
     """Result teaser shown before the contact form. Nothing is saved or emailed."""
 
     result: str
     result_title: str
     teaser: str
+    lean: ResultLeanOut | None = None
 
 
 class QuestionnaireSubmitOut(BaseModel):
@@ -243,6 +252,7 @@ class QuestionnaireSubmitOut(BaseModel):
     roadmap: str
     score: int
     max_score: int
+    lean: ResultLeanOut | None = None
     email_sent: bool = False
     lead_notification_sent: bool = False
 
@@ -254,5 +264,6 @@ class LeadershipQuestionnaireSubmitOut(BaseModel):
     outcome_title: str
     outcome_summary: str
     roadmap: str
+    lean: ResultLeanOut | None = None
     email_sent: bool = False
     lead_notification_sent: bool = False

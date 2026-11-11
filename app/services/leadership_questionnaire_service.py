@@ -14,6 +14,7 @@ from app.services.email_service import (
 from app.utils.database import questionnaire_submissions_table
 from app.utils.dynamodb import sanitize_item
 from app.utils.attribution import lead_source_label
+from app.utils.lean import lean
 from app.utils.error import bad_request
 
 logger = logging.getLogger(__name__)
@@ -207,13 +208,8 @@ def _score_answers(answers: list[dict]) -> dict:
             {"answered": len(answered_ids), "required": len(questions)},
         )
 
-    if totals["team"] >= totals["broker"]:
-        outcome = "build_team"
-    else:
-        outcome = "broker_of_record"
-
-    if totals["team"] == totals["broker"]:
-        outcome = "build_team"
+    # Five questions, one point each, so a tie can't happen; Team wins one anyway.
+    outcome = "build_team" if totals["team"] >= totals["broker"] else "broker_of_record"
 
     title = OUTCOME_TITLES[outcome]
     summary = _outcome_summary(outcome)
@@ -226,6 +222,12 @@ def _score_answers(answers: list[dict]) -> dict:
         "roadmap": roadmap,
         "breakdown": breakdown,
         "path_totals": totals,
+        "lean": lean(
+            left_label="Build a Team",
+            right_label="Broker of Record",
+            left=totals["team"],
+            right=totals["broker"],
+        ),
     }
 
 
@@ -249,6 +251,7 @@ def preview_answers(answers: list[dict]) -> dict:
         "result": outcome,
         "result_title": scored["outcome_title"],
         "teaser": OUTCOME_TEASERS[outcome],
+        "lean": scored["lean"],
     }
 
 
@@ -344,6 +347,7 @@ def submit(
         "outcome_title": scored["outcome_title"],
         "outcome_summary": scored["outcome_summary"],
         "roadmap": scored["roadmap"],
+        "lean": scored["lean"],
         "email_sent": email_sent,
         "lead_notification_sent": lead_notification_sent,
     }
