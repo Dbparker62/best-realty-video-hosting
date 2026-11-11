@@ -36,6 +36,22 @@ export function Footer() {
                   Browse Courses
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/questionnaire"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  NJ Real Estate Career Quiz
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/questionnaire/leadership"
+                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  Team or Broker Quiz
+                </Link>
+              </li>
             </ul>
           </div>
 

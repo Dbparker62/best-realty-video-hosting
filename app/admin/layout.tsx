@@ -1,5 +1,9 @@
+import type { Metadata } from "next"
+import { NO_INDEX } from "@/lib/site"
 import { AdminSidebar } from "@/components/admin/admin-sidebar"
 import { AdminAuthGuard } from "@/components/admin/admin-auth-guard"
+
+export const metadata: Metadata = NO_INDEX
 
 export default function AdminLayout({
   children,

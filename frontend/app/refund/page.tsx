@@ -3,7 +3,8 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Refund Policy | Best Realty Courses",
+  title: "Refund Policy",
+  alternates: { canonical: "/refund" },
   description:
     "Learn about our refund policy for course purchases at Best Realty Courses.",
 }

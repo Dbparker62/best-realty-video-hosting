@@ -5,17 +5,30 @@ import { AuthProvider } from '@/lib/auth-context'
 import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { TrackingScripts } from '@/components/tracking-scripts'
+import { JsonLd } from '@/components/json-ld'
+import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from '@/lib/site'
 import './globals.css'
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter"
 });
 
+// No canonical here — it would be inherited by every page. Pages set their own.
 export const metadata: Metadata = {
-  title: 'Best Realty Courses | Professional Real Estate Education',
-  description: 'Master real estate exam with expert-led video courses. Learn property valuation, market analysis, negotiation, and more.',
-  generator: 'v0.app',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: `New Jersey Real Estate License Courses | ${SITE_NAME}`,
+    template: `%s | ${SITE_NAME}`,
+  },
+  description: SITE_DESCRIPTION,
+  applicationName: SITE_NAME,
+  openGraph: {
+    type: 'website',
+    siteName: SITE_NAME,
+    locale: 'en_US',
+  },
+  twitter: { card: 'summary_large_image' },
   icons: {
     icon: [
       {
@@ -35,6 +48,30 @@ export const metadata: Metadata = {
   },
 }
 
+/** Tells Google who runs the site (name, logo, area served, social profiles). */
+const ORGANIZATION_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'EducationalOrganization',
+      '@id': `${SITE_URL}/#organization`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      logo: `${SITE_URL}/apple-icon.png`,
+      description: SITE_DESCRIPTION,
+      areaServed: { '@type': 'State', name: 'New Jersey' },
+      ...(SOCIAL_LINKS.length > 0 ? { sameAs: SOCIAL_LINKS } : {}),
+    },
+    {
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      name: SITE_NAME,
+      url: SITE_URL,
+      publisher: { '@id': `${SITE_URL}/#organization` },
+    },
+  ],
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,6 +80,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="bg-background">
       <body className={`${inter.variable} font-sans antialiased`}>
+        <JsonLd data={ORGANIZATION_JSON_LD} />
         <AuthProvider>
           <Header />
           <main>{children}</main>

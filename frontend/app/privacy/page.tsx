@@ -3,7 +3,8 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Privacy Policy | Best Realty Courses",
+  title: "Privacy Policy",
+  alternates: { canonical: "/privacy" },
   description:
     "Learn how Best Realty Courses collects, uses, and protects your personal information.",
 }

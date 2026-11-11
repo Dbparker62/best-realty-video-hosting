@@ -3,7 +3,8 @@ import Link from "next/link"
 import { ArrowLeft } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Terms of Service | Best Realty Courses",
+  title: "Terms of Service",
+  alternates: { canonical: "/terms" },
   description:
     "Read the terms and conditions for using Best Realty Courses platform.",
 }
