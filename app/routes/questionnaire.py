@@ -16,11 +16,22 @@ def get_questionnaire_questions():
 
 
 @router.post(
+    "/questionnaire/preview",
+    response_model=schemas.QuestionnairePreviewOut,
+)
+def preview_questionnaire(body: schemas.QuestionnairePreviewIn):
+    """Result teaser before the contact form — no save, no email."""
+    return questionnaire_service.preview_answers(
+        [{"question_id": a.question_id, "option_ids": a.option_ids} for a in body.answers]
+    )
+
+
+@router.post(
     "/questionnaire/submit",
     response_model=schemas.QuestionnaireSubmitOut,
 )
 def submit_questionnaire(body: schemas.QuestionnaireSubmitIn):
-    """Score answers and optionally email the readiness result."""
+    """Score answers, save the lead, and email results to the quiz taker and staff."""
     answers = [
         {"question_id": a.question_id, "option_ids": a.option_ids}
         for a in body.answers

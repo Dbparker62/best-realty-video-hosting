@@ -1,6 +1,6 @@
 import { attributionPayload } from "./attribution"
 import { API_BASE_URL, parseApiError } from "./api"
-import type { QuestionnaireQuestion } from "./questionnaire-api"
+import type { QuestionnaireQuestion, QuizPreview } from "./questionnaire-api"
 
 export interface LeadershipSubmitResult {
   submissionId: string
@@ -9,6 +9,7 @@ export interface LeadershipSubmitResult {
   outcomeTitle: string
   outcomeSummary: string
   roadmap: string
+  emailSent: boolean
   leadNotificationSent: boolean
 }
 
@@ -41,6 +42,23 @@ export async function getLeadershipQuestions(): Promise<QuestionnaireQuestion[]>
   return data.map(mapQuestion)
 }
 
+export async function previewLeadershipQuestionnaire(
+  answers: { questionId: string; optionIds: string[] }[]
+): Promise<QuizPreview> {
+  const response = await fetch(`${API_BASE_URL}/leadership-questionnaire/preview`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      answers: answers.map((a) => ({ question_id: a.questionId, option_ids: a.optionIds })),
+    }),
+  })
+  if (!response.ok) {
+    throw new Error(await parseApiError(response))
+  }
+  const data = (await response.json()) as { result: string; result_title: string; teaser: string }
+  return { result: data.result, resultTitle: data.result_title, teaser: data.teaser }
+}
+
 export async function submitLeadershipQuestionnaire(payload: {
   name: string
   email: string
@@ -71,6 +89,7 @@ export async function submitLeadershipQuestionnaire(payload: {
     outcome_title: string
     outcome_summary: string
     roadmap: string
+    email_sent?: boolean
     lead_notification_sent: boolean
   }
   return {
@@ -80,6 +99,7 @@ export async function submitLeadershipQuestionnaire(payload: {
     outcomeTitle: data.outcome_title,
     outcomeSummary: data.outcome_summary,
     roadmap: data.roadmap,
+    emailSent: Boolean(data.email_sent),
     leadNotificationSent: data.lead_notification_sent,
   }
 }

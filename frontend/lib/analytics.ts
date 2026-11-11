@@ -71,8 +71,7 @@ export type QuizName = "career" | "leadership"
 
 export type QuizStepInfo =
   | { type: "question"; questionId: string; questionNumber: number }
-  | { type: "name" }
-  | { type: "email" }
+  | { type: "contact" }
 
 /**
  * Funnel events for a quiz wizard:
@@ -111,7 +110,7 @@ export function useQuizFunnelTracking(
       question_number: step.type === "question" ? step.questionNumber : undefined,
     })
 
-    if (step.type === "email" && !completed.current) {
+    if (step.type === "contact" && !completed.current) {
       completed.current = true
       trackEvent("quiz_complete", { quiz })
     }

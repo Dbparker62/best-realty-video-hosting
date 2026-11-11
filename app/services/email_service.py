@@ -216,6 +216,11 @@ def send_post_purchase_emails(
     return results
 
 
+def _results_reply_to() -> str | None:
+    """Replies to a quiz taker's results email go to the team inbox."""
+    return QUESTIONNAIRE_LEAD_EMAILS[0] if QUESTIONNAIRE_LEAD_EMAILS else None
+
+
 def send_questionnaire_score_email(
     *,
     to_address: str,
@@ -256,6 +261,7 @@ def send_questionnaire_score_email(
             courses_url=courses_url,
             support_email=support,
         ),
+        reply_to=_results_reply_to(),
     )
 
 
@@ -348,4 +354,40 @@ def send_leadership_lead_notification_email(
             breakdown_html=breakdown_html,
         ),
         reply_to=lead_email,
+    )
+
+
+def send_leadership_score_email(
+    *,
+    to_address: str,
+    name: str,
+    outcome_title: str,
+    outcome_summary: str,
+    roadmap: str,
+    breakdown: list[dict],
+) -> bool:
+    """Email the quiz taker their Team vs Broker of Record results."""
+    support = _support_address()
+    return _send_email(
+        to_address=to_address,
+        subject=templates.leadership_score_subject(outcome_title=outcome_title),
+        text_body=templates.leadership_score_text(
+            name=name,
+            outcome_title=outcome_title,
+            outcome_summary=outcome_summary,
+            roadmap=roadmap,
+            breakdown_lines=templates.format_breakdown_text(breakdown),
+            school_url=SCHOOL_WEBSITE_URL,
+            support_email=support,
+        ),
+        html_body=templates.leadership_score_html(
+            name=name,
+            outcome_title=outcome_title,
+            outcome_summary=outcome_summary,
+            roadmap=roadmap,
+            breakdown_html=templates.format_breakdown_html(breakdown),
+            school_url=SCHOOL_WEBSITE_URL,
+            support_email=support,
+        ),
+        reply_to=_results_reply_to(),
     )

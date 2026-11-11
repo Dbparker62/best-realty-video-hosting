@@ -6,7 +6,11 @@ from uuid import uuid4
 
 from botocore.exceptions import ClientError
 
-from app.services.email_service import send_leadership_lead_notification_email
+from app.config import QUESTIONNAIRE_SEND_USER_EMAIL
+from app.services.email_service import (
+    send_leadership_lead_notification_email,
+    send_leadership_score_email,
+)
 from app.utils.database import questionnaire_submissions_table
 from app.utils.dynamodb import sanitize_item
 from app.utils.attribution import lead_source_label
@@ -30,36 +34,12 @@ def _opt(option_id: str, label: str, *, team: int = 0, broker: int = 0) -> dict:
     }
 
 
+# Five single-answer questions (trimmed from ten). An odd count means Team vs
+# Broker can never tie. IDs are kept from the original quiz.
 QUESTIONS: list[dict] = [
     {
-        "id": "lead-1",
-        "order_index": 1,
-        "prompt": "What excites you most about the next stage of your real estate career?",
-        "subtitle": "Choose the answer that best describes you.",
-        "allow_multiple": False,
-        "options": [
-            _opt("a", "Recruiting agents and helping them increase their sales", team=3),
-            _opt("b", "Building a recognizable team and brand", team=3),
-            _opt("c", "Taking responsibility for brokerage operations and compliance", broker=3),
-            _opt("d", "Leading an entire real estate office or brokerage", broker=3),
-        ],
-    },
-    {
-        "id": "lead-2",
-        "order_index": 2,
-        "prompt": "Which leadership responsibility sounds most appealing to you?",
-        "subtitle": "Choose one.",
-        "allow_multiple": False,
-        "options": [
-            _opt("a", "Coaching agents on lead generation and sales", team=3),
-            _opt("b", "Creating systems that help a team close more transactions", team=3),
-            _opt("c", "Supervising agents and ensuring proper business practices", broker=3),
-            _opt("d", "Establishing policies and procedures for a brokerage", broker=3),
-        ],
-    },
-    {
         "id": "lead-3",
-        "order_index": 3,
+        "order_index": 1,
         "prompt": "How would you prefer to spend more of your workday?",
         "subtitle": "Choose one.",
         "allow_multiple": False,
@@ -71,34 +51,8 @@ QUESTIONS: list[dict] = [
         ],
     },
     {
-        "id": "lead-4",
-        "order_index": 4,
-        "prompt": "Which type of success would make you feel most accomplished?",
-        "subtitle": "Choose one.",
-        "allow_multiple": False,
-        "options": [
-            _opt("a", "Seeing agents on my team increase their production", team=3),
-            _opt("b", "Building one of the most successful real estate teams in my market", team=3),
-            _opt("c", "Successfully overseeing the operations of a brokerage", broker=3),
-            _opt("d", "Becoming the Broker of Record responsible for leading a brokerage", broker=3),
-        ],
-    },
-    {
-        "id": "lead-5",
-        "order_index": 5,
-        "prompt": "Which business challenge sounds most interesting?",
-        "subtitle": "Choose one.",
-        "allow_multiple": False,
-        "options": [
-            _opt("a", "Recruiting productive agents to join my team", team=3),
-            _opt("b", "Developing better lead-generation and conversion systems", team=3),
-            _opt("c", "Creating effective brokerage policies and procedures", broker=3),
-            _opt("d", "Managing the responsibilities that come with supervising a brokerage", broker=3),
-        ],
-    },
-    {
         "id": "lead-6",
-        "order_index": 6,
+        "order_index": 2,
         "prompt": "When helping another real estate agent, what would you rather help them with?",
         "subtitle": "Choose one.",
         "allow_multiple": False,
@@ -111,7 +65,7 @@ QUESTIONS: list[dict] = [
     },
     {
         "id": "lead-7",
-        "order_index": 7,
+        "order_index": 3,
         "prompt": "What kind of business do you want to build?",
         "subtitle": "Choose one.",
         "allow_multiple": False,
@@ -124,7 +78,7 @@ QUESTIONS: list[dict] = [
     },
     {
         "id": "lead-8",
-        "order_index": 8,
+        "order_index": 4,
         "prompt": "Which skill would you most like to develop?",
         "subtitle": "Choose one.",
         "allow_multiple": False,
@@ -136,21 +90,8 @@ QUESTIONS: list[dict] = [
         ],
     },
     {
-        "id": "lead-9",
-        "order_index": 9,
-        "prompt": "What type of responsibility are you most comfortable taking on?",
-        "subtitle": "Choose one.",
-        "allow_multiple": False,
-        "options": [
-            _opt("a", "Helping team members reach their sales goals", team=3),
-            _opt("b", "Managing team performance and lead distribution", team=3),
-            _opt("c", "Supervising agents and brokerage activities", broker=3),
-            _opt("d", "Taking responsibility for brokerage policies, compliance, and operations", broker=3),
-        ],
-    },
-    {
         "id": "lead-10",
-        "order_index": 10,
+        "order_index": 5,
         "prompt": "Where do you see yourself in five years?",
         "subtitle": "Choose one.",
         "allow_multiple": False,
@@ -288,6 +229,29 @@ def _score_answers(answers: list[dict]) -> dict:
     }
 
 
+OUTCOME_TEASERS = {
+    "build_team": (
+        "You're wired to recruit, coach, and grow production with a team around you. "
+        "Your full results include a step-by-step roadmap for building it."
+    ),
+    "broker_of_record": (
+        "You're drawn to running the whole operation — compliance, policies, and agent "
+        "supervision. Your full results include your roadmap to Broker of Record."
+    ),
+}
+
+
+def preview_answers(answers: list[dict]) -> dict:
+    """Score answers for the pre-email results teaser. Saves nothing, sends nothing."""
+    scored = _score_answers(answers)
+    outcome = scored["outcome"]
+    return {
+        "result": outcome,
+        "result_title": scored["outcome_title"],
+        "teaser": OUTCOME_TEASERS[outcome],
+    }
+
+
 def submit(
     name: str,
     email: str,
@@ -345,15 +309,32 @@ def submit(
         attribution=attribution,
     )
 
+    email_sent = False
+    if QUESTIONNAIRE_SEND_USER_EMAIL:
+        email_sent = send_leadership_score_email(
+            to_address=email,
+            name=name,
+            outcome_title=scored["outcome_title"],
+            outcome_summary=scored["outcome_summary"],
+            roadmap=scored["roadmap"],
+            breakdown=scored["breakdown"],
+        )
+    else:
+        logger.info(
+            "Skipping leadership results email for %s (QUESTIONNAIRE_SEND_USER_EMAIL=false)",
+            email,
+        )
+
     logger.info(
         "Leadership questionnaire submit id=%s name=%r email=%s outcome=%s source=%s "
-        "lead_email_sent=%s",
+        "lead_email_sent=%s user_email_sent=%s",
         submission_id,
         name,
         email,
         scored["outcome"],
         submission["lead_source"],
         lead_notification_sent,
+        email_sent,
     )
 
     return {
@@ -363,5 +344,6 @@ def submit(
         "outcome_title": scored["outcome_title"],
         "outcome_summary": scored["outcome_summary"],
         "roadmap": scored["roadmap"],
+        "email_sent": email_sent,
         "lead_notification_sent": lead_notification_sent,
     }

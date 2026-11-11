@@ -222,6 +222,18 @@ class QuestionnaireSubmitIn(BaseModel):
     attribution: LeadAttributionIn | None = None
 
 
+class QuestionnairePreviewIn(BaseModel):
+    answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
+
+
+class QuestionnairePreviewOut(BaseModel):
+    """Result teaser shown before the contact form. Nothing is saved or emailed."""
+
+    result: str
+    result_title: str
+    teaser: str
+
+
 class QuestionnaireSubmitOut(BaseModel):
     submission_id: str
     name: str
@@ -242,4 +254,5 @@ class LeadershipQuestionnaireSubmitOut(BaseModel):
     outcome_title: str
     outcome_summary: str
     roadmap: str
+    email_sent: bool = False
     lead_notification_sent: bool = False

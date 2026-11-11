@@ -15,6 +15,17 @@ def get_leadership_questions():
 
 
 @router.post(
+    "/leadership-questionnaire/preview",
+    response_model=schemas.QuestionnairePreviewOut,
+)
+def preview_leadership_questionnaire(body: schemas.QuestionnairePreviewIn):
+    """Result teaser before the contact form — no save, no email."""
+    return leadership_questionnaire_service.preview_answers(
+        [{"question_id": a.question_id, "option_ids": a.option_ids} for a in body.answers]
+    )
+
+
+@router.post(
     "/leadership-questionnaire/submit",
     response_model=schemas.LeadershipQuestionnaireSubmitOut,
 )

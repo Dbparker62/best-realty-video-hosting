@@ -53,10 +53,11 @@ QUESTIONNAIRE_LEAD_EMAILS = [
     ).split(",")
     if "@" in addr
 ]
-# Off by default — SES sandbox cannot email unverified quiz takers.
-# Set true after SES production access to email results to the person who took the quiz.
+# On by default: quiz takers get their results emailed the moment they submit.
+# Needs SES production access (in the SES sandbox, sends to unverified addresses
+# are rejected; staff lead emails still go out). Set "false" to turn off.
 QUESTIONNAIRE_SEND_USER_EMAIL = os.getenv(
-    "QUESTIONNAIRE_SEND_USER_EMAIL", "false"
+    "QUESTIONNAIRE_SEND_USER_EMAIL", "true"
 ).lower() in ("1", "true", "yes")
 
 QUESTIONNAIRE_QUESTIONS_TABLE = os.getenv(

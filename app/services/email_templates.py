@@ -376,3 +376,75 @@ def leadership_lead_html(
   <p style="font-size: 13px; color: #777;">Reply to this email to contact {_e(name)}.</p>
 </body>
 </html>"""
+
+
+# ---------------------------------------------------------------------------
+# Leadership results (sent to the person who took the Team vs Broker quiz)
+# ---------------------------------------------------------------------------
+
+
+def leadership_score_subject(*, outcome_title: str) -> str:
+    return f"Your leadership results — {outcome_title}"
+
+
+def leadership_score_text(
+    *,
+    name: str,
+    outcome_title: str,
+    outcome_summary: str,
+    roadmap: str,
+    breakdown_lines: str,
+    school_url: str,
+    support_email: str,
+) -> str:
+    return f"""Hi {name},
+
+Thanks for taking the {BRAND_NAME} Team or Broker of Record assessment.
+
+Your recommended path: {outcome_title}
+{outcome_summary}
+
+Your next steps:
+{roadmap}
+
+Your answers:
+{breakdown_lines}
+
+Learn more: {school_url}
+
+Questions? Just reply to this email{f" or write to {support_email}" if support_email else ""}.
+
+— {BRAND_NAME}
+{BRAND_TAGLINE}
+"""
+
+
+def leadership_score_html(
+    *,
+    name: str,
+    outcome_title: str,
+    outcome_summary: str,
+    roadmap: str,
+    breakdown_html: str,
+    school_url: str,
+    support_email: str,
+) -> str:
+    support_line = f" or write to {_e(support_email)}" if support_email else ""
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+  <h2 style="color: {BRAND_COLOR};">Your Leadership Results</h2>
+  <p>Hi {_e(name)},</p>
+  <p style="font-size: 14px; color: #555;">Team or Broker of Record assessment</p>
+  <p style="font-size: 22px; font-weight: bold; color: {BRAND_COLOR};">{_e(outcome_title)}</p>
+  <p><strong>{_e(outcome_summary)}</strong></p>
+  <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{_e(roadmap)}</p>
+  <h3 style="font-size: 16px;">Your answers</h3>
+  <ul>{breakdown_html}</ul>
+  <p>
+    <a href="{_e(school_url)}" style="display: inline-block; background: {BRAND_COLOR}; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Visit {BRAND_NAME}</a>
+  </p>
+  <p style="font-size: 13px; color: #777;">Questions? Just reply to this email{support_line}.</p>
+  <p style="font-size: 12px; color: #999;">You're receiving this because you took the assessment and asked for your results.</p>
+</body>
+</html>"""

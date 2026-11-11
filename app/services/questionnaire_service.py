@@ -53,41 +53,15 @@ def _opt(
     }
 
 
+# Four single-answer questions (trimmed from seven to raise completion rate).
+# IDs are kept from the original quiz so older submissions still line up.
 DEFAULT_QUESTIONS: list[dict] = [
     {
-        "id": "nj-1",
-        "order_index": 1,
-        "prompt": "What's pulling you toward real estate?",
-        "subtitle": "Check all that apply — most people have more than one reason.",
-        "allow_multiple": True,
-        "is_active": True,
-        "options": [
-            _opt("a", "Income potential & being my own boss", points=8, full_time=3, part_time=1),
-            _opt("b", "Flexibility and control over my schedule", points=7, part_time=3, full_time=1),
-            _opt("c", "I love homes, people, and making the deal", points=8, full_time=2, referral=1),
-            _opt("d", "A career change or a fresh start", points=8, full_time=3, part_time=2),
-        ],
-    },
-    {
-        "id": "nj-2",
-        "order_index": 2,
-        "prompt": "Where are you in your thinking right now?",
-        "subtitle": "Check all that apply.",
-        "allow_multiple": True,
-        "is_active": True,
-        "options": [
-            _opt("a", "Just curious and exploring", points=5, referral=4, part_time=1),
-            _opt("b", "Seriously considering it", points=7, part_time=3, full_time=1),
-            _opt("c", "Ready to start — I just need a plan", points=9, full_time=2, part_time=2),
-            _opt("d", "I've already decided. Let's go.", points=10, full_time=4),
-        ],
-    },
-    {
         "id": "nj-3",
-        "order_index": 3,
+        "order_index": 1,
         "prompt": "How does your current situation look?",
-        "subtitle": "Check all that apply.",
-        "allow_multiple": True,
+        "subtitle": "Choose the one that fits best.",
+        "allow_multiple": False,
         "is_active": True,
         "options": [
             _opt("a", "Working full-time, I'd start on the side", points=7, part_time=5),
@@ -97,38 +71,11 @@ DEFAULT_QUESTIONS: list[dict] = [
         ],
     },
     {
-        "id": "nj-4",
-        "order_index": 4,
-        "prompt": "New Jersey requires a 75-hour pre-licensing course before the state exam. How would you like to take it?",
-        "subtitle": "Check all that apply — this tells us which class format fits you best.",
-        "allow_multiple": True,
-        "is_active": True,
-        "options": [
-            _opt("a", "Live online via Zoom with an instructor", points=8),
-            _opt("b", "Self-paced online, on my own time", points=8, part_time=1),
-            _opt("c", "Either could work — I'm flexible", points=7, full_time=1, part_time=1),
-        ],
-    },
-    {
-        "id": "nj-5",
-        "order_index": 5,
-        "prompt": "The NJ state exam is 110 questions and you need 70% to pass. How do you feel about test-taking?",
-        "subtitle": "Check all that apply.",
-        "allow_multiple": True,
-        "is_active": True,
-        "options": [
-            _opt("a", "Confident — I test well", points=9, full_time=1),
-            _opt("b", "A little rusty, but I'll prepare", points=7, part_time=1),
-            _opt("c", "Tests make me nervous", points=5, referral=1, part_time=1),
-            _opt("d", "I'll want real support to pass", points=8, part_time=2),
-        ],
-    },
-    {
         "id": "nj-6",
-        "order_index": 6,
+        "order_index": 2,
         "prompt": "Once you're licensed, what's your #1 goal?",
-        "subtitle": "Check all that apply — we'll help you build toward it.",
-        "allow_multiple": True,
+        "subtitle": "Choose the one that matters most — we'll help you build toward it.",
+        "allow_multiple": False,
         "is_active": True,
         "options": [
             _opt("a", "Replace my current full-time income", points=10, full_time=5),
@@ -139,16 +86,29 @@ DEFAULT_QUESTIONS: list[dict] = [
     },
     {
         "id": "nj-7",
-        "order_index": 7,
+        "order_index": 3,
         "prompt": "Ideally, when would you want to be licensed and working?",
-        "subtitle": "Check all that apply.",
-        "allow_multiple": True,
+        "subtitle": "Choose one.",
+        "allow_multiple": False,
         "is_active": True,
         "options": [
             _opt("a", "As soon as possible (1–3 months)", points=10, full_time=4, part_time=2),
             _opt("b", "Sometime this year", points=8, full_time=2, part_time=3),
             _opt("c", "Within the next year", points=6, part_time=2, referral=2),
             _opt("d", "Just gathering info for now", points=4, referral=4),
+        ],
+    },
+    {
+        "id": "nj-4",
+        "order_index": 4,
+        "prompt": "New Jersey requires a 75-hour pre-licensing course before the state exam. How would you like to take it?",
+        "subtitle": "This tells us which class format fits you best.",
+        "allow_multiple": False,
+        "is_active": True,
+        "options": [
+            _opt("a", "Live online via Zoom with an instructor", points=8),
+            _opt("b", "Self-paced online, on my own time", points=8, part_time=1),
+            _opt("c", "Either could work — I'm flexible", points=7, full_time=1, part_time=1),
         ],
     },
 ]
@@ -352,9 +312,10 @@ def _score_answers(answers: list[dict]) -> dict:
     path_totals = {p: 0 for p in CAREER_PATHS}
 
     for question in questions.values():
-        opts = question.get("options") or []
-        if opts:
-            max_score += sum(int(o.get("points") or 0) for o in opts)
+        points = [int(o.get("points") or 0) for o in (question.get("options") or [])]
+        if points:
+            # Multi-select can earn every option; single-select only the best one.
+            max_score += sum(points) if question.get("allow_multiple") else max(points)
 
     for answer in answers:
         qid = answer.get("question_id")
@@ -370,6 +331,13 @@ def _score_answers(answers: list[dict]) -> dict:
             bad_request(
                 "INCOMPLETE_ANSWERS",
                 f"Please select at least one answer for: {question.get('prompt')}",
+                {"question_id": qid},
+            )
+
+        if len(option_ids) > 1 and not question.get("allow_multiple"):
+            bad_request(
+                "INVALID_ANSWER",
+                f"Please select only one answer for: {question.get('prompt')}",
                 {"question_id": qid},
             )
 
@@ -429,6 +397,33 @@ def _score_answers(answers: list[dict]) -> dict:
         "roadmap": roadmap,
         "breakdown": breakdown,
         "path_totals": path_totals,
+    }
+
+
+PATH_TEASERS = {
+    "full_time": (
+        "You have the motivation and timeline to make real estate your main career. "
+        "Your full roadmap shows exactly how to get licensed in New Jersey and start fast."
+    ),
+    "part_time": (
+        "You can get licensed while keeping your current income — the way many successful "
+        "NJ agents started. Your full roadmap lays out the steps on your schedule."
+    ),
+    "referral": (
+        "You can step into real estate at your own pace and still earn. Your full roadmap "
+        "shows how to get licensed and start with referrals."
+    ),
+}
+
+
+def preview_answers(answers: list[dict]) -> dict:
+    """Score answers for the pre-email results teaser. Saves nothing, sends nothing."""
+    scored = _score_answers(answers)
+    path = scored["career_path"]
+    return {
+        "result": path,
+        "result_title": scored["career_path_title"],
+        "teaser": PATH_TEASERS[path],
     }
 
 

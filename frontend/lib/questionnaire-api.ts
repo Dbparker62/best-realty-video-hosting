@@ -27,6 +27,13 @@ export interface QuestionnaireQuestionAdmin {
   options: QuestionnaireOptionAdmin[]
 }
 
+/** Result teaser shown before the contact form (nothing saved or emailed). */
+export interface QuizPreview {
+  result: string
+  resultTitle: string
+  teaser: string
+}
+
 export interface QuestionnaireSubmitResult {
   submissionId: string
   name: string
@@ -101,6 +108,23 @@ export async function getQuestionnaireQuestions(): Promise<QuestionnaireQuestion
   }
   const data = (await response.json()) as QuestionPublicApi[]
   return data.map(mapQuestion)
+}
+
+export async function previewQuestionnaire(
+  answers: { questionId: string; optionIds: string[] }[]
+): Promise<QuizPreview> {
+  const response = await fetch(`${API_BASE_URL}/questionnaire/preview`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      answers: answers.map((a) => ({ question_id: a.questionId, option_ids: a.optionIds })),
+    }),
+  })
+  if (!response.ok) {
+    throw new Error(await parseApiError(response))
+  }
+  const data = (await response.json()) as { result: string; result_title: string; teaser: string }
+  return { result: data.result, resultTitle: data.result_title, teaser: data.teaser }
 }
 
 export async function submitQuestionnaire(payload: {
