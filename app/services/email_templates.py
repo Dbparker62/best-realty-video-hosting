@@ -202,10 +202,12 @@ Your answers:
 
 Next step — view our NJ pre-licensing courses: {courses_url}
 
-Questions? {support_email}
+Questions? Just reply to this email{f" or write to {support_email}" if support_email else ""}.
 
 — {BRAND_NAME}
 {BRAND_TAGLINE}
+
+You're receiving this because you took our career quiz and asked for your results.
 """
 
 
@@ -232,7 +234,8 @@ def questionnaire_score_html(
   <p>
     <a href="{_e(courses_url)}" style="display: inline-block; background: {BRAND_COLOR}; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 6px;">View NJ Pre-Licensing Courses</a>
   </p>
-  <p style="font-size: 13px; color: #777;">Questions? {_e(support_email)}</p>
+  <p style="font-size: 13px; color: #777;">Questions? Just reply to this email{f" or write to {_e(support_email)}" if support_email else ""}.</p>
+  <p style="font-size: 12px; color: #999;">You're receiving this because you took our career quiz and asked for your results.</p>
 </body>
 </html>"""
 

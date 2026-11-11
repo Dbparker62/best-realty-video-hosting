@@ -15,7 +15,7 @@ import {
 } from "@/lib/leadership-questionnaire-api"
 
 const SCHOOL_WEBSITE_URL =
-  process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "http://bestschoolofrealestate.biz"
+  process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "https://bestschoolofrealestate.biz"
 
 async function submitLeadershipQuiz(
   contact: QuizContact,

@@ -14,7 +14,7 @@ import {
 } from "@/lib/questionnaire-api"
 
 const SCHOOL_WEBSITE_URL =
-  process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "http://bestschoolofrealestate.biz"
+  process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "https://bestschoolofrealestate.biz"
 
 async function submitCareerQuiz(contact: QuizContact, answers: QuizAnswer[]): Promise<QuizResult> {
   const r = await submitQuestionnaire({ ...contact, answers })

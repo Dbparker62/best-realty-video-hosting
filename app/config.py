@@ -31,13 +31,13 @@ FRONTEND_URL = os.getenv(
     "FRONTEND_URL", "https://www.bestacademyofrealestate.com"
 )
 SCHOOL_WEBSITE_URL = os.getenv(
-    "SCHOOL_WEBSITE_URL", "http://bestschoolofrealestate.biz"
+    "SCHOOL_WEBSITE_URL", "https://bestschoolofrealestate.biz"
 ).rstrip("/")
 
 # Transactional email (Amazon SES)
 EMAIL_FROM = os.getenv("EMAIL_FROM", "").strip()
 SUPPORT_EMAIL = os.getenv(
-    "SUPPORT_EMAIL", "support@bestrealtycourses.com"
+    "SUPPORT_EMAIL", "bruceparkerteam@gmail.com"
 ).strip()
 EMAIL_ENABLED = os.getenv("EMAIL_ENABLED", "true").lower() in (
     "1",

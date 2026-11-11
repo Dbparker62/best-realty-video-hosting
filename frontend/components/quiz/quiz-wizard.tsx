@@ -15,6 +15,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Skeleton } from "@/components/ui/skeleton"
 import type { QuestionnaireQuestion, QuizPreview, ResultLean } from "@/lib/questionnaire-api"
 import { ResultLeanBar } from "@/components/quiz/result-lean-bar"
+import { suggestEmail } from "@/lib/email-suggest"
 import {
   trackQuizSubmit,
   trackQuizSubmitError,
@@ -101,6 +102,7 @@ export function QuizWizard({
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [emailBlurred, setEmailBlurred] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [result, setResult] = useState<QuizResult | null>(null)
@@ -194,6 +196,11 @@ export function QuizWizard({
       return { ...prev, [questionId]: next }
     })
   }
+
+  const emailSuggestion = useMemo(
+    () => (emailBlurred ? suggestEmail(email) : null),
+    [email, emailBlurred]
+  )
 
   const canSubmit =
     allQuestionsAnswered && name.trim().length > 0 && email.trim().length > 0 && !submitting
@@ -435,10 +442,27 @@ export function QuizWizard({
                     autoComplete="email"
                     inputMode="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value)
+                      setEmailBlurred(false)
+                    }}
+                    onBlur={() => setEmailBlurred(true)}
                     required
                     placeholder="you@example.com"
                   />
+                  {emailSuggestion && (
+                    <p className="text-sm text-muted-foreground">
+                      Did you mean{" "}
+                      <button
+                        type="button"
+                        className="font-medium text-primary underline underline-offset-2"
+                        onClick={() => setEmail(emailSuggestion)}
+                      >
+                        {emailSuggestion}
+                      </button>
+                      ?
+                    </p>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="quiz-phone">
