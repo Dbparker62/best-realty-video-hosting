@@ -11,7 +11,7 @@ from app.services.email_service import (
     send_home_sale_lead_notification_email,
     send_home_sale_score_email,
 )
-from app.services.nj_town_resale import NJ_COUNTIES, town_resale_info
+from app.services.nj_town_resale import SERVICE_AREA, town_resale_info
 from app.utils.attribution import lead_source_label
 from app.utils.database import questionnaire_submissions_table
 from app.utils.dynamodb import sanitize_item
@@ -81,10 +81,10 @@ QUESTIONS: list[dict] = [
         _opt("c", "There's an active or buried tank", 3, priority=("Oil tank plan (sweep / removal)", 5)),
         _opt("d", "Not sure", 5, priority=("Oil tank sweep", 4)),
     ]),
-    _q("hs-6", 6, "About how old is your roof?", [
-        _opt("a", "Under 10 years", 10),
-        _opt("b", "10–20 years", 7),
-        _opt("c", "20+ years", 3),
+    _q("hs-6", 6, "When was your roof last replaced?", [
+        _opt("a", "New roof", 10),
+        _opt("b", "In the last few years", 9),
+        _opt("c", "More than a few years ago", 5),
         _opt("d", "Not sure", 5, priority=("Roof age / inspection", 2)),
     ]),
     _q("hs-7", 7, "How would you like to handle the roof?", [
@@ -93,16 +93,17 @@ QUESTIONS: list[dict] = [
         _opt("c", "Offer a credit at closing", None, negotiation="Roof: credit at closing"),
         _opt("d", "Sell as-is and price it in", None, negotiation="Roof: as-is"),
     ]),
-    _q("hs-8", 8, "About how old are your furnace and AC?", [
-        _opt("a", "Under 10 years", 10),
-        _opt("b", "10–20 years", 7, priority=("HVAC service records", 1)),
-        _opt("c", "20+ years", 4, priority=("HVAC inspection", 3), negotiation="HVAC: expect a credit request"),
+    _q("hs-8", 8, "When were your furnace and AC last replaced?", [
+        _opt("a", "New", 10),
+        _opt("b", "In the last few years", 9),
+        _opt("c", "More than a few years ago", 6, priority=("HVAC service and inspection", 2)),
         _opt("d", "Not sure", 6, priority=("HVAC age / service check", 2)),
     ]),
-    _q("hs-9", 9, "About how old is your water heater?", [
-        _opt("a", "Under 10 years", 10),
-        _opt("b", "10+ years", 6, priority=("Water heater check", 2)),
-        _opt("c", "Not sure", 7, priority=("Water heater age check", 1)),
+    _q("hs-9", 9, "When was your water heater last replaced?", [
+        _opt("a", "New", 10),
+        _opt("b", "In the last few years", 9),
+        _opt("c", "More than a few years ago", 6, priority=("Water heater check", 2)),
+        _opt("d", "Not sure", 7, priority=("Water heater age check", 1)),
     ]),
     _q("hs-10", 10, "Have you tested for radon in the last 2 years?", [
         _opt("a", "Yes, results were low", 10),
@@ -290,10 +291,10 @@ def submit(
         bad_request("NAME_REQUIRED", "Name is required")
     if not email or "@" not in email:
         bad_request("EMAIL_REQUIRED", "A valid email is required")
-    if county not in NJ_COUNTIES:
+    if county not in SERVICE_AREA:
         bad_request("COUNTY_REQUIRED", "Please choose your county")
-    if not town:
-        bad_request("TOWN_REQUIRED", "Please enter your town")
+    if town not in SERVICE_AREA[county]:
+        bad_request("TOWN_REQUIRED", "Please choose your town from the list")
 
     scored = _score_answers(answers)
     town_info = town_resale_info(county, town)

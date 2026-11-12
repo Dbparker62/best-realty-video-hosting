@@ -732,7 +732,7 @@ def _home_sale_rows(report: dict, lead_source: str) -> list[tuple[str, str]]:
     priorities = "\n".join(f"{i}. {p}" for i, p in enumerate(top, 1)) or "None"
     if more:
         priorities += f"\n(+{more} more)"
-    tip = report["town_tip"] + ("" if report["town_known"] else " (town not in our list yet)")
+    tip = report["town_tip"] + ("" if report["town_known"] else " (town details not on file yet)")
     return [
         ("Client name", report["name"]),
         ("Email", report["email"]),

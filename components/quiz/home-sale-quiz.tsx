@@ -59,7 +59,7 @@ export function HomeSaleQuiz() {
       quiz="home_sale"
       eyebrow="Free 3-Minute Quiz · No obligation"
       title="How Ready Is Your Home to Sell?"
-      subtitle="Answer 15 quick questions to get your readiness score, your top priorities, and your town's resale requirements."
+      subtitle="For homes in Middlesex and Monmouth counties. Answer 15 quick questions to get your readiness score, your top priorities, and your town's resale requirements."
       icon={<Home className="h-5 w-5" />}
       loadQuestions={getHomeSaleQuestions}
       previewAnswers={previewHomeSaleQuestionnaire}

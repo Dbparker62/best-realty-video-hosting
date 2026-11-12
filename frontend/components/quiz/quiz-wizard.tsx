@@ -16,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import type { QuestionnaireQuestion, QuizPreview, ResultLean } from "@/lib/questionnaire-api"
 import { ResultLeanBar } from "@/components/quiz/result-lean-bar"
 import { suggestEmail } from "@/lib/email-suggest"
-import { NJ_COUNTIES } from "@/lib/nj"
+import { SERVICE_AREA, SERVICE_COUNTIES } from "@/lib/nj"
 import {
   trackQuizSubmit,
   trackQuizSubmitError,
@@ -536,14 +536,17 @@ export function QuizWizard({
                       <select
                         id="quiz-county"
                         value={county}
-                        onChange={(e) => setCounty(e.target.value)}
+                        onChange={(e) => {
+                          setCounty(e.target.value)
+                          setTown("")
+                        }}
                         required
                         className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                       >
                         <option value="" disabled>
                           Choose county
                         </option>
-                        {NJ_COUNTIES.map((c) => (
+                        {SERVICE_COUNTIES.map((c) => (
                           <option key={c} value={c}>
                             {c}
                           </option>
@@ -552,16 +555,23 @@ export function QuizWizard({
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="quiz-town">Town</Label>
-                      <Input
+                      <select
                         id="quiz-town"
-                        className="h-11"
                         value={town}
                         onChange={(e) => setTown(e.target.value)}
-                        autoComplete="address-level2"
-                        maxLength={80}
                         required
-                        placeholder="e.g. Highland Park"
-                      />
+                        disabled={!county}
+                        className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        <option value="" disabled>
+                          {county ? "Choose town" : "Choose county first"}
+                        </option>
+                        {(SERVICE_AREA[county] ?? []).map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
                 )}
