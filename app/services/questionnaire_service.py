@@ -55,6 +55,8 @@ def _opt(
 
 
 # Four single-answer questions (trimmed from seven to raise completion rate).
+# Each of the first three has a referral-leaning answer, so Referral is a real
+# outcome (~1 in 5 answer combos) while Agent still wins ties and most results.
 # IDs are kept from the original quiz so older submissions still line up.
 DEFAULT_QUESTIONS: list[dict] = [
     {
@@ -68,7 +70,7 @@ DEFAULT_QUESTIONS: list[dict] = [
             _opt("a", "Working full-time, I'd start on the side", points=7, part_time=5),
             _opt("b", "Between jobs / I have time now", points=9, full_time=5),
             _opt("c", "Part-time or flexible hours", points=7, part_time=4),
-            _opt("d", "Retired or I have other income", points=6, referral=4, part_time=2),
+            _opt("d", "Retired or I have other income", points=6, referral=5, part_time=1),
         ],
     },
     {
@@ -82,7 +84,7 @@ DEFAULT_QUESTIONS: list[dict] = [
             _opt("a", "Replace my current full-time income", points=10, full_time=5),
             _opt("b", "Earn solid extra income on the side", points=8, part_time=5),
             _opt("c", "Build a long-term career in real estate", points=9, full_time=4),
-            _opt("d", "Help people find the right home", points=7, referral=2, part_time=2, full_time=1),
+            _opt("d", "Earn referral income without working deals full-time", points=7, referral=6),
         ],
     },
     {
@@ -95,8 +97,8 @@ DEFAULT_QUESTIONS: list[dict] = [
         "options": [
             _opt("a", "As soon as possible (1–3 months)", points=10, full_time=4, part_time=2),
             _opt("b", "Sometime this year", points=8, full_time=2, part_time=3),
-            _opt("c", "Within the next year", points=6, part_time=2, referral=2),
-            _opt("d", "Just gathering info for now", points=4, referral=4),
+            _opt("c", "Within the next year", points=6, part_time=2, referral=3),
+            _opt("d", "Just gathering info for now", points=4, referral=5),
         ],
     },
     {
