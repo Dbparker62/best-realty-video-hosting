@@ -29,12 +29,12 @@ def _phone_html(phone: str | None) -> str:
 
 BRAND_NAME = "Best School of Real Estate"
 BRAND_TAGLINE = "New Jersey real estate pre-licensing education"
-BRAND_COLOR = "#8a0c31"  # logo maroon: headings, header band
-BRAND_COLOR_DARK = "#5e0821"  # gradient end in the results-email header
-BRAND_ACCENT = "#d22f25"  # school-site red: buttons and accent stripe
+BRAND_COLOR = "#d22f25"  # school site red: headings, header band
+BRAND_COLOR_DARK = "#a8231b"  # gradient end in the results-email header
+BRAND_ACCENT = "#d22f25"  # buttons and accent stripe
 EMAIL_BG = "#f4f1f1"  # page background behind the email card
 # Hosted on the website; shown at the top of the results emails.
-LOGO_URL = f"{FRONTEND_URL.rstrip('/')}/school-logo.jpg"
+LOGO_URL = f"{FRONTEND_URL.rstrip('/')}/school-logo-red.jpg"
 
 
 # ---------------------------------------------------------------------------
@@ -246,8 +246,8 @@ def _results_email_html(
                 <!-- Hero -->
                 <tr>
                   <td align="center" bgcolor="{BRAND_COLOR}" style="background: {BRAND_COLOR}; background-image: linear-gradient(135deg, {BRAND_COLOR} 0%, {BRAND_COLOR_DARK} 100%); padding: 36px 28px;">
-                    <div style="font-size: 13px; color: #f3c9d3; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold;">{_e(heading)}</div>
-                    <div style="font-size: 15px; color: #f8e3e8; padding-top: 6px;">{_e(subheading)}</div>
+                    <div style="font-size: 13px; color: #fde2df; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold;">{_e(heading)}</div>
+                    <div style="font-size: 15px; color: #fff1ef; padding-top: 6px;">{_e(subheading)}</div>
                     <div style="font-size: 28px; line-height: 1.25; color: #ffffff; font-weight: bold; padding-top: 18px;">{_e(result_title)}</div>
                   </td>
                 </tr>

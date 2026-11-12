@@ -2,7 +2,7 @@ import Image from "next/image"
 import Link from "next/link"
 import { SITE_NAME } from "@/lib/site"
 
-/** School logo: maroon house mark + "BEST SCHOOL OF REAL ESTATE" wordmark. */
+/** School logo: red house mark + "BEST SCHOOL OF REAL ESTATE" wordmark. */
 export function BrandLogo({ className = "", compact = false }: { className?: string; compact?: boolean }) {
   return (
     <Link href="/" className={`flex items-center gap-2.5 ${className}`} aria-label={`${SITE_NAME} home`}>

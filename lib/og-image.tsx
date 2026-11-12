@@ -5,12 +5,11 @@ import { ImageResponse } from "next/og"
 /** Link-preview image (Facebook, iMessage, LinkedIn, X…) — 1200×630, school colors + logo. */
 export const OG_SIZE = { width: 1200, height: 630 }
 
-const MAROON = "#8a0c31" // logo color
 const RED = "#d22f25" // bestschoolofrealestate.biz buttons
 const CHARCOAL = "#303030"
 
 async function logoDataUri(): Promise<string> {
-  const bytes = await readFile(join(process.cwd(), "public", "school-logo.jpg"))
+  const bytes = await readFile(join(process.cwd(), "public", "school-logo-red.jpg"))
   return `data:image/jpeg;base64,${bytes.toString("base64")}`
 }
 
@@ -50,7 +49,7 @@ export async function renderOgImage({
           fontFamily: "Montserrat",
         }}
       >
-        {/* Maroon side band with the logo */}
+        {/* Red side band with the logo */}
         <div
           style={{
             width: 360,
@@ -58,7 +57,7 @@ export async function renderOgImage({
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: MAROON,
+            background: RED,
           }}
         >
           <div

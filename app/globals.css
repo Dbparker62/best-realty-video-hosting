@@ -13,14 +13,14 @@
   --popover-foreground: #303030;
   --primary: #d22f25; /* school site buttons/links */
   --primary-foreground: #ffffff;
-  --brand: #8a0c31; /* logo maroon */
+  --brand: #d22f25; /* school site red (same as buttons) */
   --brand-foreground: #ffffff;
   --secondary: #f4efef;
   --secondary-foreground: #303030;
   --muted: #f4efef;
   --muted-foreground: #5e5e5e;
-  --accent: #f8ecee; /* light maroon tint for hovers */
-  --accent-foreground: #8a0c31;
+  --accent: #fdeeec; /* light red tint for hovers */
+  --accent-foreground: #b3261e;
   --success: #15803d;
   --success-foreground: #ffffff;
   --destructive: #b91c1c;
@@ -28,7 +28,7 @@
   --border: #e8e1e2;
   --input: #e0d8d9;
   --ring: #d22f25;
-  --chart-1: #8a0c31;
+  --chart-1: #b3261e;
   --chart-2: #d22f25;
   --chart-3: #303030;
   --chart-4: #c46b7f;
@@ -36,10 +36,10 @@
   --radius: 0.5rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #303030;
-  --sidebar-primary: #8a0c31;
+  --sidebar-primary: #d22f25;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f8ecee;
-  --sidebar-accent-foreground: #8a0c31;
+  --sidebar-accent: #fdeeec;
+  --sidebar-accent-foreground: #b3261e;
   --sidebar-border: #e8e1e2;
   --sidebar-ring: #d22f25;
 }

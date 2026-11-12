@@ -16,7 +16,7 @@ export function DirectorSection({
         <div className="grid items-start gap-10 lg:grid-cols-[1fr_1.4fr]">
           <div className="rounded-2xl border bg-card p-8 text-center shadow-sm">
             <Image
-              src="/school-logo.jpg"
+              src="/school-logo-red.jpg"
               alt="Best School of Real Estate logo"
               width={628}
               height={480}

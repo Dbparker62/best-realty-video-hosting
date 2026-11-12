@@ -57,7 +57,7 @@ const ORGANIZATION_JSON_LD = {
       '@id': `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/school-logo.jpg`,
+      logo: `${SITE_URL}/school-logo-red.jpg`,
       description: SITE_DESCRIPTION,
       areaServed: { '@type': 'State', name: 'New Jersey' },
       telephone: CONTACT.phone,
