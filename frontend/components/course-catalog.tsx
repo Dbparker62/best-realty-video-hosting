@@ -12,7 +12,7 @@ import { ArrowRight, Clock, MonitorPlay, Phone, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Course } from "@/lib/types"
 import { PROOF_POINTS } from "@/lib/school-facts"
-import { CONTACT, SCHOOL_WEBSITE_URL } from "@/lib/site"
+import { CONTACT, ONLINE_COURSES_URL, SCHOOL_WEBSITE_URL } from "@/lib/site"
 
 const FORMATS = [
   { icon: MonitorPlay, title: "Live on Zoom", body: "Instructor-led evening classes you can join from home." },
@@ -77,7 +77,9 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base">
-                <a href="#courses">Browse Courses</a>
+                <a href={ONLINE_COURSES_URL} target="_blank" rel="noopener noreferrer">
+                  Browse Online Courses
+                </a>
               </Button>
             </div>
             <a
@@ -85,7 +87,8 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
               className="mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <Phone className="h-4 w-4 text-primary" />
-              Questions? Call us at <span className="font-semibold text-foreground">{CONTACT.phone}</span>
+              Prefer live Zoom or in-person classes? Call{" "}
+              <span className="font-semibold text-foreground">{CONTACT.phone}</span> to sign up.
             </a>
           </div>
 
@@ -144,6 +147,40 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
             </p>
           </div>
 
+          {/* How to enroll: online store or call for live classes */}
+          <div className="mb-10 grid gap-4 md:grid-cols-2">
+            <div className="flex flex-col rounded-2xl border bg-card p-6 shadow-sm">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-brand-foreground">
+                <Clock className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 text-lg font-bold text-foreground">Online, self-paced</h3>
+              <p className="mt-1 flex-1 text-sm text-muted-foreground">
+                The 75-hour New Jersey salesperson pre-licensing course. Start today and study anytime, 24/7.
+              </p>
+              <Button asChild className="mt-5 self-start">
+                <a href={ONLINE_COURSES_URL} target="_blank" rel="noopener noreferrer">
+                  Enroll Online
+                  <ArrowRight className="h-4 w-4" />
+                </a>
+              </Button>
+            </div>
+            <div className="flex flex-col rounded-2xl border bg-card p-6 shadow-sm">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-brand-foreground">
+                <Phone className="h-5 w-5" />
+              </span>
+              <h3 className="mt-4 text-lg font-bold text-foreground">Live on Zoom or in person</h3>
+              <p className="mt-1 flex-1 text-sm text-muted-foreground">
+                Instructor-led classes. Call us to check the schedule and sign up.
+              </p>
+              <Button asChild variant="outline" className="mt-5 self-start">
+                <a href={CONTACT.phoneHref}>
+                  <Phone className="h-4 w-4" />
+                  Call {CONTACT.phone}
+                </a>
+              </Button>
+            </div>
+          </div>
+
           {!courses ? (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {[...Array(6)].map((_, i) => (
@@ -165,9 +202,9 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
                 </div>
               ))}
             </div>
-          ) : (
+          ) : courses.length === 0 ? null : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {courses?.map((course) => (
+              {courses.map((course) => (
                 <CourseCard
                   key={course.id}
                   course={course}

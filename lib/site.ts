@@ -17,6 +17,11 @@ export const SCHOOL_WEBSITE_URL = (
   process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "https://bestschoolofrealestate.biz"
 ).replace(/\/$/, "")
 
+/** Online salesperson pre-licensing classes (RECampus store). */
+export const ONLINE_COURSES_URL =
+  process.env.NEXT_PUBLIC_ONLINE_COURSES_URL ??
+  "https://home.recampus.com/shop/bestschool/real-estate-licensing/state-level?level=SALESPRSN_LICENSING&licenseType=SLP&orgCode=RE_LIC_NJ&productGroup=RE_WHOLESALE"
+
 export const CONTACT = {
   phone: "(732) 266-3366",
   phoneHref: "tel:+17322663366",

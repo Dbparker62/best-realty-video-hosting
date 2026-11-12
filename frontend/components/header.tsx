@@ -14,7 +14,7 @@ import {
 import { Menu, LogOut, BookOpen, LayoutDashboard, Phone } from "lucide-react"
 import { useState } from "react"
 import { LoginDialog } from "./login-dialog"
-import { CONTACT, SCHOOL_WEBSITE_URL } from "@/lib/site"
+import { CONTACT, ONLINE_COURSES_URL, SCHOOL_WEBSITE_URL } from "@/lib/site"
 import { BrandLogo } from "./brand-logo"
 
 export function Header() {
@@ -60,12 +60,14 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden items-center gap-6 lg:flex">
-            <Link
-              href="/"
+            <a
+              href={ONLINE_COURSES_URL}
+              target="_blank"
+              rel="noopener noreferrer"
               className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
-              Courses
-            </Link>
+              Online Courses
+            </a>
             <Link
               href="/how-to-get-a-real-estate-license-in-nj"
               className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
@@ -173,13 +175,15 @@ export function Header() {
         {mobileMenuOpen && (
           <div className="border-t border-border lg:hidden">
             <div className="space-y-1 px-4 py-3">
-              <Link
-                href="/"
+              <a
+                href={ONLINE_COURSES_URL}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                Courses
-              </Link>
+                Online Courses
+              </a>
               <Link
                 href="/how-to-get-a-real-estate-license-in-nj"
                 className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"

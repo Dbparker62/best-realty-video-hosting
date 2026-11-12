@@ -4,6 +4,7 @@ import { BrandLogo } from "@/components/brand-logo"
 import {
   CONTACT,
   CONTACT_ADDRESS_LINE,
+  ONLINE_COURSES_URL,
   SCHOOL_WEBSITE_URL,
   SITE_NAME,
   SOCIAL_LINKS,
@@ -12,7 +13,6 @@ import {
 const linkClass = "text-sm text-muted-foreground transition-colors hover:text-foreground"
 
 const QUICK_LINKS = [
-  { href: "/", label: "Browse Courses" },
   { href: "/how-to-get-a-real-estate-license-in-nj", label: "How to Get Your NJ License" },
   { href: "/questionnaire", label: "NJ Real Estate Career Quiz" },
   { href: "/questionnaire/leadership", label: "Team or Broker Quiz" },
@@ -76,6 +76,11 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-bold uppercase tracking-wider text-brand">Quick Links</h3>
             <ul className="mt-4 space-y-3">
+              <li>
+                <a href={ONLINE_COURSES_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  Online Courses
+                </a>
+              </li>
               {QUICK_LINKS.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className={linkClass}>
