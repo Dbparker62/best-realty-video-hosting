@@ -407,7 +407,7 @@ export default function LessonPlayerPage() {
                     {currentLesson.description}
                   </p>
                   {isLessonCompleted && (
-                    <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-accent">
+                    <p className="mt-3 flex items-center gap-1.5 text-sm font-medium text-success">
                       <CheckCircle className="h-4 w-4" />
                       You completed this lesson
                     </p>
@@ -434,7 +434,7 @@ export default function LessonPlayerPage() {
                       <p
                         className={`max-w-sm text-right text-sm font-medium ${
                           statusMessage.toLowerCase().includes("complete")
-                            ? "text-accent"
+                            ? "text-success"
                             : "text-destructive"
                         }`}
                       >

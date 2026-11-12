@@ -132,7 +132,7 @@ export default function AdminCoursesPage() {
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                           course.published
-                            ? "bg-accent/10 text-accent"
+                            ? "bg-success/10 text-success"
                             : "bg-muted text-muted-foreground"
                         }`}
                       >

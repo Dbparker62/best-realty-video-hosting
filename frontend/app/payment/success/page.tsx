@@ -74,13 +74,13 @@ function SuccessContent() {
 
   return (
     <div className="mx-auto flex min-h-[80vh] max-w-lg flex-col items-center justify-center px-4 py-16 text-center">
-      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-accent/20">
+      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-success/20">
         {isWorking ? (
-          <Loader2 className="h-10 w-10 animate-spin text-accent" />
+          <Loader2 className="h-10 w-10 animate-spin text-success" />
         ) : status === "error" ? (
           <AlertCircle className="h-10 w-10 text-destructive" />
         ) : (
-          <CheckCircle className="h-10 w-10 text-accent" />
+          <CheckCircle className="h-10 w-10 text-success" />
         )}
       </div>
 
@@ -138,15 +138,15 @@ function SuccessContent() {
           <h3 className="font-semibold text-foreground">What&apos;s next?</h3>
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li className="flex items-start gap-2">
-              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <span>Access all course lessons immediately</span>
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <span>Track your progress as you learn</span>
             </li>
             <li className="flex items-start gap-2">
-              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+              <CheckCircle className="mt-0.5 h-4 w-4 shrink-0 text-success" />
               <span>Get lifetime access to all updates</span>
             </li>
           </ul>

@@ -234,7 +234,7 @@ export function QuizWizard({
       <div className="bg-gradient-to-b from-primary/[0.06] via-background to-background">
         <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Card className="overflow-hidden rounded-2xl border-primary/15 py-0 shadow-xl shadow-primary/10">
-            <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 px-6 py-10 text-center text-primary-foreground">
+            <div className="relative overflow-hidden bg-gradient-to-br from-brand via-brand to-brand/85 px-6 py-10 text-center text-brand-foreground">
               <div
                 aria-hidden
                 className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-white/10 blur-2xl"
@@ -246,8 +246,8 @@ export function QuizWizard({
                 <h2 className="text-2xl font-bold">
                   Here are your results, {firstName(result.name)}.
                 </h2>
-                <p className="mt-1 text-sm text-primary-foreground/80">{resultDescription}</p>
-                <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-primary-foreground/70">
+                <p className="mt-1 text-sm text-brand-foreground/80">{resultDescription}</p>
+                <p className="mt-6 text-xs font-semibold uppercase tracking-widest text-brand-foreground/70">
                   Your result
                 </p>
                 <p className="mt-1 text-3xl font-bold tracking-tight">{result.title}</p>
@@ -259,8 +259,8 @@ export function QuizWizard({
               <div className="rounded-xl border-l-4 border-primary bg-muted/60 p-5 text-sm leading-relaxed">
                 {result.roadmap}
               </div>
-              <p className="flex items-center justify-center gap-2 rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-center text-sm text-foreground">
-                <Mail className="h-4 w-4 shrink-0 text-accent" />
+              <p className="flex items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/10 px-4 py-3 text-center text-sm text-foreground">
+                <Mail className="h-4 w-4 shrink-0 text-success" />
                 {result.emailSent
                   ? `We just emailed a copy to ${email.trim()}, and our team will be in touch.`
                   : result.leadNotificationSent
@@ -297,13 +297,13 @@ export function QuizWizard({
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <div className="mb-8">
           {eyebrow && (
-            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-background/80 px-3 py-1 text-xs font-medium text-primary shadow-sm">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-brand/15 bg-white px-3 py-1 text-xs font-semibold uppercase tracking-wider text-brand shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-brand" />
               {eyebrow}
             </span>
           )}
           <div className="mb-5 flex items-center gap-4">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/20">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-brand/80 text-brand-foreground shadow-md shadow-brand/20">
               {icon}
             </div>
             <div>
@@ -440,7 +440,7 @@ export function QuizWizard({
                   <Skeleton className="h-4 w-full" />
                 </div>
               ) : preview ? (
-                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.08] to-accent/[0.06] p-5">
+                <div className="rounded-xl border border-primary/20 bg-gradient-to-br from-primary/[0.06] to-brand/[0.08] p-5">
                   <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
                     Your result
                   </p>

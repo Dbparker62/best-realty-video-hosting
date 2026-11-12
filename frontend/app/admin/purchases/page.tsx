@@ -143,7 +143,7 @@ export default function AdminPurchasesPage() {
                         </p>
                       </TableCell>
                       <TableCell className="text-right">
-                        <span className="font-semibold text-accent">
+                        <span className="font-semibold text-success">
                           ${purchase.amount}
                         </span>
                       </TableCell>

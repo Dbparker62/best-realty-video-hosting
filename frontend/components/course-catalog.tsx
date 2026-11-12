@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import Link from "next/link"
 import { useCallback } from "react"
 import useSWR from "swr"
@@ -7,23 +8,26 @@ import { getCourses, initiateCheckout, getMyCourses } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { CourseCard } from "@/components/course-card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowRight, Award, Building2, GraduationCap, TrendingUp } from "lucide-react"
+import { ArrowRight, Clock, MonitorPlay, Phone, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Course } from "@/lib/types"
 import { PROOF_POINTS } from "@/lib/school-facts"
+import { CONTACT, SCHOOL_WEBSITE_URL } from "@/lib/site"
 
-// Verified facts (see lib/school-facts.ts for sources).
-const STAT_ICONS = [Building2, TrendingUp, Award, GraduationCap]
-const STATS = PROOF_POINTS.map((p, i) => ({ ...p, icon: STAT_ICONS[i] }))
+const FORMATS = [
+  { icon: MonitorPlay, title: "Live on Zoom", body: "Instructor-led evening classes you can join from home." },
+  { icon: Clock, title: "Self-Paced Online", body: "Study anytime, anywhere, 24/7, at your own pace." },
+  { icon: Users, title: "In Person", body: "Classroom instruction with our licensed instructors." },
+]
 
 /** Hero + course grid. `initialCourses` comes from the server so the list is in the page HTML. */
 export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] }) {
   const { canUseCustomerFeatures } = useAuth()
-  
+
   const { data: courses } = useSWR("courses", getCourses, {
     fallbackData: initialCourses,
   })
-  
+
   const { data: myCourses } = useSWR(
     canUseCustomerFeatures ? "my-courses" : null,
     getMyCourses
@@ -41,73 +45,98 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
   }, [])
 
   return (
-    <div className="min-h-screen">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden border-b bg-gradient-to-b from-primary/[0.07] via-card to-card">
-        {/* Soft background glows */}
-        <div
+    <div>
+      {/* Hero */}
+      <section className="relative overflow-hidden bg-white">
+        {/* Faint logo watermark */}
+        <Image
+          src="/logo-mark.png"
+          alt=""
           aria-hidden
-          className="pointer-events-none absolute -top-32 left-1/2 h-96 w-[48rem] -translate-x-1/2 rounded-full bg-primary/10 blur-3xl"
+          width={436}
+          height={289}
+          className="pointer-events-none absolute -bottom-10 -right-16 hidden w-[34rem] opacity-[0.04] lg:block"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -bottom-40 right-0 h-80 w-80 rounded-full bg-accent/10 blur-3xl"
-        />
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-24 lg:px-8">
-          <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full border border-primary/15 bg-background/80 px-4 py-1.5 text-xs font-medium text-primary shadow-sm backdrop-blur">
-              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
-              New Jersey Real Estate Pre-Licensing
-            </span>
-            <h1 className="mx-auto mt-6 max-w-4xl text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl lg:text-6xl">
-              Master the{" "}
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                New Jersey
-              </span>{" "}
-              Real Estate Exam
+        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-14 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:px-8">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary sm:text-sm">
+              Licensed by the NJ Real Estate Commission
+            </p>
+            <h1 className="mt-4 text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl lg:text-[3.4rem] lg:leading-[1.08]">
+              Master the <span className="text-brand">New Jersey</span> Real Estate Exam
             </h1>
-            <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground">
-              Expert-led video courses designed for New Jersey real estate pre-licensing. 
+            <p className="mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground">
+              Expert-led video courses designed for New Jersey real estate pre-licensing.
               Learn property valuation, market analysis, negotiation strategies, and more.
             </p>
-            <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <Button asChild size="lg" className="h-12 px-8 text-base shadow-lg shadow-primary/20">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <Button asChild size="lg" className="h-12 px-7 text-base shadow-md shadow-primary/25">
                 <Link href="/questionnaire">
                   Take the Free 2-Minute Quiz
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="h-12 bg-background/80 px-8 text-base">
+              <Button asChild size="lg" variant="outline" className="h-12 px-7 text-base">
                 <a href="#courses">Browse Courses</a>
               </Button>
             </div>
+            <a
+              href={CONTACT.phoneHref}
+              className="mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
+            >
+              <Phone className="h-4 w-4 text-primary" />
+              Questions? Call us at <span className="font-semibold text-foreground">{CONTACT.phone}</span>
+            </a>
           </div>
-          
-          {/* Stats */}
-          <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {STATS.map(({ icon: Icon, value, label }) => (
-              <div
-                key={label}
-                className="flex items-center gap-4 rounded-2xl border bg-background/80 p-5 shadow-sm backdrop-blur transition-all hover:-translate-y-0.5 hover:shadow-md"
-              >
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-sm">
-                  <Icon className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold text-foreground">{value}</p>
-                  <p className="text-sm text-muted-foreground">{label}</p>
-                </div>
-              </div>
-            ))}
+
+          {/* Class formats */}
+          <div className="rounded-2xl border bg-card p-6 shadow-lg shadow-brand/5 sm:p-8">
+            <h2 className="text-lg font-bold uppercase tracking-wide text-brand">Get licensed your way</h2>
+            <ul className="mt-6 space-y-5">
+              {FORMATS.map(({ icon: Icon, title, body }) => (
+                <li key={title} className="flex gap-4">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-brand-foreground">
+                    <Icon className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="font-bold text-foreground">{title}</h3>
+                    <p className="mt-0.5 text-sm text-muted-foreground">{body}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+            <a
+              href={SCHOOL_WEBSITE_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-7 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
+            >
+              See the current class schedule
+              <ArrowRight className="h-4 w-4" />
+            </a>
           </div>
         </div>
+      </section>
+
+      {/* Proof bar */}
+      <section className="bg-brand text-brand-foreground">
+        <dl className="mx-auto grid max-w-7xl grid-cols-2 gap-6 px-4 py-8 sm:px-6 lg:grid-cols-4 lg:px-8">
+          {PROOF_POINTS.map((p) => (
+            <div key={p.label} className="text-center">
+              <dt className="sr-only">{p.label}</dt>
+              <dd className="font-[family-name:var(--font-heading)] text-2xl font-extrabold sm:text-3xl">{p.value}</dd>
+              <dd className="mt-1 text-xs uppercase tracking-wider text-brand-foreground/80 sm:text-sm">{p.label}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       {/* Course Grid */}
       <section id="courses" className="scroll-mt-20 py-16 sm:py-20">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          <div className="mb-10">
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary sm:text-sm">Courses</p>
+            <h2 className="mt-2 text-3xl font-extrabold tracking-tight text-foreground">
               Available Courses
             </h2>
             <p className="mt-2 text-muted-foreground">

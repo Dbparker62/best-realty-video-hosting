@@ -1,5 +1,6 @@
 import Link from "next/link"
-import { Building2, Mail, MapPin, Phone } from "lucide-react"
+import { Mail, MapPin, Phone } from "lucide-react"
+import { BrandLogo } from "@/components/brand-logo"
 import {
   CONTACT,
   CONTACT_ADDRESS_LINE,
@@ -25,19 +26,12 @@ const LEGAL_LINKS = [
 
 export function Footer() {
   return (
-    <footer className="border-t border-border bg-card">
+    <footer className="border-t-4 border-brand bg-white">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand + contact */}
           <div className="lg:col-span-2">
-            <Link href="/" className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-                <Building2 className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <span className="text-lg font-semibold tracking-tight text-foreground">
-                {SITE_NAME}
-              </span>
-            </Link>
+            <BrandLogo />
             <p className="mt-4 max-w-md text-sm text-muted-foreground">
               Professional real estate education designed to help you pass your
               licensing exam and succeed in your career.
@@ -79,7 +73,7 @@ export function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Quick Links</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-brand">Quick Links</h3>
             <ul className="mt-4 space-y-3">
               {QUICK_LINKS.map((l) => (
                 <li key={l.href}>
@@ -98,7 +92,7 @@ export function Footer() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-sm font-semibold text-foreground">Legal</h3>
+            <h3 className="text-sm font-bold uppercase tracking-wider text-brand">Legal</h3>
             <ul className="mt-4 space-y-3">
               {LEGAL_LINKS.map((l) => (
                 <li key={l.href}>

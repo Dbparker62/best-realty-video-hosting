@@ -23,7 +23,7 @@ export function ProgressCard({ course }: ProgressCardProps) {
             {course.title}
           </h3>
           {isCompleted && (
-            <Badge className="shrink-0 bg-accent text-accent-foreground">
+            <Badge className="shrink-0 bg-success text-success-foreground">
               <CheckCircle className="mr-1 h-3 w-3" />
               Completed
             </Badge>

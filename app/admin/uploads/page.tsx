@@ -78,7 +78,7 @@ export default function AdminUploadsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex items-center gap-2 text-2xl font-bold text-accent">
+            <div className="flex items-center gap-2 text-2xl font-bold text-success">
               <CheckCircle className="h-5 w-5" />
               {uploadedCount}
             </div>
@@ -169,7 +169,7 @@ export default function AdminUploadsPage() {
                     </TableCell>
                     <TableCell>
                       {lesson.videoKey ? (
-                        <Badge className="gap-1 bg-accent/10 text-accent hover:bg-accent/20">
+                        <Badge className="gap-1 bg-success/10 text-success hover:bg-accent/20">
                           <CheckCircle className="h-3 w-3" />
                           Uploaded
                         </Badge>

@@ -1,6 +1,7 @@
 import { CourseCatalog } from "@/components/course-catalog"
 import { HomeFaq } from "@/components/home-faq"
 import { DirectorSection } from "@/components/director-section"
+import { QuizCtaBand } from "@/components/quiz-cta-band"
 import { JsonLd } from "@/components/json-ld"
 import { HOME_FAQ } from "@/lib/faq"
 import { fetchPublicCourses } from "@/lib/server-courses"
@@ -31,7 +32,8 @@ export default async function HomePage() {
         }}
       />
       <CourseCatalog initialCourses={courses ?? undefined} />
-      <DirectorSection />
+      <DirectorSection showProofPoints={false} />
+      <QuizCtaBand />
       <HomeFaq />
     </>
   )

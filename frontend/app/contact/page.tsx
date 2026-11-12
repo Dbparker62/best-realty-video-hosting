@@ -118,9 +118,9 @@ export default function ContactPage() {
           </p>
 
           {isSubmitted ? (
-            <div className="mt-8 rounded-lg border border-accent/50 bg-accent/10 p-6 text-center">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/20">
-                <MessageSquare className="h-6 w-6 text-accent" />
+            <div className="mt-8 rounded-lg border border-success/50 bg-success/10 p-6 text-center">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-success/20">
+                <MessageSquare className="h-6 w-6 text-success" />
               </div>
               <h3 className="mt-4 text-lg font-semibold text-foreground">
                 Message Sent!

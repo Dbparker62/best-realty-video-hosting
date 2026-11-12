@@ -49,7 +49,7 @@ export function LessonList({
               className={cn(
                 "flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-medium",
                 isCompleted
-                  ? "bg-accent text-accent-foreground"
+                  ? "bg-success text-success-foreground"
                   : isActive
                     ? "bg-primary text-primary-foreground"
                     : access === "locked"
@@ -81,7 +81,7 @@ export function LessonList({
                   {lesson.duration}
                 </span>
                 {isCompleted && (
-                  <span className="rounded bg-accent/20 px-1.5 text-xs text-accent">
+                  <span className="rounded bg-success/20 px-1.5 text-xs text-success">
                     Completed
                   </span>
                 )}

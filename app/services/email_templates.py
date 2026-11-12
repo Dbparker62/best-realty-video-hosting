@@ -7,6 +7,8 @@ Placeholders available per template are listed in each function docstring.
 
 from html import escape
 
+from app.config import FRONTEND_URL
+
 
 def _e(value: object) -> str:
     """Escape HTML in dynamic values."""
@@ -27,10 +29,12 @@ def _phone_html(phone: str | None) -> str:
 
 BRAND_NAME = "Best School of Real Estate"
 BRAND_TAGLINE = "New Jersey real estate pre-licensing education"
-BRAND_COLOR = "#1f3b5c"  # navy (matches the website) for headings and buttons
-BRAND_COLOR_DARK = "#0f2238"  # gradient end in the results-email header
-BRAND_ACCENT = "#0f766e"  # teal accent stripe
-EMAIL_BG = "#eef2f7"  # page background behind the email card
+BRAND_COLOR = "#8a0c31"  # logo maroon: headings, header band
+BRAND_COLOR_DARK = "#5e0821"  # gradient end in the results-email header
+BRAND_ACCENT = "#d22f25"  # school-site red: buttons and accent stripe
+EMAIL_BG = "#f4f1f1"  # page background behind the email card
+# Hosted on the website; shown at the top of the results emails.
+LOGO_URL = f"{FRONTEND_URL.rstrip('/')}/school-logo.jpg"
 
 
 # ---------------------------------------------------------------------------
@@ -224,23 +228,26 @@ def _results_email_html(
       <td align="center" style="padding: 32px 12px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; font-family: {font};">
 
-          <!-- Brand -->
-          <tr>
-            <td align="center" style="padding: 0 0 20px; font-size: 15px; font-weight: bold; color: {BRAND_COLOR}; letter-spacing: 0.3px;">
-              {BRAND_NAME}
-            </td>
-          </tr>
 
           <!-- Card -->
           <tr>
-            <td style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(15, 34, 56, 0.08);">
+            <td style="background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 24px rgba(48, 48, 48, 0.08);">
               <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+                <!-- Logo -->
+                <tr>
+                  <td align="center" style="padding: 22px 28px 18px; background: #ffffff; border-radius: 16px 16px 0 0;">
+                    <a href="{_e(FRONTEND_URL)}" target="_blank" style="text-decoration: none;">
+                      <img src="{_e(LOGO_URL)}" width="140" alt="{BRAND_NAME}" style="display: block; width: 140px; max-width: 140px; height: auto; border: 0; font-family: {font}; font-size: 16px; font-weight: bold; color: {BRAND_COLOR};" />
+                    </a>
+                  </td>
+                </tr>
 
                 <!-- Hero -->
                 <tr>
-                  <td align="center" bgcolor="{BRAND_COLOR}" style="background: {BRAND_COLOR}; background-image: linear-gradient(135deg, {BRAND_COLOR} 0%, {BRAND_COLOR_DARK} 100%); padding: 36px 28px; border-radius: 16px 16px 0 0;">
-                    <div style="font-size: 13px; color: #c7d7ea; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold;">{_e(heading)}</div>
-                    <div style="font-size: 15px; color: #e2ebf5; padding-top: 6px;">{_e(subheading)}</div>
+                  <td align="center" bgcolor="{BRAND_COLOR}" style="background: {BRAND_COLOR}; background-image: linear-gradient(135deg, {BRAND_COLOR} 0%, {BRAND_COLOR_DARK} 100%); padding: 36px 28px;">
+                    <div style="font-size: 13px; color: #f3c9d3; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold;">{_e(heading)}</div>
+                    <div style="font-size: 15px; color: #f8e3e8; padding-top: 6px;">{_e(subheading)}</div>
                     <div style="font-size: 28px; line-height: 1.25; color: #ffffff; font-weight: bold; padding-top: 18px;">{_e(result_title)}</div>
                   </td>
                 </tr>
@@ -253,7 +260,7 @@ def _results_email_html(
 
                     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td style="background: #f1f5f9; border-left: 4px solid {BRAND_ACCENT}; border-radius: 8px; padding: 18px 20px; font-size: 15px; line-height: 1.65; color: #1e293b;">
+                        <td style="background: #f8f3f4; border-left: 4px solid {BRAND_ACCENT}; border-radius: 8px; padding: 18px 20px; font-size: 15px; line-height: 1.65; color: #1e293b;">
                           {roadmap_html}
                         </td>
                       </tr>
@@ -262,7 +269,7 @@ def _results_email_html(
                     <!-- CTA -->
                     <table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center" style="margin: 28px auto;">
                       <tr>
-                        <td align="center" bgcolor="{BRAND_COLOR}" style="border-radius: 10px; background: {BRAND_COLOR};">
+                        <td align="center" bgcolor="{BRAND_ACCENT}" style="border-radius: 10px; background: {BRAND_ACCENT};">
                           <a href="{_e(cta_url)}" target="_blank" style="display: inline-block; padding: 14px 32px; font-family: {font}; font-size: 16px; font-weight: bold; color: #ffffff; text-decoration: none; border-radius: 10px;">{_e(cta_label)} &rarr;</a>
                         </td>
                       </tr>

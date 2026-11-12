@@ -11,10 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Building2, Menu, LogOut, BookOpen, LayoutDashboard } from "lucide-react"
+import { Menu, LogOut, BookOpen, LayoutDashboard, Phone } from "lucide-react"
 import { useState } from "react"
 import { LoginDialog } from "./login-dialog"
-import { SITE_NAME } from "@/lib/site"
+import { CONTACT, SCHOOL_WEBSITE_URL } from "@/lib/site"
+import { BrandLogo } from "./brand-logo"
 
 export function Header() {
   const pathname = usePathname()
@@ -35,42 +36,52 @@ export function Header() {
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      {/* Announcement bar, like the school site */}
+      <div className="bg-brand text-brand-foreground">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 text-xs sm:px-6 sm:text-sm lg:px-8">
+          <a
+            href={SCHOOL_WEBSITE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="truncate font-medium hover:underline"
+          >
+            Online Broker &amp; Salesperson Classes Available!
+          </a>
+          <a href={CONTACT.phoneHref} className="flex shrink-0 items-center gap-1.5 font-semibold hover:underline">
+            <Phone className="h-3.5 w-3.5" />
+            {CONTACT.phone}
+          </a>
+        </div>
+      </div>
+      <header className="sticky top-0 z-50 border-b border-border bg-white/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-white/80">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:h-[4.5rem] sm:px-6 lg:px-8">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
-              <Building2 className="h-5 w-5 text-primary-foreground" />
-            </div>
-            <span className="text-lg font-semibold tracking-tight text-foreground">
-              {SITE_NAME}
-            </span>
-          </Link>
+          <BrandLogo />
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-6 md:flex">
+          <nav className="hidden items-center gap-6 lg:flex">
             <Link
               href="/"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
               Courses
             </Link>
             <Link
               href="/questionnaire"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
               License Quiz
             </Link>
             <Link
               href="/questionnaire/leadership"
-              className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
               Team / Broker Quiz
             </Link>
             {canUseCustomerFeatures && !authLoading && (
               <Link
                 href="/my-courses"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
               >
                 My Courses
               </Link>
@@ -78,7 +89,7 @@ export function Header() {
             {isAdmin && !authLoading && (
               <Link
                 href="/admin"
-                className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+                className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
               >
                 Admin
               </Link>
@@ -86,7 +97,7 @@ export function Header() {
           </nav>
 
           {/* Desktop Auth */}
-          <div className="hidden items-center gap-4 md:flex">
+          <div className="hidden items-center gap-3 lg:flex">
             {authLoading ? (
               <div className="h-9 w-24 animate-pulse rounded-md bg-muted" />
             ) : isAuthenticated ? (
@@ -129,7 +140,14 @@ export function Header() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button onClick={() => setShowLogin(true)}>Login</Button>
+              <>
+                <Button variant="outline" onClick={() => setShowLogin(true)}>
+                  Login
+                </Button>
+                <Button asChild>
+                  <Link href="/questionnaire">Free Quiz</Link>
+                </Button>
+              </>
             )}
           </div>
 
@@ -137,7 +155,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="lg:hidden"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             <Menu className="h-5 w-5" />
@@ -147,7 +165,7 @@ export function Header() {
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="border-t border-border md:hidden">
+          <div className="border-t border-border lg:hidden">
             <div className="space-y-1 px-4 py-3">
               <Link
                 href="/"

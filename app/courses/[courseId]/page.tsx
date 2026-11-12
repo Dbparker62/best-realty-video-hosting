@@ -4,13 +4,7 @@ import { useCallback, useMemo } from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import useSWR from "swr"
-import {
-  getCourse,
-  getCourseLessons,
-  getCourseProgress,
-  initiateCheckout,
-  hasPurchasedCourse,
-} from "@/lib/api"
+import { getCourse, getCourseLessons, initiateCheckout, hasPurchasedCourse } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { LessonList } from "@/components/lesson-list"
 import { Button } from "@/components/ui/button"
@@ -40,23 +34,6 @@ export default function CourseDetailPage() {
     isAuthenticated && courseId ? ["purchased", courseId] : null,
     () => hasPurchasedCourse(courseId as string),
     { revalidateOnFocus: true }
-  )
-
-  const { data: courseProgress } = useSWR(
-    isAuthenticated && purchased && courseId
-      ? ["course-progress", courseId]
-      : null,
-    () => getCourseProgress(courseId as string)
-  )
-
-  const completedLessonIds = useMemo(
-    () =>
-      new Set(
-        courseProgress?.lessons
-          .filter((l) => l.completed)
-          .map((l) => l.lessonId) ?? []
-      ),
-    [courseProgress]
   )
 
   const handleBuyCourse = useCallback(async () => {
@@ -125,7 +102,7 @@ export default function CourseDetailPage() {
                   <Badge variant="secondary">Coming Soon</Badge>
                 )}
                 {purchased && (
-                  <Badge className="bg-accent text-accent-foreground">
+                  <Badge className="bg-success text-success-foreground">
                     <CheckCircle className="mr-1 h-3 w-3" />
                     Purchased
                   </Badge>
@@ -180,15 +157,15 @@ export default function CourseDetailPage() {
 
                 <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                     Lifetime access
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                     All future updates
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                     Professional Insight and knowledge
                   </li>
                 </ul>
@@ -211,23 +188,11 @@ export default function CourseDetailPage() {
             ))}
           </div>
         ) : lessons && lessons.length > 0 ? (
-          <>
-            {purchased && courseProgress && courseProgress.totalLessons > 0 && (
-              <p className="mb-4 text-sm text-muted-foreground">
-                Your progress:{" "}
-                <span className="font-medium text-foreground">
-                  {courseProgress.completedLessons}/{courseProgress.totalLessons}{" "}
-                  lessons ({courseProgress.progress}%)
-                </span>
-              </p>
-            )}
-            <LessonList
-              lessons={lessons}
-              courseId={courseId}
-              hasPurchased={!!purchased}
-              completedLessonIds={completedLessonIds}
-            />
-          </>
+          <LessonList
+            lessons={lessons}
+            courseId={courseId}
+            hasPurchased={!!purchased}
+          />
         ) : (
           <div className="rounded-xl border bg-muted/30 p-8 text-center">
             <p className="text-muted-foreground">

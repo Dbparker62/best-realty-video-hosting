@@ -62,7 +62,7 @@ export function LessonSidebar({
                   className={cn(
                     "flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-xs font-medium",
                     isCompleted
-                      ? "bg-accent text-accent-foreground"
+                      ? "bg-success text-success-foreground"
                       : isActive
                         ? "bg-primary text-primary-foreground"
                         : !accessible
@@ -94,12 +94,12 @@ export function LessonSidebar({
                     <Clock className="h-3 w-3" />
                     <span>{lesson.duration}</span>
                     {lesson.isPreview && (
-                      <span className="rounded bg-accent/20 px-1 text-accent">
+                      <span className="rounded bg-success/20 px-1 text-success">
                         Preview
                       </span>
                     )}
                     {isCompleted && (
-                      <span className="rounded bg-accent/20 px-1 text-accent">
+                      <span className="rounded bg-success/20 px-1 text-success">
                         Done
                       </span>
                     )}

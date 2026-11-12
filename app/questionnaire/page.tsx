@@ -23,7 +23,7 @@ export default function QuestionnairePage() {
     <>
       <JsonLd data={faqJsonLd(CAREER_QUIZ_FAQ)} />
 
-      <section id="quiz" className="scroll-mt-16">
+      <section id="quiz" className="scroll-mt-20">
         <CareerQuiz />
       </section>
 

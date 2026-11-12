@@ -102,7 +102,7 @@ export default function CourseDetailPage() {
                   <Badge variant="secondary">Coming Soon</Badge>
                 )}
                 {purchased && (
-                  <Badge className="bg-accent text-accent-foreground">
+                  <Badge className="bg-success text-success-foreground">
                     <CheckCircle className="mr-1 h-3 w-3" />
                     Purchased
                   </Badge>
@@ -157,15 +157,15 @@ export default function CourseDetailPage() {
 
                 <ul className="mt-6 space-y-3 text-sm text-muted-foreground">
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                     Lifetime access
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                     All future updates
                   </li>
                   <li className="flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4 text-accent" />
+                    <CheckCircle className="h-4 w-4 text-success" />
                     Professional Insight and knowledge
                   </li>
                 </ul>

@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Montserrat, Roboto } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { AuthProvider } from '@/lib/auth-context'
 import { Header } from '@/components/header'
@@ -9,10 +9,19 @@ import { JsonLd } from '@/components/json-ld'
 import { CONTACT, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from '@/lib/site'
 import './globals.css'
 
-const inter = Inter({
+// Same fonts as bestschoolofrealestate.biz: Montserrat headings, Roboto body.
+const montserrat = Montserrat({
   subsets: ["latin"],
-  variable: "--font-inter"
-});
+  weight: ["500", "600", "700", "800"],
+  variable: "--font-montserrat",
+  display: "swap",
+})
+const roboto = Roboto({
+  subsets: ["latin"],
+  weight: ["400", "500", "700"],
+  variable: "--font-roboto",
+  display: "swap",
+})
 
 // No canonical here — it would be inherited by every page. Pages set their own.
 export const metadata: Metadata = {
@@ -31,18 +40,9 @@ export const metadata: Metadata = {
   twitter: { card: 'summary_large_image' },
   icons: {
     icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon-32x32.png', type: 'image/png', sizes: '32x32' },
+      { url: '/icon-192x192.png', type: 'image/png', sizes: '192x192' },
     ],
     apple: '/apple-icon.png',
   },
@@ -57,7 +57,7 @@ const ORGANIZATION_JSON_LD = {
       '@id': `${SITE_URL}/#organization`,
       name: SITE_NAME,
       url: SITE_URL,
-      logo: `${SITE_URL}/apple-icon.png`,
+      logo: `${SITE_URL}/school-logo.jpg`,
       description: SITE_DESCRIPTION,
       areaServed: { '@type': 'State', name: 'New Jersey' },
       telephone: CONTACT.phone,
@@ -89,7 +89,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="bg-background">
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${montserrat.variable} ${roboto.variable} font-sans antialiased`}>
         <JsonLd data={ORGANIZATION_JSON_LD} />
         <AuthProvider>
           <Header />

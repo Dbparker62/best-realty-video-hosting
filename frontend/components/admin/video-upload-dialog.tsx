@@ -217,7 +217,7 @@ export function VideoUploadDialog({
 
           {step === "complete" && (
             <div className="space-y-4 text-center">
-              <CheckCircle className="mx-auto h-12 w-12 text-accent" />
+              <CheckCircle className="mx-auto h-12 w-12 text-success" />
               <div>
                 <p className="font-medium text-foreground">Upload Complete</p>
                 <p className="text-sm text-muted-foreground">
