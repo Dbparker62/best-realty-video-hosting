@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import { pageMetadata } from "@/lib/site"
 
 export const metadata: Metadata = pageMetadata({
-  title: "Build a Team or Become a Broker? Free Quiz",
+  title: "Team or Broker Quiz – Free 2-Minute Assessment",
   description:
-    "5 quick questions to find out whether building a real estate team or becoming a broker of record fits your goals in New Jersey. Free results by email.",
+    "Should you build a real estate team or become a broker of record in New Jersey? Take our free 2-minute quiz and get your leadership roadmap by email.",
   path: "/questionnaire/leadership",
 })
 

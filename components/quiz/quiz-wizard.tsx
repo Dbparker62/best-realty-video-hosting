@@ -4,7 +4,7 @@ import type { FormEvent, ReactNode } from "react"
 import { useEffect, useMemo, useRef, useState } from "react"
 import useSWR from "swr"
 import Link from "next/link"
-import { ArrowLeft, ArrowRight, CheckCircle2, Mail } from "lucide-react"
+import { ArrowRight, CheckCircle2, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -49,6 +49,8 @@ export interface QuizResult {
 
 export interface QuizWizardProps {
   quiz: QuizName
+  /** Small label above the heading, e.g. "Free 2-Minute Quiz · No obligation". */
+  eyebrow?: string
   title: string
   subtitle: string
   icon: ReactNode
@@ -73,6 +75,7 @@ function firstName(fullName: string): string {
 
 export function QuizWizard({
   quiz,
+  eyebrow,
   title,
   subtitle,
   icon,
@@ -228,7 +231,7 @@ export function QuizWizard({
 
   if (result) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-primary/[0.06] via-background to-background">
+      <div className="bg-gradient-to-b from-primary/[0.06] via-background to-background">
         <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <Card className="overflow-hidden rounded-2xl border-primary/15 py-0 shadow-xl shadow-primary/10">
             <div className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 px-6 py-10 text-center text-primary-foreground">
@@ -290,24 +293,22 @@ export function QuizWizard({
     "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-muted text-xs font-semibold text-muted-foreground transition-colors"
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-primary/[0.06] via-background to-background">
-      <div className="mx-auto max-w-2xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-        <Link
-          href="/"
-          className="mb-8 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to home
-        </Link>
-
+    <div className="bg-gradient-to-b from-primary/[0.06] via-background to-background">
+      <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
         <div className="mb-8">
+          {eyebrow && (
+            <span className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/15 bg-background/80 px-3 py-1 text-xs font-medium text-primary shadow-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-accent" />
+              {eyebrow}
+            </span>
+          )}
           <div className="mb-5 flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground shadow-md shadow-primary/20">
               {icon}
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
-              <p className="text-sm text-muted-foreground">{subtitle}</p>
+              <h1 className="text-balance text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{title}</h1>
+              <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
             </div>
           </div>
           {!isLoading && wizardSteps.length > 0 && (

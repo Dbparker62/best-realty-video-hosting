@@ -2,9 +2,9 @@ import type { Metadata } from "next"
 import { pageMetadata } from "@/lib/site"
 
 export const metadata: Metadata = pageMetadata({
-  title: "Free NJ Real Estate Career Quiz",
+  title: "NJ Real Estate Career Quiz – Free 2-Minute Assessment",
   description:
-    "Answer 4 quick questions to see if a full-time, part-time, or referral real estate career fits you — and get a free step-by-step New Jersey licensing roadmap by email.",
+    "Thinking about becoming a real estate agent in New Jersey? Take our free 2-minute career quiz and discover your next steps toward getting licensed.",
   path: "/questionnaire",
 })
 

@@ -37,8 +37,9 @@ export default function LeadershipQuestionnairePage() {
   return (
     <QuizWizard
       quiz="leadership"
-      title="Team or Broker of Record?"
-      subtitle="5 quick questions — discover whether to build a team or lead a brokerage."
+      eyebrow="Free 2-Minute Quiz · No obligation"
+      title="Should You Build a Team or Become a Broker?"
+      subtitle="Take our free 2-minute quiz to see whether building a team or becoming a broker of record fits your goals."
       icon={<Users className="h-5 w-5" />}
       loadQuestions={getLeadershipQuestions}
       previewAnswers={previewLeadershipQuestionnaire}

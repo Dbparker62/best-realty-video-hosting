@@ -222,6 +222,24 @@ class QuestionnaireSubmitIn(BaseModel):
     attribution: LeadAttributionIn | None = None
 
 
+class ContactMessageIn(BaseModel):
+    """Website contact form."""
+
+    name: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
+    phone: str | None = Field(None, max_length=30)
+    subject: str = Field("general", max_length=40)
+    order_number: str | None = Field(None, max_length=100)
+    message: str = Field(..., min_length=1, max_length=5000)
+    # Hidden field real visitors never fill in; bots usually do.
+    website: str | None = Field(None, max_length=300)
+    attribution: LeadAttributionIn | None = None
+
+
+class ContactMessageOut(BaseModel):
+    sent: bool
+
+
 class QuestionnairePreviewIn(BaseModel):
     answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
 

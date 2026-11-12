@@ -4,6 +4,8 @@ import type { FormEvent } from "react"
 import { useState } from "react"
 import Link from "next/link"
 import { CONTACT, CONTACT_ADDRESS_LINE } from "@/lib/site"
+import { sendContactMessage } from "@/lib/contact-api"
+import { trackEvent } from "@/lib/analytics"
 import { ArrowLeft, Mail, MessageSquare, Phone, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -20,16 +22,31 @@ import {
 export default function ContactPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
+    const form = new FormData(e.currentTarget)
+    const field = (key: string) => String(form.get(key) ?? "").trim()
     setIsSubmitting(true)
-
-    // Simulate form submission
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    setIsSubmitting(false)
-    setIsSubmitted(true)
+    setSubmitError(null)
+    try {
+      await sendContactMessage({
+        name: field("name"),
+        email: field("email"),
+        phone: field("phone"),
+        subject: field("subject") || "general",
+        orderNumber: field("order"),
+        message: field("message"),
+        website: field("website"),
+      })
+      trackEvent("contact_submit", { topic: field("subject") || "general" })
+      setIsSubmitted(true)
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Could not send your message.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -145,6 +162,26 @@ export default function ContactPage() {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="phone">
+                  Phone <span className="text-muted-foreground">(optional)</span>
+                </Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  autoComplete="tel"
+                  maxLength={30}
+                  placeholder="(555) 555-5555"
+                />
+              </div>
+
+              {/* Spam trap: hidden from people, bots tend to fill it in. */}
+              <div aria-hidden="true" className="absolute -left-[9999px] h-px w-px overflow-hidden">
+                <label htmlFor="website">Website</label>
+                <input id="website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="subject">Subject</Label>
                 <Select name="subject" required>
                   <SelectTrigger id="subject">
@@ -177,9 +214,20 @@ export default function ContactPage() {
                   name="message"
                   placeholder="How can we help you?"
                   rows={5}
+                  maxLength={5000}
                   required
                 />
               </div>
+
+              {submitError && (
+                <p className="rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
+                  {submitError} You can also call us at{" "}
+                  <a href={CONTACT.phoneHref} className="font-medium underline">
+                    {CONTACT.phone}
+                  </a>
+                  .
+                </p>
+              )}
 
               <Button type="submit" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Sending..." : "Send Message"}

@@ -10,13 +10,11 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { ArrowRight, Award, Building2, GraduationCap, TrendingUp } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Course } from "@/lib/types"
+import { PROOF_POINTS } from "@/lib/school-facts"
 
-const STATS = [
-  { icon: Building2, value: "20+", label: "Years of Experience" },
-  { icon: GraduationCap, value: "1000+", label: "Students Enrolled" },
-  { icon: TrendingUp, value: "95%", label: "Pass Rate" },
-  { icon: Award, value: "50+", label: "Hours of Content" },
-]
+// Verified facts (see lib/school-facts.ts for sources).
+const STAT_ICONS = [Building2, TrendingUp, Award, GraduationCap]
+const STATS = PROOF_POINTS.map((p, i) => ({ ...p, icon: STAT_ICONS[i] }))
 
 /** Hero + course grid. `initialCourses` comes from the server so the list is in the page HTML. */
 export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] }) {
@@ -75,7 +73,7 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <Button asChild size="lg" className="h-12 px-8 text-base shadow-lg shadow-primary/20">
                 <Link href="/questionnaire">
-                  Take the readiness quiz
+                  Take the Free 2-Minute Quiz
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>

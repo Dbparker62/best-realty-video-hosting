@@ -13,8 +13,15 @@ export const HOME_FAQ: { question: string; answer: string }[] = [
   {
     question: "How long does it take to get licensed in NJ?",
     answer:
-      "The pre-licensing course is 75 hours. Depending on your schedule, most students finish the " +
-      "course in a few weeks to a couple of months, then schedule the state exam.",
+      "The pre-licensing course is 75 hours, and you must attend at least 80% of it. Depending on " +
+      "your schedule, most students finish in a few weeks to a couple of months. After the course " +
+      "you have one year to pass the state exam, get fingerprinted, and activate your license.",
+  },
+  {
+    question: "How are your classes offered?",
+    answer:
+      "Best School of Real Estate is licensed by the New Jersey Real Estate Commission and offers " +
+      "classes live on Zoom, self-paced online (study anytime), and in person.",
   },
   {
     question: "Do I need a broker before I start the course?",
@@ -26,7 +33,7 @@ export const HOME_FAQ: { question: string; answer: string }[] = [
     question: "Can I become a real estate agent while working full time?",
     answer:
       "Yes. Many students start part-time or as referral agents while keeping their current job. " +
-      "Our free 1-minute career quiz shows which path fits your situation.",
+      "Our free 2-minute career quiz shows which path fits your situation.",
   },
   {
     question: "Should I build a team or become a broker of record?",
@@ -39,7 +46,7 @@ export const HOME_FAQ: { question: string; answer: string }[] = [
   {
     question: "Is the career quiz free?",
     answer:
-      "Yes. It takes about a minute, and your personalized results and roadmap are emailed to you " +
-      "right away.",
+      "Yes. It takes about two minutes, your personalized results and roadmap are emailed to you " +
+      "right away, and there's no obligation to enroll.",
   },
 ]

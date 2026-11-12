@@ -391,3 +391,38 @@ def send_leadership_score_email(
         ),
         reply_to=_results_reply_to(),
     )
+
+
+def send_contact_message_email(
+    *,
+    name: str,
+    email: str,
+    phone: str | None,
+    subject_key: str,
+    order_number: str | None,
+    message: str,
+    attribution: dict | None = None,
+) -> bool:
+    """Forward a website contact-form message to staff. Reply-To is the sender."""
+    recipients = QUESTIONNAIRE_LEAD_EMAILS or ([SUPPORT_EMAIL] if SUPPORT_EMAIL else [])
+    if not recipients:
+        logger.warning("No staff address configured — contact message from %s not sent", email)
+        return False
+
+    topic = templates.CONTACT_SUBJECT_LABELS.get(subject_key, "General Inquiry")
+    fields = dict(
+        name=name,
+        email=email,
+        phone=phone,
+        topic=topic,
+        order_number=order_number,
+        message=message,
+        lead_source=lead_source_label(attribution),
+    )
+    return _send_email(
+        to_address=recipients,
+        subject=templates.contact_message_subject(name=name, topic=topic),
+        text_body=templates.contact_message_text(**fields),
+        html_body=templates.contact_message_html(**fields),
+        reply_to=email,
+    )

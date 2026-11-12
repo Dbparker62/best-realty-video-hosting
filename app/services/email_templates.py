@@ -571,3 +571,76 @@ def leadership_score_html(
         support_email=support_email,
         footer_note="You're receiving this because you took the assessment and asked for your results.",
     )
+
+
+# ---------------------------------------------------------------------------
+# Contact form message (sent to staff; Reply-To is the sender)
+# ---------------------------------------------------------------------------
+
+CONTACT_SUBJECT_LABELS = {
+    "general": "General Inquiry",
+    "course": "Course Question",
+    "technical": "Technical Support",
+    "billing": "Billing / Payment",
+    "refund": "Refund Request",
+    "other": "Other",
+}
+
+
+def contact_message_subject(*, name: str, topic: str) -> str:
+    return f"Website message ({topic}): {name}"
+
+
+def contact_message_text(
+    *,
+    name: str,
+    email: str,
+    phone: str | None,
+    topic: str,
+    order_number: str | None,
+    message: str,
+    lead_source: str,
+) -> str:
+    return f"""New message from the website contact form.
+
+Name: {name}
+Email: {email}
+Phone: {phone or "Not provided"}
+Topic: {topic}
+Order number: {order_number or "—"}
+Came from: {lead_source}
+
+Message:
+{message}
+
+Reply to this email to answer {name}.
+"""
+
+
+def contact_message_html(
+    *,
+    name: str,
+    email: str,
+    phone: str | None,
+    topic: str,
+    order_number: str | None,
+    message: str,
+    lead_source: str,
+) -> str:
+    message_html = _e(message).replace("\n", "<br/>")
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #111;">
+  <h2 style="color: {BRAND_COLOR};">New Website Message</h2>
+  <table style="margin: 16px 0; border-collapse: collapse;">
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Name</strong></td><td>{_e(name)}</td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Email</strong></td><td><a href="mailto:{_e(email)}">{_e(email)}</a></td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Phone</strong></td><td>{_phone_html(phone)}</td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Topic</strong></td><td>{_e(topic)}</td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Order number</strong></td><td>{_e(order_number or "—")}</td></tr>
+    <tr><td style="padding: 4px 12px 4px 0;"><strong>Came from</strong></td><td>{_e(lead_source)}</td></tr>
+  </table>
+  <p style="background: #f4f4f5; padding: 16px; border-radius: 8px;">{message_html}</p>
+  <p style="font-size: 13px; color: #777;">Reply to this email to answer {_e(name)}.</p>
+</body>
+</html>"""
