@@ -8,6 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const pages: { path: string; priority: number; changeFrequency: "weekly" | "monthly" | "yearly" }[] = [
     { path: "/", priority: 1, changeFrequency: "weekly" },
     { path: "/questionnaire", priority: 0.9, changeFrequency: "monthly" },
+    { path: "/how-to-get-a-real-estate-license-in-nj", priority: 0.9, changeFrequency: "monthly" },
     { path: "/questionnaire/leadership", priority: 0.8, changeFrequency: "monthly" },
     { path: "/contact", priority: 0.5, changeFrequency: "yearly" },
     { path: "/privacy", priority: 0.2, changeFrequency: "yearly" },

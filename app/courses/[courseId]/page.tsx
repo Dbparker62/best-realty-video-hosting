@@ -198,10 +198,26 @@ export default function CourseDetailPage() {
             <p className="text-muted-foreground">
               {canUseCustomerFeatures
                 ? "Lesson content is being prepared. Check back soon!"
-                : "Sign in view the lesson list."}
+                : "Sign in to view the lesson list."}
             </p>
           </div>
         )}
+
+        {/* Help for people still deciding */}
+        <div className="mt-10 rounded-2xl border border-brand/20 bg-accent p-6">
+          <p className="font-semibold text-foreground">New to real estate?</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            See every step to a New Jersey license, or take our free 2-minute quiz to find the path that fits you.
+          </p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+            <Button asChild variant="outline">
+              <Link href="/how-to-get-a-real-estate-license-in-nj">Read the NJ License Guide</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/questionnaire">Take the Free Quiz</Link>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   )

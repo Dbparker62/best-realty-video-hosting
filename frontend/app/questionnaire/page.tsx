@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { ArrowRight, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { CareerQuiz } from "@/components/quiz/career-quiz"
@@ -82,6 +83,13 @@ export default function QuestionnairePage() {
               </li>
             ))}
           </ol>
+          <Link
+            href="/how-to-get-a-real-estate-license-in-nj"
+            className="mt-8 inline-flex items-center gap-1.5 font-semibold text-primary hover:underline"
+          >
+            Read the full step-by-step guide
+            <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
       </section>
 

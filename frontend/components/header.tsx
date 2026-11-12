@@ -67,6 +67,12 @@ export function Header() {
               Courses
             </Link>
             <Link
+              href="/how-to-get-a-real-estate-license-in-nj"
+              className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
+            >
+              License Guide
+            </Link>
+            <Link
               href="/questionnaire"
               className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
@@ -173,6 +179,13 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Courses
+              </Link>
+              <Link
+                href="/how-to-get-a-real-estate-license-in-nj"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                License Guide
               </Link>
               <Link
                 href="/questionnaire"

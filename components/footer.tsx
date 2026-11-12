@@ -13,6 +13,7 @@ const linkClass = "text-sm text-muted-foreground transition-colors hover:text-fo
 
 const QUICK_LINKS = [
   { href: "/", label: "Browse Courses" },
+  { href: "/how-to-get-a-real-estate-license-in-nj", label: "How to Get Your NJ License" },
   { href: "/questionnaire", label: "NJ Real Estate Career Quiz" },
   { href: "/questionnaire/leadership", label: "Team or Broker Quiz" },
 ]
