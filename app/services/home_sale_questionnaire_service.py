@@ -1,4 +1,4 @@
-"""Home Sale Readiness quiz: how market-ready is a seller's home, plus town resale rules."""
+"""Home Sale Readiness quiz: how market-ready is a seller's home, based on their answers."""
 
 import logging
 from datetime import datetime, timezone
@@ -11,7 +11,7 @@ from app.services.email_service import (
     send_home_sale_lead_notification_email,
     send_home_sale_score_email,
 )
-from app.services.nj_town_resale import SERVICE_AREA, town_resale_info
+from app.services.nj_service_area import SERVICE_AREA
 from app.utils.attribution import lead_source_label
 from app.utils.database import questionnaire_submissions_table
 from app.utils.dynamodb import sanitize_item
@@ -179,18 +179,16 @@ SUMMARIES = {
 }
 
 
-def _roadmap(label: str, priorities: list[str], negotiation: list[str], timing: str, town: dict) -> str:
+def _roadmap(priorities: list[str], negotiation: list[str], timing: str) -> str:
     parts = []
     if priorities:
         parts.append("Start with: " + "; ".join(priorities[:3]) + ".")
+    else:
+        parts.append("Nothing major stood out. Your home is in great shape to list.")
     if negotiation:
         parts.append("Negotiation plan: " + "; ".join(negotiation) + ".")
-    parts.append(
-        f"Town resale requirement: {town['requirement']} ({town['cost']}). Order it early. Many towns "
-        "need the smoke/CO certificate before the resale inspection."
-    )
-    if timing in ("0–3 months",):
-        parts.append("With a 0–3 month timeline, schedule inspections and the town certificate now.")
+    if timing == "0–3 months":
+        parts.append("With a 0–3 month timeline, start on these items now.")
     elif timing:
         parts.append(f"Your timeline ({timing}) gives you room to handle the bigger items first.")
     return " ".join(parts)
@@ -266,7 +264,7 @@ def preview_answers(answers: list[dict]) -> dict:
     return {
         "result": scored["label"],
         "result_title": scored["title"],
-        "teaser": teaser + " Add your town to see its resale requirements.",
+        "teaser": teaser,
         "lean": scored["lean"],
     }
 
@@ -297,8 +295,7 @@ def submit(
         bad_request("TOWN_REQUIRED", "Please choose your town from the list")
 
     scored = _score_answers(answers)
-    town_info = town_resale_info(county, town)
-    roadmap = _roadmap(scored["label"], scored["priorities"], scored["negotiation"], scored["timing"], town_info)
+    roadmap = _roadmap(scored["priorities"], scored["negotiation"], scored["timing"])
     submission_id = str(uuid4())
 
     submission = {
@@ -315,7 +312,6 @@ def submit(
         "listing_timing": scored["timing"],
         "priorities": scored["priorities"],
         "negotiation_plan": scored["negotiation"],
-        "town_requirement": town_info["requirement"],
         "attribution": attribution or None,
         "lead_source": lead_source_label(attribution),
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -340,10 +336,6 @@ def submit(
         "label": scored["label"],
         "summary": scored["summary"],
         "roadmap": roadmap,
-        "town_requirement": town_info["requirement"],
-        "town_cost": town_info["cost"],
-        "town_tip": town_info["tip"],
-        "town_known": town_info["known"] == "yes",
         "priorities": scored["priorities"],
         "negotiation": scored["negotiation"],
         "breakdown": scored["breakdown"],
@@ -371,8 +363,6 @@ def submit(
         "priorities": scored["priorities"],
         "negotiation_plan": scored["negotiation"],
         "listing_timing": scored["timing"],
-        "town_requirement": town_info["requirement"],
-        "town_cost": town_info["cost"],
         "lean": scored["lean"],
         "email_sent": email_sent,
         "lead_notification_sent": lead_notification_sent,

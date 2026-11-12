@@ -9,6 +9,6 @@ export default function Image() {
     eyebrow: "Free Seller Quiz",
     title: "How Ready Is Your Home to Sell?",
     cta: "Get My Readiness Score →",
-    note: "Plus your town's resale requirements",
+    note: "Plus your top priorities before you list"
   })
 }

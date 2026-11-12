@@ -19,8 +19,6 @@ export interface HomeSaleSubmitResult {
   priorities: string[]
   negotiationPlan: string[]
   listingTiming: string
-  townRequirement: string
-  townCost: string
   lean?: ResultLean
   emailSent: boolean
   leadNotificationSent: boolean
@@ -97,8 +95,6 @@ export async function submitHomeSaleQuestionnaire(payload: {
     priorities?: string[]
     negotiation_plan?: string[]
     listing_timing?: string
-    town_requirement?: string
-    town_cost?: string
     lean?: LeanApi
     email_sent?: boolean
     lead_notification_sent?: boolean
@@ -113,8 +109,6 @@ export async function submitHomeSaleQuestionnaire(payload: {
     priorities: d.priorities ?? [],
     negotiationPlan: d.negotiation_plan ?? [],
     listingTiming: d.listing_timing ?? "",
-    townRequirement: d.town_requirement ?? "",
-    townCost: d.town_cost ?? "",
     lean: mapLean(d.lean),
     emailSent: Boolean(d.email_sent),
     leadNotificationSent: Boolean(d.lead_notification_sent),

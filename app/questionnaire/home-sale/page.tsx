@@ -4,7 +4,7 @@ import { HomeSaleQuiz } from "@/components/quiz/home-sale-quiz"
 import { DirectorSection } from "@/components/director-section"
 import { FaqSection, faqJsonLd } from "@/components/faq-section"
 import { JsonLd } from "@/components/json-ld"
-import { HOME_SALE_FAQ, HOME_SALE_INTRO, HOME_SALE_LEARN, NJ_RESALE_BASICS } from "@/lib/home-sale-content"
+import { HOME_SALE_FAQ, HOME_SALE_INTRO, HOME_SALE_LEARN } from "@/lib/home-sale-content"
 import { CONTACT } from "@/lib/site"
 
 /** Home Sale Readiness quiz landing page: quiz first, server-rendered content below. */
@@ -43,26 +43,6 @@ export default function HomeSaleQuestionnairePage() {
               <ArrowRight className="h-4 w-4" />
             </a>
           </Button>
-        </div>
-      </section>
-
-      {/* NJ resale basics */}
-      <section className="py-16">
-        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-            New Jersey Resale Basics
-          </h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {NJ_RESALE_BASICS.map((b) => (
-              <div key={b.title} className="rounded-2xl border bg-white p-6 shadow-sm">
-                <h3 className="font-bold text-foreground">{b.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{b.body}</p>
-              </div>
-            ))}
-          </div>
-          <p className="mt-6 text-xs text-muted-foreground">
-            General information, not legal advice. Requirements vary by town; confirm with your municipality.
-          </p>
         </div>
       </section>
 

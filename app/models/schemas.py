@@ -309,8 +309,6 @@ class HomeSaleSubmitOut(BaseModel):
     priorities: list[str] = []
     negotiation_plan: list[str] = []
     listing_timing: str = ""
-    town_requirement: str = ""
-    town_cost: str = ""
     lean: ResultLeanOut | None = None
     email_sent: bool = False
     lead_notification_sent: bool = False

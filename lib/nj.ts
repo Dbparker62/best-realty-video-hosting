@@ -1,4 +1,4 @@
-/** Counties and towns the Home Sale quiz covers (must match app/services/nj_town_resale.py). */
+/** Counties and towns the Home Sale quiz covers (must match app/services/nj_service_area.py). */
 export const SERVICE_AREA: Record<string, readonly string[]> = {
   Middlesex: [
     "Carteret", "Cranbury", "Dunellen", "East Brunswick", "Edison", "Helmetta", "Highland Park",

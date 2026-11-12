@@ -685,9 +685,6 @@ Your readiness score: {report['score']}% ({report['label']})
 Top priorities:
 {lines}
 
-Town resale requirement ({report['town']}): {report['town_requirement']}
-Estimated town cost: {report['town_cost']}
-
 {report['roadmap']}
 
 Your answers:
@@ -705,7 +702,6 @@ def home_sale_score_html(*, report: dict, support_email: str) -> str:
         "Top priorities: "
         + ("; ".join(f"{i}. {p}" for i, p in enumerate(top, 1)) if top else "nothing major")
         + (f" (+{more} more)" if more else "")
-        + f"\nTown resale requirement ({report['town']}): {report['town_requirement']}, {report['town_cost']}."
         + f"\n\n{report['roadmap']}"
     )
     return _results_email_html(
@@ -732,7 +728,6 @@ def _home_sale_rows(report: dict, lead_source: str) -> list[tuple[str, str]]:
     priorities = "\n".join(f"{i}. {p}" for i, p in enumerate(top, 1)) or "None"
     if more:
         priorities += f"\n(+{more} more)"
-    tip = report["town_tip"] + ("" if report["town_known"] else " (town details not on file yet)")
     return [
         ("Client name", report["name"]),
         ("Email", report["email"]),
@@ -741,9 +736,6 @@ def _home_sale_rows(report: dict, lead_source: str) -> list[tuple[str, str]]:
         ("Town", report["town"]),
         ("Listing timing", report["timing"]),
         ("Readiness score", f"{report['score']}% ({report['label']})"),
-        ("Town resale requirement", report["town_requirement"]),
-        ("Estimated town cost", report["town_cost"]),
-        ("Local tip for the agent", tip),
         ("Top priorities", priorities),
         ("Negotiation plan", "\n".join(report["negotiation"]) or "Nothing flagged"),
         ("Came from", lead_source),

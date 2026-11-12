@@ -33,8 +33,6 @@ async function submitHomeSaleQuiz(contact: QuizContact, answers: QuizAnswer[]): 
         ? top.map((p, i) => `${i + 1}. ${p}`).join("\n") + (more > 0 ? `\n(+${more} more)` : "")
         : "Nothing major. You're in great shape.",
     },
-    { label: "Town resale requirement", value: r.townRequirement },
-    { label: "Estimated town cost", value: r.townCost },
   ]
   if (r.negotiationPlan.length) highlights.push({ label: "Negotiation plan", value: r.negotiationPlan.join("\n") })
   if (r.listingTiming) highlights.push({ label: "Listing timing", value: r.listingTiming })
@@ -59,14 +57,14 @@ export function HomeSaleQuiz() {
       quiz="home_sale"
       eyebrow="Free 3-Minute Quiz · No obligation"
       title="How Ready Is Your Home to Sell?"
-      subtitle="Answer 15 quick questions to get your readiness score, your top priorities, and your town's resale requirements."
+      subtitle="Answer 15 quick questions to get your readiness score, your top priorities, and a plan for your sale."
       icon={<Home className="h-5 w-5" />}
       loadQuestions={getHomeSaleQuestions}
       previewAnswers={previewHomeSaleQuestionnaire}
       submit={submitHomeSaleQuiz}
       askLocation
       resultDescription="Your home sale readiness report."
-      resultsNoun="your readiness report and your town's resale requirements"
+      resultsNoun="your readiness report and top priorities"
       cta={{ label: `Talk to Us: ${CONTACT.phone}`, href: CONTACT.phoneHref }}
       footer={
         <Link href="/questionnaire" className="underline hover:text-foreground">
