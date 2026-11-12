@@ -574,7 +574,7 @@ def leadership_score_html(
         roadmap=roadmap,
         breakdown_rows_html=breakdown_rows_html,
         cta_url=school_url,
-        cta_label=f"Visit {BRAND_NAME}",
+        cta_label="View Our Online Courses",
         support_email=support_email,
         footer_note="You're receiving this because you took the assessment and asked for your results.",
     )

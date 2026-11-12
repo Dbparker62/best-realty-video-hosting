@@ -20,7 +20,7 @@ import {
   type GuideSection,
 } from "@/lib/guide-content"
 import { DIRECTOR } from "@/lib/school-facts"
-import { ONLINE_COURSES_URL, SCHOOL_WEBSITE_URL, SITE_NAME, SITE_URL, pageMetadata } from "@/lib/site"
+import { ONLINE_COURSES_URL, SITE_NAME, SITE_URL, pageMetadata } from "@/lib/site"
 
 export const metadata = pageMetadata({
   title: "How to Get a Real Estate License in NJ: Step-by-Step Guide",
@@ -189,14 +189,10 @@ export default function LicenseGuidePage() {
             <Section section={s} index={i + 1} />
             {s.id === "course" && (
               <div className="flex flex-col gap-3 sm:flex-row">
-                <Button asChild variant="outline">
-                  <a href={SCHOOL_WEBSITE_URL} target="_blank" rel="noopener noreferrer">
-                    See the current class schedule
-                  </a>
-                </Button>
-                <Button asChild variant="ghost">
+                <Button asChild>
                   <a href={ONLINE_COURSES_URL} target="_blank" rel="noopener noreferrer">
-                    Browse our online courses
+                    Enroll in the Online Course
+                    <ArrowRight className="h-4 w-4" />
                   </a>
                 </Button>
               </div>

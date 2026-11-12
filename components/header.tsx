@@ -14,7 +14,7 @@ import {
 import { Menu, LogOut, BookOpen, LayoutDashboard, Phone } from "lucide-react"
 import { useState } from "react"
 import { LoginDialog } from "./login-dialog"
-import { CONTACT, ONLINE_COURSES_URL, SCHOOL_WEBSITE_URL } from "@/lib/site"
+import { CONTACT, ONLINE_COURSES_URL } from "@/lib/site"
 import { BrandLogo } from "./brand-logo"
 
 export function Header() {
@@ -40,7 +40,7 @@ export function Header() {
       <div className="bg-brand text-brand-foreground">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 text-xs sm:px-6 sm:text-sm lg:px-8">
           <a
-            href={SCHOOL_WEBSITE_URL}
+            href={ONLINE_COURSES_URL}
             target="_blank"
             rel="noopener noreferrer"
             className="truncate font-medium hover:underline"

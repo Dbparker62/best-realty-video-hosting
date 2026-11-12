@@ -5,7 +5,6 @@ import {
   CONTACT,
   CONTACT_ADDRESS_LINE,
   ONLINE_COURSES_URL,
-  SCHOOL_WEBSITE_URL,
   SITE_NAME,
   SOCIAL_LINKS,
 } from "@/lib/site"
@@ -88,11 +87,6 @@ export function Footer() {
                   </Link>
                 </li>
               ))}
-              <li>
-                <a href={SCHOOL_WEBSITE_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
-                  Class Schedule &amp; Registration
-                </a>
-              </li>
             </ul>
           </div>
 

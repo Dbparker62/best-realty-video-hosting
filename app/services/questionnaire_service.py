@@ -102,16 +102,17 @@ DEFAULT_QUESTIONS: list[dict] = [
         ],
     },
     {
-        "id": "nj-4",
+        # Replaced the old class-format question (nj-4) when live classes ended.
+        "id": "nj-8",
         "order_index": 4,
-        "prompt": "New Jersey requires a 75-hour pre-licensing course before the state exam. How would you like to take it?",
-        "subtitle": "This tells us which class format fits you best.",
+        "prompt": "New Jersey requires a 75-hour pre-licensing course. How much time could you give it each week?",
+        "subtitle": "Our course is 100% online and self-paced, so you set the pace.",
         "allow_multiple": False,
         "is_active": True,
         "options": [
-            _opt("a", "Live online via Zoom with an instructor", points=8),
-            _opt("b", "Self-paced online, on my own time", points=8, part_time=1),
-            _opt("c", "Either could work — I'm flexible", points=7, full_time=1, part_time=1),
+            _opt("a", "10+ hours, I want to finish fast", points=10, full_time=1),
+            _opt("b", "5–10 hours a week", points=8, part_time=1),
+            _opt("c", "A few hours here and there", points=6, referral=1),
         ],
     },
 ]
@@ -272,7 +273,7 @@ def career_path_roadmap(path: str) -> str:
         return (
             f"You're positioned for a full-time real estate career in New Jersey. "
             f"{license_steps} With focused study, many students are licensed within "
-            "1–3 months. Our live Zoom or self-paced course gives you the structure "
+            "1–3 months. Our self-paced online course gives you the structure "
             "to go all-in and start building your business right away."
         )
     if path == "referral":

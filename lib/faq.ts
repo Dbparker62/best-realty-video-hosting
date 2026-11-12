@@ -13,15 +13,15 @@ export const HOME_FAQ: { question: string; answer: string }[] = [
   {
     question: "How long does it take to get licensed in NJ?",
     answer:
-      "The pre-licensing course is 75 hours, and you must attend at least 80% of it. Depending on " +
-      "your schedule, most students finish in a few weeks to a couple of months. After the course " +
+      "The pre-licensing course is 75 hours. Because it's self-paced online, you move as fast as your " +
+      "schedule allows; most students finish in a few weeks to a couple of months. After the course " +
       "you have one year to pass the state exam, get fingerprinted, and activate your license.",
   },
   {
     question: "How are your classes offered?",
     answer:
-      "Best School of Real Estate is licensed by the New Jersey Real Estate Commission and offers " +
-      "classes live on Zoom, self-paced online (study anytime), and in person.",
+      "Our New Jersey pre-licensing course is 100% online and self-paced, so you can study anytime, " +
+      "24/7. Best School of Real Estate is licensed by the New Jersey Real Estate Commission.",
   },
   {
     question: "Do I need a broker before I start the course?",

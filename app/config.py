@@ -30,6 +30,12 @@ CLOUDFRONT_DOMAIN = os.getenv("CLOUDFRONT_DOMAIN")
 FRONTEND_URL = os.getenv(
     "FRONTEND_URL", "https://www.bestacademyofrealestate.com"
 )
+# Online salesperson pre-licensing course (RECampus store). Used for the CTA in results emails.
+ONLINE_COURSES_URL = os.getenv(
+    "ONLINE_COURSES_URL",
+    "https://home.recampus.com/shop/bestschool/real-estate-licensing/state-level"
+    "?level=SALESPRSN_LICENSING&licenseType=SLP&orgCode=RE_LIC_NJ&productGroup=RE_WHOLESALE",
+)
 SCHOOL_WEBSITE_URL = os.getenv(
     "SCHOOL_WEBSITE_URL", "https://bestschoolofrealestate.biz"
 ).rstrip("/")

@@ -12,7 +12,7 @@ import {
   previewQuestionnaire,
   submitQuestionnaire,
 } from "@/lib/questionnaire-api"
-import { SCHOOL_WEBSITE_URL, SITE_NAME } from "@/lib/site"
+import { ONLINE_COURSES_URL, SITE_NAME } from "@/lib/site"
 
 async function submitCareerQuiz(contact: QuizContact, answers: QuizAnswer[]): Promise<QuizResult> {
   const r = await submitQuestionnaire({ ...contact, answers })
@@ -42,7 +42,7 @@ export function CareerQuiz() {
       submit={submitCareerQuiz}
       resultDescription="Your personalized path to a New Jersey real estate license."
       resultsNoun="your career profile and step-by-step roadmap"
-      cta={{ label: "Explore Real Estate Classes", href: SCHOOL_WEBSITE_URL }}
+      cta={{ label: "Enroll in Our Online Course", href: ONLINE_COURSES_URL }}
       footer={`${SITE_NAME} · New Jersey real estate pre-licensing education`}
     />
   )

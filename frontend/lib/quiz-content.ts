@@ -12,7 +12,7 @@ export const CAREER_QUIZ_LEARN = [
   "Whether a real estate career fits your goals and schedule",
   "Which path suits you best: full-time, part-time, or referral agent",
   "What to expect from New Jersey's 75-hour pre-licensing course and state exam",
-  "Which class format fits you: live on Zoom, self-paced online, or in person",
+  "How our self-paced online course can fit around your schedule",
   "Your personalized next steps, emailed to you right away",
 ]
 
@@ -25,15 +25,15 @@ export const CAREER_QUIZ_FAQ: { question: string; answer: string }[] = [
     question: "How do I become a real estate agent in New Jersey?",
     answer:
       "You need to be at least 18 with a high school diploma or the equivalent, complete an approved " +
-      "75-hour pre-licensing course (attending at least 80% of the hours), pass the school's final " +
+      "75-hour pre-licensing course, pass the school's final " +
       "exam and the PSI state licensing exam, then get fingerprinted and activate your license with " +
       "a sponsoring broker, all within one year of finishing the course.",
   },
   {
     question: "Can I study while working full time?",
     answer:
-      "Yes. Many students do. Live Zoom classes run in the evenings, and the self-paced online course " +
-      "lets you study whenever it suits you.",
+      "Yes. Many students do. Our course is 100% online and self-paced, so you can study evenings, " +
+      "weekends, or whenever it suits you.",
   },
   {
     question: "How much can a new real estate agent earn?",

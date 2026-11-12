@@ -31,8 +31,8 @@ export const DIRECTOR_BIO = [
 
 export const SCHOOL_SUMMARY =
   "Best School of Real Estate is licensed by the New Jersey Real Estate Commission and offers " +
-  "approved salesperson pre-licensing, broker, and continuing education courses: live on Zoom, " +
-  "self-paced online, and in person."
+  "approved salesperson pre-licensing, broker, and continuing education courses, all online and " +
+  "self-paced so you can study anytime."
 
 /** NJ salesperson licensing steps (from the school's FAQ). */
 export const LICENSE_STEPS = [
@@ -43,8 +43,8 @@ export const LICENSE_STEPS = [
   {
     title: "Complete the 75-hour pre-licensing course",
     body:
-      "Take an approved course, attend at least 80% of the class hours, and pass the school's " +
-      "final exam to earn your certificate.",
+      "Take an approved course, complete the course tests, and pass the school's final exam to " +
+      "earn your certificate.",
   },
   {
     title: "Pass the New Jersey state exam",

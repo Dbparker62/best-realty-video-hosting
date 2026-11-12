@@ -8,16 +8,16 @@ import { getCourses, initiateCheckout, getMyCourses } from "@/lib/api"
 import { useAuth } from "@/lib/auth-context"
 import { CourseCard } from "@/components/course-card"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ArrowRight, Clock, MonitorPlay, Phone, Users } from "lucide-react"
+import { ArrowRight, Award, BadgeCheck, Clock, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Course } from "@/lib/types"
 import { PROOF_POINTS } from "@/lib/school-facts"
-import { CONTACT, ONLINE_COURSES_URL, SCHOOL_WEBSITE_URL } from "@/lib/site"
+import { CONTACT, ONLINE_COURSES_URL } from "@/lib/site"
 
 const FORMATS = [
-  { icon: MonitorPlay, title: "Live on Zoom", body: "Instructor-led evening classes you can join from home." },
-  { icon: Clock, title: "Self-Paced Online", body: "Study anytime, anywhere, 24/7, at your own pace." },
-  { icon: Users, title: "In Person", body: "Classroom instruction with our licensed instructors." },
+  { icon: Clock, title: "Study anytime, 24/7", body: "Self-paced online. Start today and learn on your own schedule." },
+  { icon: BadgeCheck, title: "NJ-approved 75-hour course", body: "From a school licensed by the New Jersey Real Estate Commission." },
+  { icon: Award, title: "Certificate for the state exam", body: "Pass the course tests and final exam to earn the certificate you need for the PSI exam." },
 ]
 
 /** Hero + course grid. `initialCourses` comes from the server so the list is in the page HTML. */
@@ -87,14 +87,14 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
               className="mt-6 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
             >
               <Phone className="h-4 w-4 text-primary" />
-              Prefer live Zoom or in-person classes? Call{" "}
-              <span className="font-semibold text-foreground">{CONTACT.phone}</span> to sign up.
+              Questions about enrolling? Call{" "}
+              <span className="font-semibold text-foreground">{CONTACT.phone}</span>
             </a>
           </div>
 
           {/* Class formats */}
           <div className="rounded-2xl border bg-card p-6 shadow-lg shadow-brand/5 sm:p-8">
-            <h2 className="text-lg font-bold uppercase tracking-wide text-brand">Get licensed your way</h2>
+            <h2 className="text-lg font-bold uppercase tracking-wide text-brand">Our online pre-licensing course</h2>
             <ul className="mt-6 space-y-5">
               {FORMATS.map(({ icon: Icon, title, body }) => (
                 <li key={title} className="flex gap-4">
@@ -109,12 +109,12 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
               ))}
             </ul>
             <a
-              href={SCHOOL_WEBSITE_URL}
+              href={ONLINE_COURSES_URL}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-7 inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:underline"
             >
-              See the current class schedule
+              Enroll online
               <ArrowRight className="h-4 w-4" />
             </a>
           </div>
@@ -147,7 +147,7 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
             </p>
           </div>
 
-          {/* How to enroll: online store or call for live classes */}
+          {/* How to enroll: online store or by phone */}
           <div className="mb-10 grid gap-4 md:grid-cols-2">
             <div className="flex flex-col rounded-2xl border bg-card p-6 shadow-sm">
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-brand-foreground">
@@ -168,9 +168,9 @@ export function CourseCatalog({ initialCourses }: { initialCourses?: Course[] })
               <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-brand-foreground">
                 <Phone className="h-5 w-5" />
               </span>
-              <h3 className="mt-4 text-lg font-bold text-foreground">Live on Zoom or in person</h3>
+              <h3 className="mt-4 text-lg font-bold text-foreground">Prefer to sign up by phone?</h3>
               <p className="mt-1 flex-1 text-sm text-muted-foreground">
-                Instructor-led classes. Call us to check the schedule and sign up.
+                Call us and we&apos;ll help you choose the right course and get enrolled.
               </p>
               <Button asChild variant="outline" className="mt-5 self-start">
                 <a href={CONTACT.phoneHref}>

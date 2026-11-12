@@ -11,7 +11,7 @@ from app.config import (
     EMAIL_FROM,
     FRONTEND_URL,
     QUESTIONNAIRE_LEAD_EMAILS,
-    SCHOOL_WEBSITE_URL,
+    ONLINE_COURSES_URL,
     SUPPORT_EMAIL,
 )
 from app.services import email_templates as templates
@@ -232,7 +232,7 @@ def send_questionnaire_score_email(
     career_path_title: str,
     roadmap: str,
 ) -> bool:
-    courses_url = SCHOOL_WEBSITE_URL
+    courses_url = ONLINE_COURSES_URL
     support = _support_address()
 
     breakdown_lines = templates.format_breakdown_text(breakdown)
@@ -377,7 +377,7 @@ def send_leadership_score_email(
             outcome_summary=outcome_summary,
             roadmap=roadmap,
             breakdown_lines=templates.format_breakdown_text(breakdown),
-            school_url=SCHOOL_WEBSITE_URL,
+            school_url=ONLINE_COURSES_URL,
             support_email=support,
         ),
         html_body=templates.leadership_score_html(
@@ -386,7 +386,7 @@ def send_leadership_score_email(
             outcome_summary=outcome_summary,
             roadmap=roadmap,
             breakdown_rows_html=templates.format_breakdown_rows_html(breakdown),
-            school_url=SCHOOL_WEBSITE_URL,
+            school_url=ONLINE_COURSES_URL,
             support_email=support,
         ),
         reply_to=_results_reply_to(),

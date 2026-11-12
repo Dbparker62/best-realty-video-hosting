@@ -13,7 +13,7 @@ import {
   LEADERSHIP_LEARN,
 } from "@/lib/leadership-content"
 import { CAREER_QUIZ_DISCLAIMER } from "@/lib/quiz-content"
-import { SCHOOL_WEBSITE_URL } from "@/lib/site"
+import { ONLINE_COURSES_URL } from "@/lib/site"
 
 /** Team-or-Broker quiz landing page: quiz first, server-rendered content below. */
 export default function LeadershipQuestionnairePage() {
@@ -110,10 +110,9 @@ export default function LeadershipQuestionnairePage() {
             ))}
           </ol>
           <p className="mt-6 text-sm text-muted-foreground">
-            Best School of Real Estate offers the full 150-hour broker package online and self-paced, with
-            classroom and review courses in person or on Zoom.{" "}
-            <a href={`${SCHOOL_WEBSITE_URL}/broker`} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
-              See broker course options
+            Best School of Real Estate offers the full 150-hour broker package 100% online and self-paced.{" "}
+            <a href={ONLINE_COURSES_URL} target="_blank" rel="noopener noreferrer" className="font-medium text-primary hover:underline">
+              See our online courses
             </a>
             .
           </p>
@@ -146,8 +145,8 @@ export default function LeadershipQuestionnairePage() {
               </a>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <a href={`${SCHOOL_WEBSITE_URL}/broker`} target="_blank" rel="noopener noreferrer">
-                Explore Broker Courses
+              <a href={ONLINE_COURSES_URL} target="_blank" rel="noopener noreferrer">
+                Explore Our Online Courses
               </a>
             </Button>
           </div>

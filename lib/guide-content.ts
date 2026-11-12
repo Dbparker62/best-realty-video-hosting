@@ -25,7 +25,7 @@ export const QUICK_FACTS: { label: string; value: string }[] = [
   { label: "Minimum age", value: "18" },
   { label: "Education", value: "High school diploma or equivalent" },
   { label: "Pre-licensing course", value: "75 hours at a licensed school" },
-  { label: "Attendance", value: "At least 80% of class hours" },
+  { label: "Course format", value: "Self-paced online, study 24/7" },
   { label: "State exam", value: "PSI real estate salesperson exam" },
   { label: "Deadline", value: "1 year from finishing the course" },
   { label: "Reciprocity", value: "None. NJ requires its own course and exam" },
@@ -62,19 +62,16 @@ export const GUIDE_STEPS: GuideSection[] = [
     heading: "Step 2: Complete the 75-hour pre-licensing course",
     paragraphs: [
       "Every new salesperson in New Jersey must complete a 75-hour pre-licensing course at a school " +
-        "licensed by the Real Estate Commission. You must attend at least 80% of the class hours " +
-        "(arriving late or leaving early counts against you) and pass the school's final exam. When you " +
-        "finish, you receive the certificate you need to sit for the state exam.",
-      "Best School of Real Estate offers the course three ways, so you can pick what fits your schedule:",
+        "licensed by the Real Estate Commission and pass the school's final exam. When you finish, you " +
+        "receive the certificate you need to sit for the state exam.",
+      "Best School of Real Estate's course is 100% online and self-paced, so you can study anytime, " +
+        "24/7, around your job and family. It includes:",
     ],
     bullets: [
-      "Live on Zoom: instructor-led evening classes you join from home",
-      "Self-paced online: study anytime, 24/7, at your own pace",
-      "In person: traditional classroom instruction",
-    ],
-    after: [
-      "Missed a class? Instructor-led classes can be made up in a regularly scheduled session, and " +
-        "optional review sessions and practice materials are available if you want extra help.",
+      "All required New Jersey pre-licensing instruction",
+      "Course assessments and class tests to track your progress",
+      "A final course exam",
+      "A certificate of completion to apply for the state exam",
     ],
   },
   {
@@ -133,7 +130,7 @@ export const GUIDE_EXTRA: GuideSection[] = [
     paragraphs: [
       "Plan for four main costs: course tuition, the PSI exam fee, the fingerprinting fee, and the " +
         "license fee. Fees change, so check current amounts with PSI and the Real Estate Commission. " +
-        "For tuition, see our current class schedule and online course options.",
+        "For tuition, see our online course page.",
     ],
   },
   {
@@ -162,8 +159,8 @@ export const GUIDE_FAQ: { question: string; answer: string }[] = [
   {
     question: "Can I take the New Jersey real estate course online?",
     answer:
-      "Yes. You can take the 75-hour course self-paced online or live on Zoom with an instructor. The " +
-      "state exam itself is scheduled through PSI.",
+      "Yes. Our 75-hour course is 100% online and self-paced, so you can study anytime. The state " +
+      "exam itself is scheduled through PSI.",
   },
   {
     question: "Does New Jersey have real estate license reciprocity with other states?",
@@ -186,7 +183,7 @@ export const GUIDE_FAQ: { question: string; answer: string }[] = [
   {
     question: "Can I get my license while working full time?",
     answer:
-      "Yes. Evening Zoom classes and the self-paced online course are built for people with jobs and " +
-      "families.",
+      "Yes. The self-paced online course lets you study evenings, weekends, or whenever it suits " +
+      "you, so it works around a job and family.",
   },
 ]

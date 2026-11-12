@@ -77,8 +77,8 @@ export const LEADERSHIP_FAQ: { question: string; answer: string }[] = [
   {
     question: "Can I take the broker courses online?",
     answer:
-      "Yes. The 150-hour broker package is available 100% online and self-paced, and classroom and " +
-      "review courses are offered in person or on Zoom. Call (732) 266-3366 for scheduling.",
+      "Yes. The 150-hour broker package is available 100% online and self-paced. Call (732) 266-3366 " +
+      "with any questions.",
   },
   {
     question: "Is the Team or Broker quiz free?",

@@ -12,7 +12,7 @@ export const SITE_URL = (
 
 export const SITE_NAME = "Best School of Real Estate"
 
-/** The school's main website (class schedule, catalog, registration). */
+/** The school's main website. Course links use ONLINE_COURSES_URL instead. */
 export const SCHOOL_WEBSITE_URL = (
   process.env.NEXT_PUBLIC_SCHOOL_WEBSITE_URL ?? "https://bestschoolofrealestate.biz"
 ).replace(/\/$/, "")

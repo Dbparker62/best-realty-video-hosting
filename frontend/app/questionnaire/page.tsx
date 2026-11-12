@@ -12,7 +12,7 @@ import {
   CAREER_QUIZ_LEARN,
 } from "@/lib/quiz-content"
 import { LICENSE_STEPS } from "@/lib/school-facts"
-import { SCHOOL_WEBSITE_URL } from "@/lib/site"
+import { ONLINE_COURSES_URL } from "@/lib/site"
 
 /**
  * Career quiz landing page (the Facebook / Instagram link).
@@ -113,8 +113,8 @@ export default function QuestionnairePage() {
               </a>
             </Button>
             <Button asChild size="lg" variant="outline">
-              <a href={SCHOOL_WEBSITE_URL} target="_blank" rel="noopener noreferrer">
-                Explore Real Estate Classes
+              <a href={ONLINE_COURSES_URL} target="_blank" rel="noopener noreferrer">
+                Explore Our Online Course
               </a>
             </Button>
           </div>

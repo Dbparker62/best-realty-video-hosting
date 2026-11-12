@@ -13,7 +13,7 @@ import {
   previewLeadershipQuestionnaire,
   submitLeadershipQuestionnaire,
 } from "@/lib/leadership-questionnaire-api"
-import { SCHOOL_WEBSITE_URL, SITE_NAME } from "@/lib/site"
+import { ONLINE_COURSES_URL } from "@/lib/site"
 
 async function submitLeadershipQuiz(
   contact: QuizContact,
@@ -46,7 +46,7 @@ export function LeadershipQuiz() {
       submit={submitLeadershipQuiz}
       resultDescription="Your recommended leadership path in New Jersey real estate."
       resultsNoun="your leadership profile and next-step roadmap"
-      cta={{ label: `Visit ${SITE_NAME}`, href: SCHOOL_WEBSITE_URL }}
+      cta={{ label: "View Our Online Courses", href: ONLINE_COURSES_URL }}
       footer={
         <Link href="/questionnaire" className="underline hover:text-foreground">
           Looking to get your NJ license instead?
