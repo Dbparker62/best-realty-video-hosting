@@ -67,7 +67,7 @@ export function trackEvent(name: string, props: EventProps = {}): void {
   }
 }
 
-export type QuizName = "career" | "leadership"
+export type QuizName = "career" | "leadership" | "home_sale"
 
 export type QuizStepInfo =
   | { type: "question"; questionId: string; questionNumber: number }

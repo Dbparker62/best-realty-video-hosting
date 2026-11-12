@@ -222,6 +222,18 @@ class QuestionnaireSubmitIn(BaseModel):
     attribution: LeadAttributionIn | None = None
 
 
+class HomeSaleSubmitIn(BaseModel):
+    """Home Sale Readiness quiz submission (seller lead)."""
+
+    name: str = Field(..., min_length=1, max_length=100)
+    email: EmailStr
+    phone: str | None = Field(None, max_length=30)
+    county: str = Field(..., min_length=1, max_length=40)
+    town: str = Field(..., min_length=1, max_length=80)
+    answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
+    attribution: LeadAttributionIn | None = None
+
+
 class ContactMessageIn(BaseModel):
     """Website contact form."""
 
@@ -282,6 +294,23 @@ class LeadershipQuestionnaireSubmitOut(BaseModel):
     outcome_title: str
     outcome_summary: str
     roadmap: str
+    lean: ResultLeanOut | None = None
+    email_sent: bool = False
+    lead_notification_sent: bool = False
+
+class HomeSaleSubmitOut(BaseModel):
+    submission_id: str
+    name: str
+    readiness_score: int
+    readiness_label: str
+    title: str
+    summary: str
+    roadmap: str
+    priorities: list[str] = []
+    negotiation_plan: list[str] = []
+    listing_timing: str = ""
+    town_requirement: str = ""
+    town_cost: str = ""
     lean: ResultLeanOut | None = None
     email_sent: bool = False
     lead_notification_sent: bool = False

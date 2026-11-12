@@ -17,6 +17,7 @@ from app.routes.progress import router as progress_router
 from app.routes.leadership_questionnaire import router as leadership_questionnaire_router
 from app.routes.questionnaire import router as questionnaire_router
 from app.routes.contact import router as contact_router
+from app.routes.home_sale_questionnaire import router as home_sale_questionnaire_router
 from fastapi.middleware.cors import CORSMiddleware
 logger = logging.getLogger(__name__)
 
@@ -74,6 +75,7 @@ app.include_router(progress_router)
 app.include_router(questionnaire_router)
 app.include_router(leadership_questionnaire_router)
 app.include_router(contact_router)
+app.include_router(home_sale_questionnaire_router)
 _cors_origins = [
     "http://localhost:3000",
     "https://www.bestacademyofrealestate.com",

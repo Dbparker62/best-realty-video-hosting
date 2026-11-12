@@ -651,3 +651,143 @@ def contact_message_html(
   <p style="font-size: 13px; color: #777;">Reply to this email to answer {_e(name)}.</p>
 </body>
 </html>"""
+
+
+# ---------------------------------------------------------------------------
+# Home Sale Readiness quiz (seller results + staff lead)
+# ---------------------------------------------------------------------------
+
+CONTACT_PHONE = "(732) 266-3366"
+CONTACT_PHONE_HREF = "tel:+17322663366"
+
+
+def _numbered(items: list[str], limit: int = 3) -> tuple[list[str], int]:
+    """Top `limit` items and how many more there are."""
+    return items[:limit], max(0, len(items) - limit)
+
+
+def home_sale_score_subject(*, score: int, label: str) -> str:
+    return f"Your home sale readiness: {score}% ({label})"
+
+
+def home_sale_score_text(*, report: dict, support_email: str) -> str:
+    top, more = _numbered(report["priorities"])
+    lines = "\n".join(f"{i}. {p}" for i, p in enumerate(top, 1)) or "Nothing major. You're in great shape."
+    if more:
+        lines += f"\n(+{more} more)"
+    return f"""Hi {report['name']},
+
+Thanks for taking the {BRAND_NAME} Home Sale Readiness quiz.
+
+Your readiness score: {report['score']}% ({report['label']})
+{report['summary']}
+
+Top priorities:
+{lines}
+
+Town resale requirement ({report['town']}): {report['town_requirement']}
+Estimated town cost: {report['town_cost']}
+
+{report['roadmap']}
+
+Your answers:
+{format_breakdown_text(report['breakdown'])}
+
+Ready to talk about selling? Call {CONTACT_PHONE} or just reply to this email{f" ({support_email})" if support_email else ""}.
+
+— {BRAND_NAME}
+"""
+
+
+def home_sale_score_html(*, report: dict, support_email: str) -> str:
+    top, more = _numbered(report["priorities"])
+    roadmap = (
+        "Top priorities: "
+        + ("; ".join(f"{i}. {p}" for i, p in enumerate(top, 1)) if top else "nothing major")
+        + (f" (+{more} more)" if more else "")
+        + f"\nTown resale requirement ({report['town']}): {report['town_requirement']}, {report['town_cost']}."
+        + f"\n\n{report['roadmap']}"
+    )
+    return _results_email_html(
+        heading="Your Home Sale Readiness",
+        subheading=f"{report['town']}, {report['county']} County",
+        name=report["name"],
+        result_title=f"{report['score']}% · {report['label']}",
+        summary=report["summary"],
+        roadmap=roadmap,
+        breakdown_rows_html=format_breakdown_rows_html(report["breakdown"]),
+        cta_url=CONTACT_PHONE_HREF,
+        cta_label=f"Call {CONTACT_PHONE}",
+        support_email=support_email,
+        footer_note="You're receiving this because you took our Home Sale Readiness quiz and asked for your results.",
+    )
+
+
+def home_sale_lead_subject(*, report: dict) -> str:
+    return f"New seller lead: {report['name']} ({report['town']}) · {report['score']}% {report['label']}"
+
+
+def _home_sale_rows(report: dict, lead_source: str) -> list[tuple[str, str]]:
+    top, more = _numbered(report["priorities"])
+    priorities = "\n".join(f"{i}. {p}" for i, p in enumerate(top, 1)) or "None"
+    if more:
+        priorities += f"\n(+{more} more)"
+    tip = report["town_tip"] + ("" if report["town_known"] else " (town not in our list yet)")
+    return [
+        ("Client name", report["name"]),
+        ("Email", report["email"]),
+        ("Phone", report["phone"] or "Not provided"),
+        ("County", report["county"]),
+        ("Town", report["town"]),
+        ("Listing timing", report["timing"]),
+        ("Readiness score", f"{report['score']}% ({report['label']})"),
+        ("Town resale requirement", report["town_requirement"]),
+        ("Estimated town cost", report["town_cost"]),
+        ("Local tip for the agent", tip),
+        ("Top priorities", priorities),
+        ("Negotiation plan", "\n".join(report["negotiation"]) or "Nothing flagged"),
+        ("Came from", lead_source),
+    ]
+
+
+def home_sale_lead_text(*, report: dict, lead_source: str) -> str:
+    rows = "\n".join(f"{k}\n{v}\n" for k, v in _home_sale_rows(report, lead_source))
+    answers = "\n".join(f"{b['prompt']} {b['selected_label']}" for b in report["breakdown"])
+    return f"""A new seller completed the Home Sale Readiness quiz.
+
+{rows}
+All answers
+{answers}
+
+Reply to this email to contact {report['name']}.
+"""
+
+
+def home_sale_lead_html(*, report: dict, lead_source: str) -> str:
+    rows = ""
+    for key, value in _home_sale_rows(report, lead_source):
+        if key == "Phone" and report["phone"]:
+            cell = _phone_html(report["phone"])
+        elif key == "Email":
+            cell = f'<a href="mailto:{_e(value)}">{_e(value)}</a>'
+        else:
+            cell = _e(value).replace("\n", "<br/>")
+        rows += (
+            f'<tr><td style="padding: 6px 14px 6px 0; vertical-align: top; white-space: nowrap;"><strong>{_e(key)}</strong></td>'
+            f'<td style="padding: 6px 0; vertical-align: top;">{cell}</td></tr>'
+        )
+    answers = "".join(
+        f'<tr><td style="padding: 5px 14px 5px 0; vertical-align: top; color: #555;">{_e(b["prompt"])}</td>'
+        f'<td style="padding: 5px 0; vertical-align: top;"><strong>{_e(b["selected_label"])}</strong></td></tr>'
+        for b in report["breakdown"]
+    )
+    return f"""<!DOCTYPE html>
+<html>
+<body style="font-family: Arial, sans-serif; line-height: 1.5; color: #111;">
+  <h2 style="color: {BRAND_COLOR};">New Seller Lead: Home Sale Readiness</h2>
+  <table style="margin: 16px 0; border-collapse: collapse;">{rows}</table>
+  <h3 style="font-size: 16px; color: {BRAND_COLOR};">All answers</h3>
+  <table style="border-collapse: collapse; font-size: 14px;">{answers}</table>
+  <p style="font-size: 13px; color: #777;">Reply to this email to contact {_e(report['name'])}.</p>
+</body>
+</html>"""

@@ -427,3 +427,30 @@ def send_contact_message_email(
         html_body=templates.contact_message_html(**fields),
         reply_to=email,
     )
+
+
+def send_home_sale_score_email(*, report: dict) -> bool:
+    """Home Sale Readiness results to the seller."""
+    support = _support_address()
+    return _send_email(
+        to_address=report["email"],
+        subject=templates.home_sale_score_subject(score=report["score"], label=report["label"]),
+        text_body=templates.home_sale_score_text(report=report, support_email=support),
+        html_body=templates.home_sale_score_html(report=report, support_email=support),
+        reply_to=_results_reply_to(),
+    )
+
+
+def send_home_sale_lead_notification_email(*, report: dict, attribution: dict | None = None) -> bool:
+    """Notify staff of a new seller lead. Reply-To is the seller's email."""
+    if not QUESTIONNAIRE_LEAD_EMAILS:
+        logger.info("QUESTIONNAIRE_LEAD_EMAIL unset — skipping home sale lead notification")
+        return False
+    source = lead_source_label(attribution)
+    return _send_email(
+        to_address=QUESTIONNAIRE_LEAD_EMAILS,
+        subject=templates.home_sale_lead_subject(report=report),
+        text_body=templates.home_sale_lead_text(report=report, lead_source=source),
+        html_body=templates.home_sale_lead_html(report=report, lead_source=source),
+        reply_to=report["email"],
+    )

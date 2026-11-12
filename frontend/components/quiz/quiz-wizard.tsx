@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import type { QuestionnaireQuestion, QuizPreview, ResultLean } from "@/lib/questionnaire-api"
 import { ResultLeanBar } from "@/components/quiz/result-lean-bar"
 import { suggestEmail } from "@/lib/email-suggest"
+import { NJ_COUNTIES } from "@/lib/nj"
 import {
   trackQuizSubmit,
   trackQuizSubmitError,
@@ -33,6 +34,9 @@ export interface QuizContact {
   name: string
   email: string
   phone: string
+  /** Only collected when `askLocation` is on. */
+  county?: string
+  town?: string
 }
 
 /** Both quizzes' submit responses, normalized for display. */
@@ -43,6 +47,8 @@ export interface QuizResult {
   summary: string
   roadmap: string
   lean?: ResultLean
+  /** Extra label/value rows shown under the roadmap (e.g. town requirements). */
+  highlights?: { label: string; value: string }[]
   emailSent: boolean
   leadNotificationSent: boolean
 }
@@ -63,6 +69,8 @@ export interface QuizWizardProps {
   resultsNoun: string
   cta: { label: string; href: string }
   footer: ReactNode
+  /** Ask for NJ county + town on the final step (home sale quiz). */
+  askLocation?: boolean
 }
 
 type WizardStep = { type: "question"; questionIndex: number } | { type: "contact" }
@@ -86,6 +94,7 @@ export function QuizWizard({
   resultsNoun,
   cta,
   footer,
+  askLocation = false,
 }: QuizWizardProps) {
   const { data: questions, isLoading, error } = useSWR(`quiz-questions-${quiz}`, loadQuestions)
 
@@ -105,6 +114,8 @@ export function QuizWizard({
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [phone, setPhone] = useState("")
+  const [county, setCounty] = useState("")
+  const [town, setTown] = useState("")
   const [emailBlurred, setEmailBlurred] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -206,7 +217,11 @@ export function QuizWizard({
   )
 
   const canSubmit =
-    allQuestionsAnswered && name.trim().length > 0 && email.trim().length > 0 && !submitting
+    allQuestionsAnswered &&
+    name.trim().length > 0 &&
+    email.trim().length > 0 &&
+    (!askLocation || (county.length > 0 && town.trim().length > 0)) &&
+    !submitting
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -215,7 +230,12 @@ export function QuizWizard({
     setSubmitError(null)
     try {
       const payload = await submit(
-        { name: name.trim(), email: email.trim(), phone: phone.trim() },
+        {
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          ...(askLocation ? { county, town: town.trim() } : {}),
+        },
         answerList
       )
       setResult(payload)
@@ -259,6 +279,16 @@ export function QuizWizard({
               <div className="rounded-xl border-l-4 border-primary bg-muted/60 p-5 text-sm leading-relaxed">
                 {result.roadmap}
               </div>
+              {result.highlights && result.highlights.length > 0 && (
+                <dl className="divide-y rounded-xl border bg-card">
+                  {result.highlights.map((h) => (
+                    <div key={h.label} className="grid gap-1 px-5 py-3 text-sm sm:grid-cols-[11rem_1fr] sm:gap-4">
+                      <dt className="font-semibold text-foreground">{h.label}</dt>
+                      <dd className="whitespace-pre-line text-muted-foreground">{h.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
               <p className="flex items-center justify-center gap-2 rounded-xl border border-success/20 bg-success/10 px-4 py-3 text-center text-sm text-foreground">
                 <Mail className="h-4 w-4 shrink-0 text-success" />
                 {result.emailSent
@@ -499,6 +529,42 @@ export function QuizWizard({
                     </p>
                   )}
                 </div>
+                {askLocation && (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="quiz-county">County</Label>
+                      <select
+                        id="quiz-county"
+                        value={county}
+                        onChange={(e) => setCounty(e.target.value)}
+                        required
+                        className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                      >
+                        <option value="" disabled>
+                          Choose county
+                        </option>
+                        {NJ_COUNTIES.map((c) => (
+                          <option key={c} value={c}>
+                            {c}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="quiz-town">Town</Label>
+                      <Input
+                        id="quiz-town"
+                        className="h-11"
+                        value={town}
+                        onChange={(e) => setTown(e.target.value)}
+                        autoComplete="address-level2"
+                        maxLength={80}
+                        required
+                        placeholder="e.g. Highland Park"
+                      />
+                    </div>
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label htmlFor="quiz-phone">
                     Phone number <span className="text-muted-foreground">(optional)</span>

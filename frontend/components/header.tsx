@@ -59,7 +59,7 @@ export function Header() {
           <BrandLogo />
 
           {/* Desktop Navigation */}
-          <nav className="hidden items-center gap-6 lg:flex">
+          <nav className="hidden items-center gap-4 lg:flex xl:gap-6">
             <a
               href={ONLINE_COURSES_URL}
               target="_blank"
@@ -85,6 +85,12 @@ export function Header() {
               className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
             >
               Team / Broker Quiz
+            </Link>
+            <Link
+              href="/questionnaire/home-sale"
+              className="font-[family-name:var(--font-heading)] text-sm font-semibold text-foreground transition-colors hover:text-primary"
+            >
+              Seller Quiz
             </Link>
             {canUseCustomerFeatures && !authLoading && (
               <Link
@@ -204,6 +210,13 @@ export function Header() {
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Team / Broker Quiz
+              </Link>
+              <Link
+                href="/questionnaire/home-sale"
+                className="block rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Seller Quiz: Is Your Home Ready to Sell?
               </Link>
               {canUseCustomerFeatures && !authLoading && (
                 <Link

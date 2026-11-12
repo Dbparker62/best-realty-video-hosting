@@ -15,6 +15,7 @@ const QUICK_LINKS = [
   { href: "/how-to-get-a-real-estate-license-in-nj", label: "How to Get Your NJ License" },
   { href: "/questionnaire", label: "NJ Real Estate Career Quiz" },
   { href: "/questionnaire/leadership", label: "Team or Broker Quiz" },
+  { href: "/questionnaire/home-sale", label: "Home Sale Readiness Quiz" },
 ]
 
 const LEGAL_LINKS = [
