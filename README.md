@@ -1,6 +1,6 @@
-# Best Realty Video Course Platform
+# Best School of Real Estate — Course Platform
 
-A deployed video course platform built for Best Realty to manage, sell, and securely deliver online course content.
+A deployed video course platform built for Best School of Real Estate to manage, sell, and securely deliver online course content.
 
 Live site: https://www.bestacademyofrealestate.com/
 

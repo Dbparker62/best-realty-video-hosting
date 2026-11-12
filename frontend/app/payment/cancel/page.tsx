@@ -34,7 +34,7 @@ export default function PaymentCancelPage() {
           hesitate to reach out to our support team.
         </p>
         <Button variant="outline" className="mt-4" asChild>
-          <Link href="mailto:support@bestrealtycourses.com">
+          <Link href="mailto:bruceparkerteam@gmail.com">
             <HelpCircle className="mr-2 h-4 w-4" />
             Contact Support
           </Link>

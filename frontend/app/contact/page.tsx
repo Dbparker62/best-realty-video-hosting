@@ -3,7 +3,8 @@
 import type { FormEvent } from "react"
 import { useState } from "react"
 import Link from "next/link"
-import { ArrowLeft, Mail, MessageSquare, Clock } from "lucide-react"
+import { CONTACT, CONTACT_ADDRESS_LINE } from "@/lib/site"
+import { ArrowLeft, Mail, MessageSquare, Phone, Clock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -56,19 +57,26 @@ export default function ContactPage() {
               <Mail className="h-5 w-5 text-primary" />
             </div>
             <h3 className="mt-4 font-semibold text-foreground">Email Us</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              support@bestrealtycourses.com
-            </p>
+            <a
+              href={`mailto:${CONTACT.email}`}
+              className="mt-2 block break-all text-sm text-muted-foreground hover:text-foreground"
+            >
+              {CONTACT.email}
+            </a>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-6">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-              <MessageSquare className="h-5 w-5 text-primary" />
+              <Phone className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="mt-4 font-semibold text-foreground">Live Chat</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Available Mon-Fri, 9am-5pm EST
-            </p>
+            <h3 className="mt-4 font-semibold text-foreground">Call Us</h3>
+            <a
+              href={CONTACT.phoneHref}
+              className="mt-2 block text-sm text-muted-foreground hover:text-foreground"
+            >
+              {CONTACT.phone}
+            </a>
+            <p className="mt-1 text-xs text-muted-foreground">{CONTACT_ADDRESS_LINE}</p>
           </div>
 
           <div className="rounded-xl border border-border bg-card p-6">

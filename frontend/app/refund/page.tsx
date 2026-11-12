@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Refund Policy",
   alternates: { canonical: "/refund" },
   description:
-    "Learn about our refund policy for course purchases at Best Realty Courses.",
+    "Learn about our refund policy for course purchases at Best School of Real Estate.",
 }
 
 export default function RefundPolicyPage() {

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Privacy Policy",
   alternates: { canonical: "/privacy" },
   description:
-    "Learn how Best Realty Courses collects, uses, and protects your personal information.",
+    "Learn how Best School of Real Estate collects, uses, and protects your personal information.",
 }
 
 export default function PrivacyPolicyPage() {

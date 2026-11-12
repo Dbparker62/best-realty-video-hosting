@@ -6,7 +6,7 @@ import { Header } from '@/components/header'
 import { Footer } from '@/components/footer'
 import { TrackingScripts } from '@/components/tracking-scripts'
 import { JsonLd } from '@/components/json-ld'
-import { SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from '@/lib/site'
+import { CONTACT, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from '@/lib/site'
 import './globals.css'
 
 const inter = Inter({
@@ -60,7 +60,17 @@ const ORGANIZATION_JSON_LD = {
       logo: `${SITE_URL}/apple-icon.png`,
       description: SITE_DESCRIPTION,
       areaServed: { '@type': 'State', name: 'New Jersey' },
-      ...(SOCIAL_LINKS.length > 0 ? { sameAs: SOCIAL_LINKS } : {}),
+      telephone: CONTACT.phone,
+      email: CONTACT.email,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: CONTACT.address.street,
+        addressLocality: CONTACT.address.city,
+        addressRegion: CONTACT.address.region,
+        postalCode: CONTACT.address.postalCode,
+        addressCountry: 'US',
+      },
+      ...(SOCIAL_LINKS.length > 0 ? { sameAs: SOCIAL_LINKS.map((s) => s.href) } : {}),
     },
     {
       '@type': 'WebSite',

@@ -1,6 +1,6 @@
 import { OG_SIZE, renderOgImage } from "@/lib/og-image"
 
-export const alt = "Best Realty Courses — New Jersey real estate pre-licensing courses"
+export const alt = "Best School of Real Estate — New Jersey real estate pre-licensing courses"
 export const size = OG_SIZE
 export const contentType = "image/png"
 

@@ -25,7 +25,7 @@ def _phone_html(phone: str | None) -> str:
 # Branding — change these once; used across all emails
 # ---------------------------------------------------------------------------
 
-BRAND_NAME = "Best School Of Real Estate"
+BRAND_NAME = "Best School of Real Estate"
 BRAND_TAGLINE = "New Jersey real estate pre-licensing education"
 BRAND_COLOR = "#1f3b5c"  # navy (matches the website) for headings and buttons
 BRAND_COLOR_DARK = "#0f2238"  # gradient end in the results-email header

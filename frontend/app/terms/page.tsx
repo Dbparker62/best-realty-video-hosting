@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Terms of Service",
   alternates: { canonical: "/terms" },
   description:
-    "Read the terms and conditions for using Best Realty Courses platform.",
+    "Read the terms and conditions for using Best School of Real Estate platform.",
 }
 
 export default function TermsOfServicePage() {
@@ -34,7 +34,7 @@ export default function TermsOfServicePage() {
               1. Acceptance of Terms
             </h2>
             <p className="mt-4 text-muted-foreground">
-              By accessing or using Best Realty Courses, you agree to be bound
+              By accessing or using Best School of Real Estate, you agree to be bound
               by these Terms of Service. If you do not agree to these terms,
               please do not use our services.
             </p>
@@ -102,7 +102,7 @@ export default function TermsOfServicePage() {
             </h2>
             <p className="mt-4 text-muted-foreground">
               All content on our platform, including videos, text, graphics, and
-              logos, is the property of Best Realty Courses or its content
+              logos, is the property of Best School of Real Estate or its content
               suppliers and is protected by copyright and intellectual property
               laws.
             </p>
@@ -142,7 +142,7 @@ export default function TermsOfServicePage() {
               8. Limitation of Liability
             </h2>
             <p className="mt-4 text-muted-foreground">
-              To the maximum extent permitted by law, Best Realty Courses shall
+              To the maximum extent permitted by law, Best School of Real Estate shall
               not be liable for any indirect, incidental, special, or
               consequential damages arising from your use of our services.
             </p>

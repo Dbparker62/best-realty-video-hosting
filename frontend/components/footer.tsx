@@ -1,56 +1,97 @@
 import Link from "next/link"
-import { Building2 } from "lucide-react"
+import { Building2, Mail, MapPin, Phone } from "lucide-react"
+import {
+  CONTACT,
+  CONTACT_ADDRESS_LINE,
+  SCHOOL_WEBSITE_URL,
+  SITE_NAME,
+  SOCIAL_LINKS,
+} from "@/lib/site"
+
+const linkClass = "text-sm text-muted-foreground transition-colors hover:text-foreground"
+
+const QUICK_LINKS = [
+  { href: "/", label: "Browse Courses" },
+  { href: "/questionnaire", label: "NJ Real Estate Career Quiz" },
+  { href: "/questionnaire/leadership", label: "Team or Broker Quiz" },
+]
+
+const LEGAL_LINKS = [
+  { href: "/privacy", label: "Privacy Policy" },
+  { href: "/terms", label: "Terms of Service" },
+  { href: "/refund", label: "Refund Policy" },
+  { href: "/contact", label: "Contact / Support" },
+]
 
 export function Footer() {
   return (
     <footer className="border-t border-border bg-card">
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Brand */}
+          {/* Brand + contact */}
           <div className="lg:col-span-2">
             <Link href="/" className="flex items-center gap-2">
               <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
                 <Building2 className="h-5 w-5 text-primary-foreground" />
               </div>
               <span className="text-lg font-semibold tracking-tight text-foreground">
-                Best Realty Courses
+                {SITE_NAME}
               </span>
             </Link>
             <p className="mt-4 max-w-md text-sm text-muted-foreground">
               Professional real estate education designed to help you pass your
               licensing exam and succeed in your career.
             </p>
+            <ul className="mt-5 space-y-2.5">
+              <li>
+                <a href={CONTACT.phoneHref} className={`${linkClass} inline-flex items-center gap-2`}>
+                  <Phone className="h-4 w-4 shrink-0" />
+                  {CONTACT.phone}
+                </a>
+              </li>
+              <li className="inline-flex items-start gap-2 text-sm text-muted-foreground">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+                {CONTACT_ADDRESS_LINE}
+              </li>
+              <li>
+                <a href={`mailto:${CONTACT.email}`} className={`${linkClass} inline-flex items-center gap-2 break-all`}>
+                  <Mail className="h-4 w-4 shrink-0" />
+                  {CONTACT.email}
+                </a>
+              </li>
+            </ul>
+            {SOCIAL_LINKS.length > 0 && (
+              <div className="mt-5 flex flex-wrap gap-4">
+                {SOCIAL_LINKS.map((s) => (
+                  <a
+                    key={s.href}
+                    href={s.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm font-medium text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                  >
+                    {s.label}
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              Quick Links
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">Quick Links</h3>
             <ul className="mt-4 space-y-3">
+              {QUICK_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className={linkClass}>
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
               <li>
-                <Link
-                  href="/"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Browse Courses
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/questionnaire"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  NJ Real Estate Career Quiz
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/questionnaire/leadership"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Team or Broker Quiz
-                </Link>
+                <a href={SCHOOL_WEBSITE_URL} target="_blank" rel="noopener noreferrer" className={linkClass}>
+                  Class Schedule &amp; Registration
+                </a>
               </li>
             </ul>
           </div>
@@ -59,38 +100,13 @@ export function Footer() {
           <div>
             <h3 className="text-sm font-semibold text-foreground">Legal</h3>
             <ul className="mt-4 space-y-3">
-              <li>
-                <Link
-                  href="/privacy"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Privacy Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/terms"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Terms of Service
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/refund"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Refund Policy
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/contact"
-                  className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-                >
-                  Contact / Support
-                </Link>
-              </li>
+              {LEGAL_LINKS.map((l) => (
+                <li key={l.href}>
+                  <Link href={l.href} className={linkClass}>
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>
@@ -98,8 +114,7 @@ export function Footer() {
         {/* Bottom Bar */}
         <div className="mt-12 border-t border-border pt-8">
           <p className="text-center text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Best Realty Courses. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
           </p>
         </div>
       </div>

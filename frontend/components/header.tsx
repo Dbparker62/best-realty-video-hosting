@@ -14,6 +14,7 @@ import {
 import { Building2, Menu, LogOut, BookOpen, LayoutDashboard } from "lucide-react"
 import { useState } from "react"
 import { LoginDialog } from "./login-dialog"
+import { SITE_NAME } from "@/lib/site"
 
 export function Header() {
   const pathname = usePathname()
@@ -42,7 +43,7 @@ export function Header() {
               <Building2 className="h-5 w-5 text-primary-foreground" />
             </div>
             <span className="text-lg font-semibold tracking-tight text-foreground">
-              Best Realty Courses
+              {SITE_NAME}
             </span>
           </Link>
 

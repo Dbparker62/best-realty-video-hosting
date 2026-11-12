@@ -141,13 +141,13 @@ def _outcome_roadmap(outcome: str) -> str:
         return (
             "Focus on team building: recruit productive agents, implement lead-generation "
             "systems, coach performance, and establish a team brand in your market. "
-            "Best School Of Real Estate can help you take the next step in your "
+            "Best School of Real Estate can help you take the next step in your "
             "leadership journey."
         )
     return (
         "Focus on brokerage leadership: understand NJ regulatory requirements, "
         "develop office policies and procedures, supervise agent activity, and prepare "
-        "for Broker of Record responsibilities. Best School Of Real Estate can guide "
+        "for Broker of Record responsibilities. Best School of Real Estate can guide "
         "your path to brokerage leadership."
     )
 
