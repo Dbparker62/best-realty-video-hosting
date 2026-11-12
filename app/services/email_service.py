@@ -11,6 +11,7 @@ from app.config import (
     EMAIL_FROM,
     FRONTEND_URL,
     QUESTIONNAIRE_LEAD_EMAILS,
+    BROKER_COURSES_URL,
     ONLINE_COURSES_URL,
     SUPPORT_EMAIL,
 )
@@ -377,7 +378,7 @@ def send_leadership_score_email(
             outcome_summary=outcome_summary,
             roadmap=roadmap,
             breakdown_lines=templates.format_breakdown_text(breakdown),
-            school_url=ONLINE_COURSES_URL,
+            school_url=BROKER_COURSES_URL,
             support_email=support,
         ),
         html_body=templates.leadership_score_html(
@@ -386,7 +387,7 @@ def send_leadership_score_email(
             outcome_summary=outcome_summary,
             roadmap=roadmap,
             breakdown_rows_html=templates.format_breakdown_rows_html(breakdown),
-            school_url=ONLINE_COURSES_URL,
+            school_url=BROKER_COURSES_URL,
             support_email=support,
         ),
         reply_to=_results_reply_to(),

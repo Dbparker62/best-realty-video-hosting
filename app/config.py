@@ -36,6 +36,12 @@ ONLINE_COURSES_URL = os.getenv(
     "https://home.recampus.com/shop/bestschool/real-estate-licensing/state-level"
     "?level=SALESPRSN_LICENSING&licenseType=SLP&orgCode=RE_LIC_NJ&productGroup=RE_WHOLESALE",
 )
+# Online broker pre-licensing courses. Used for the CTA in Team/Broker results emails.
+BROKER_COURSES_URL = os.getenv(
+    "BROKER_COURSES_URL",
+    "https://home.recampus.com/shop/bestschool/real-estate-licensing/state-level"
+    "?level=BROKER_LICENSING&licenseType=BRK&orgCode=RE_LIC_NJ&productGroup=RE_WHOLESALE",
+)
 SCHOOL_WEBSITE_URL = os.getenv(
     "SCHOOL_WEBSITE_URL", "https://bestschoolofrealestate.biz"
 ).rstrip("/")

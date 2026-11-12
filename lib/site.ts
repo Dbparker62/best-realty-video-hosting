@@ -22,6 +22,11 @@ export const ONLINE_COURSES_URL =
   process.env.NEXT_PUBLIC_ONLINE_COURSES_URL ??
   "https://home.recampus.com/shop/bestschool/real-estate-licensing/state-level?level=SALESPRSN_LICENSING&licenseType=SLP&orgCode=RE_LIC_NJ&productGroup=RE_WHOLESALE"
 
+/** Online broker pre-licensing courses (RECampus store) — used by the Team/Broker quiz. */
+export const BROKER_COURSES_URL =
+  process.env.NEXT_PUBLIC_BROKER_COURSES_URL ??
+  "https://home.recampus.com/shop/bestschool/real-estate-licensing/state-level?level=BROKER_LICENSING&licenseType=BRK&orgCode=RE_LIC_NJ&productGroup=RE_WHOLESALE"
+
 export const CONTACT = {
   phone: "(732) 266-3366",
   phoneHref: "tel:+17322663366",
