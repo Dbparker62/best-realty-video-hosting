@@ -20,6 +20,11 @@ const nextConfig = {
   async redirects() {
     return [
       {
+        source: "/questionnaire/home-sale/:path*",
+        destination: "https://bestrealtynewjersey.org/questionnaire/home-sale",
+        permanent: true,
+      },
+      {
         source: "/success",
         destination: "/payment/success",
         permanent: false,

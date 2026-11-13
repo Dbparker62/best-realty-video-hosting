@@ -33,6 +33,8 @@ function clean(props: EventProps): Record<string, string | number | boolean> {
 function sourceProps(): EventProps {
   const a = getAttribution()
   return {
+    site_brand: "best_realty",
+    site_role: "seller",
     lead_source: a?.utmSource ?? a?.inferredSource ?? "direct",
     lead_medium: a?.utmMedium,
     lead_campaign: a?.utmCampaign,

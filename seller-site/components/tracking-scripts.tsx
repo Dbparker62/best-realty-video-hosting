@@ -3,14 +3,13 @@
 import { useEffect, useRef } from "react"
 import { usePathname } from "next/navigation"
 import Script from "next/script"
+import { trackEvent } from "@/lib/analytics"
 import { captureAttribution } from "@/lib/attribution"
 
-// Public IDs (safe to commit). An env var overrides them; set it to an empty
-// string to turn that tracker off. Only loads in production builds so local
-// development doesn't pollute the real reports.
+// Use the shared GA4 property; an empty environment override disables it.
 const IS_PROD = process.env.NODE_ENV === "production"
 const GA_ID = IS_PROD
-  ? (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "").trim()
+  ? (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ?? "G-5QN8C82W42").trim()
   : ""
 const META_PIXEL_ID = IS_PROD
   ? (process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "").trim()
@@ -42,6 +41,18 @@ export function TrackingScripts() {
     window.fbq?.("track", "PageView")
   }, [pathname])
 
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      if (!(event.target instanceof Element)) return
+      const link = event.target.closest("a")
+      const href = link?.getAttribute("href") ?? ""
+      if (href.startsWith("tel:")) trackEvent("contact_click", { contact_method: "phone" })
+      if (href.startsWith("mailto:")) trackEvent("contact_click", { contact_method: "email" })
+    }
+    document.addEventListener("click", onClick)
+    return () => document.removeEventListener("click", onClick)
+  }, [])
+
   return (
     <>
       {GA_ID && (
@@ -50,12 +61,12 @@ export function TrackingScripts() {
             src={`https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GA_ID)}`}
             strategy="afterInteractive"
           />
-          <Script id="ga4-init" strategy="afterInteractive">
+          <Script id="ga4-init" strategy="beforeInteractive">
             {`window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 window.gtag = gtag;
 gtag('js', new Date());
-gtag('config', ${JSON.stringify(GA_ID)});`}
+gtag('config', ${JSON.stringify(GA_ID)}, { site_brand: 'best_realty', site_role: 'seller' });`}
           </Script>
         </>
       )}

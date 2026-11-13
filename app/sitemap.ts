@@ -10,7 +10,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { path: "/questionnaire", priority: 0.9, changeFrequency: "monthly" },
     { path: "/how-to-get-a-real-estate-license-in-nj", priority: 0.9, changeFrequency: "monthly" },
     { path: "/questionnaire/leadership", priority: 0.8, changeFrequency: "monthly" },
-    { path: "/questionnaire/home-sale", priority: 0.8, changeFrequency: "monthly" },
     { path: "/contact", priority: 0.5, changeFrequency: "yearly" },
     { path: "/privacy", priority: 0.2, changeFrequency: "yearly" },
     { path: "/terms", priority: 0.2, changeFrequency: "yearly" },
