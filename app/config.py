@@ -48,6 +48,11 @@ SCHOOL_WEBSITE_URL = os.getenv(
 
 # Transactional email (Amazon SES)
 EMAIL_FROM = os.getenv("EMAIL_FROM", "").strip()
+# Seller emails retain the existing verified sending mailbox.
+SELLER_EMAIL_FROM_NAME = os.getenv("SELLER_EMAIL_FROM_NAME", "Best Realty").strip() or "Best Realty"
+SELLER_FRONTEND_URL = os.getenv(
+    "SELLER_FRONTEND_URL", "https://bestrealtynewjersey.org"
+).rstrip("/")
 SUPPORT_EMAIL = os.getenv(
     "SUPPORT_EMAIL", "bruceparkerteam@gmail.com"
 ).strip()

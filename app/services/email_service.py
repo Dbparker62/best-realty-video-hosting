@@ -1,6 +1,7 @@
 """Transactional email via Amazon SES."""
 
 import logging
+from email.utils import formataddr, parseaddr
 
 import boto3
 from botocore.exceptions import ClientError
@@ -9,6 +10,7 @@ from app.config import (
     AWS_REGION,
     EMAIL_ENABLED,
     EMAIL_FROM,
+    SELLER_EMAIL_FROM_NAME,
     FRONTEND_URL,
     QUESTIONNAIRE_LEAD_EMAILS,
     BROKER_COURSES_URL,
@@ -62,6 +64,7 @@ def _send_email(
     html_body: str,
     text_body: str,
     reply_to: str | None = None,
+    sender_name: str | None = None,
 ) -> bool:
     recipients = [to_address] if isinstance(to_address, str) else list(to_address)
     recipients = [addr for addr in recipients if addr and "@" in addr]
@@ -80,7 +83,7 @@ def _send_email(
 
     try:
         _ses.send_email(
-            Source=EMAIL_FROM,
+            Source=(formataddr((sender_name, parseaddr(EMAIL_FROM)[1])) if sender_name else EMAIL_FROM),
             Destination={"ToAddresses": recipients},
             Message={
                 "Subject": {"Data": subject, "Charset": "UTF-8"},
@@ -433,6 +436,7 @@ def send_home_sale_score_email(*, report: dict) -> bool:
     """Home Sale Readiness results to the seller."""
     support = _support_address()
     return _send_email(
+        sender_name=SELLER_EMAIL_FROM_NAME,
         to_address=report["email"],
         subject=templates.home_sale_score_subject(score=report["score"], label=report["label"]),
         text_body=templates.home_sale_score_text(report=report, support_email=support),
@@ -448,6 +452,7 @@ def send_home_sale_lead_notification_email(*, report: dict, attribution: dict | 
         return False
     source = lead_source_label(attribution)
     return _send_email(
+        sender_name=SELLER_EMAIL_FROM_NAME,
         to_address=QUESTIONNAIRE_LEAD_EMAILS,
         subject=templates.home_sale_lead_subject(report=report),
         text_body=templates.home_sale_lead_text(report=report, lead_source=source),

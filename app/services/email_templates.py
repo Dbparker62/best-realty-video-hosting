@@ -7,7 +7,7 @@ Placeholders available per template are listed in each function docstring.
 
 from html import escape
 
-from app.config import FRONTEND_URL
+from app.config import FRONTEND_URL, SELLER_FRONTEND_URL
 
 
 def _e(value: object) -> str:
@@ -204,6 +204,10 @@ def _results_email_html(
     cta_label: str,
     support_email: str,
     footer_note: str,
+    brand_name: str = BRAND_NAME,
+    brand_tagline: str = BRAND_TAGLINE,
+    site_url: str = FRONTEND_URL,
+    logo_url: str | None = LOGO_URL,
 ) -> str:
     """
     Shared layout for the quiz results emails sent to quiz takers.
@@ -212,6 +216,12 @@ def _results_email_html(
     support_line = f" or write to {_e(support_email)}" if support_email else ""
     roadmap_html = _e(roadmap).replace("\n", "<br/>")
     font = "Arial, Helvetica, sans-serif"
+    brand_header = (
+        f'<img src="{_e(logo_url)}" width="140" alt="{_e(brand_name)}" '
+        f'style="display: block; width: 140px; max-width: 140px; height: auto; border: 0;" />'
+        if logo_url else
+        f'<span style="font-family: {font}; font-size: 24px; font-weight: bold; color: {BRAND_COLOR};">{_e(brand_name)}</span>'
+    )
     return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -237,8 +247,8 @@ def _results_email_html(
                 <!-- Logo -->
                 <tr>
                   <td align="center" style="padding: 22px 28px 18px; background: #ffffff; border-radius: 16px 16px 0 0;">
-                    <a href="{_e(FRONTEND_URL)}" target="_blank" style="text-decoration: none;">
-                      <img src="{_e(LOGO_URL)}" width="140" alt="{BRAND_NAME}" style="display: block; width: 140px; max-width: 140px; height: auto; border: 0; font-family: {font}; font-size: 16px; font-weight: bold; color: {BRAND_COLOR};" />
+                    <a href="{_e(site_url)}" target="_blank" style="text-decoration: none;">
+                      {brand_header}
                     </a>
                   </td>
                 </tr>
@@ -286,8 +296,8 @@ def _results_email_html(
                 <tr>
                   <td style="padding: 20px 28px 32px; font-size: 14px; line-height: 1.6; color: #475569;">
                     Questions? Just reply to this email{support_line}.
-                    <div style="padding-top: 12px; color: #0f172a; font-weight: bold;">&mdash; {BRAND_NAME}</div>
-                    <div style="font-size: 13px; color: #64748b;">{BRAND_TAGLINE}</div>
+                    <div style="padding-top: 12px; color: #0f172a; font-weight: bold;">&mdash; {_e(brand_name)}</div>
+                    <div style="font-size: 13px; color: #64748b;">{_e(brand_tagline)}</div>
                   </td>
                 </tr>
 
@@ -677,7 +687,8 @@ def home_sale_score_text(*, report: dict, support_email: str) -> str:
         lines += f"\n(+{more} more)"
     return f"""Hi {report['name']},
 
-Thanks for taking the {BRAND_NAME} Home Sale Readiness quiz.
+Thanks for taking the Best Realty Home Sale Readiness quiz.
+Visit us: {SELLER_FRONTEND_URL}
 
 Your readiness score: {report['score']}% ({report['label']})
 {report['summary']}
@@ -692,7 +703,7 @@ Your answers:
 
 Ready to talk about selling? Call {CONTACT_PHONE} or just reply to this email{f" ({support_email})" if support_email else ""}.
 
-— {BRAND_NAME}
+— Best Realty
 """
 
 
@@ -705,6 +716,10 @@ def home_sale_score_html(*, report: dict, support_email: str) -> str:
         + f"\n\n{report['roadmap']}"
     )
     return _results_email_html(
+        brand_name="Best Realty",
+        brand_tagline="Helping New Jersey homeowners prepare to sell",
+        site_url=SELLER_FRONTEND_URL,
+        logo_url=None,
         heading="Your Home Sale Readiness",
         subheading=f"{report['town']}, {report['county']} County",
         name=report["name"],
