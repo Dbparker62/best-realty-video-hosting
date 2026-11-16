@@ -20,6 +20,8 @@ async function submitHomeSaleQuiz(contact: QuizContact, answers: QuizAnswer[]): 
     name: contact.name,
     email: contact.email,
     phone: contact.phone,
+    contactConsent: contact.contactConsent,
+    consentText: contact.consentText,
     county: contact.county ?? "",
     town: contact.town ?? "",
     answers,

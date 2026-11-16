@@ -11,6 +11,7 @@ from app.services.email_service import (
     send_leadership_lead_notification_email,
     send_leadership_score_email,
 )
+from app.services.lead_consent import answer_summary, consent_fields
 from app.utils.database import questionnaire_submissions_table
 from app.utils.dynamodb import sanitize_item
 from app.utils.attribution import lead_source_label
@@ -262,6 +263,8 @@ def submit(
     *,
     phone: str | None = None,
     attribution: dict | None = None,
+    contact_consent: bool | None = None,
+    consent_text: str | None = None,
 ) -> dict:
     name = (name or "").strip()
     email = (email or "").strip().lower()
@@ -271,6 +274,7 @@ def submit(
         bad_request("NAME_REQUIRED", "Name is required")
     if not email or "@" not in email:
         bad_request("EMAIL_REQUIRED", "A valid email is required")
+    consent = consent_fields(contact_consent, consent_text)
 
     scored = _score_answers(answers)
     submission_id = str(uuid4())
@@ -287,6 +291,8 @@ def submit(
         "outcome_title": scored["outcome_title"],
         "outcome_summary": scored["outcome_summary"],
         "roadmap": scored["roadmap"],
+        "answer_summary": answer_summary(scored["breakdown"]),
+        **consent,
         "attribution": attribution or None,
         "lead_source": lead_source_label(attribution),
         "created_at": now,

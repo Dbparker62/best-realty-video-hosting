@@ -11,7 +11,8 @@ from app.services.email_service import (
     send_home_sale_lead_notification_email,
     send_home_sale_score_email,
 )
-from app.services.nj_service_area import SERVICE_AREA
+from app.services.lead_consent import answer_summary, consent_fields
+from app.services.nj_service_area import OTHER_COUNTY, SERVICE_AREA
 from app.utils.attribution import lead_source_label
 from app.utils.database import questionnaire_submissions_table
 from app.utils.dynamodb import sanitize_item
@@ -274,25 +275,28 @@ def submit(
     email: str,
     answers: list[dict],
     *,
-    county: str,
-    town: str,
+    county: str = "",
+    town: str = "",
     phone: str | None = None,
     attribution: dict | None = None,
+    contact_consent: bool | None = None,
+    consent_text: str | None = None,
 ) -> dict:
     name = (name or "").strip()
     email = (email or "").strip().lower()
     phone = (phone or "").strip() or None
+    # Location is optional. County is one of the dropdown counties or "Other";
+    # town is free text because "my town isn't listed" lets people type it.
     county = (county or "").strip()
-    town = (town or "").strip()
+    town = " ".join((town or "").split())[:80]
 
     if not name:
         bad_request("NAME_REQUIRED", "Name is required")
     if not email or "@" not in email:
         bad_request("EMAIL_REQUIRED", "A valid email is required")
-    if county not in SERVICE_AREA:
-        bad_request("COUNTY_REQUIRED", "Please choose your county")
-    if town not in SERVICE_AREA[county]:
-        bad_request("TOWN_REQUIRED", "Please choose your town from the list")
+    if county and county not in SERVICE_AREA and county != OTHER_COUNTY:
+        bad_request("COUNTY_INVALID", "Please choose a county from the list")
+    consent = consent_fields(contact_consent, consent_text)
 
     scored = _score_answers(answers)
     roadmap = _roadmap(scored["priorities"], scored["negotiation"], scored["timing"])
@@ -312,6 +316,8 @@ def submit(
         "listing_timing": scored["timing"],
         "priorities": scored["priorities"],
         "negotiation_plan": scored["negotiation"],
+        "answer_summary": answer_summary(scored["breakdown"]),
+        **consent,
         "attribution": attribution or None,
         "lead_source": lead_source_label(attribution),
         "created_at": datetime.now(timezone.utc).isoformat(),

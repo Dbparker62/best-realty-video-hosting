@@ -21,6 +21,7 @@ from app.utils.dynamodb import sanitize_item
 from app.utils.attribution import lead_source_label
 from app.utils.lean import lean
 from app.utils.error import bad_request, not_found
+from app.services.lead_consent import answer_summary, consent_fields
 
 logger = logging.getLogger(__name__)
 
@@ -448,6 +449,8 @@ def submit_questionnaire(
     *,
     phone: str | None = None,
     attribution: dict | None = None,
+    contact_consent: bool | None = None,
+    consent_text: str | None = None,
 ) -> dict:
     name = (name or "").strip()
     email = (email or "").strip().lower()
@@ -457,6 +460,7 @@ def submit_questionnaire(
         bad_request("NAME_REQUIRED", "Name is required")
     if not email or "@" not in email:
         bad_request("EMAIL_REQUIRED", "A valid email is required")
+    consent = consent_fields(contact_consent, consent_text)
 
     scored = _score_answers(answers)
     submission_id = str(uuid4())
@@ -464,6 +468,7 @@ def submit_questionnaire(
 
     submission = {
         "id": submission_id,
+        "quiz_type": "career",
         "name": name,
         "email": email,
         "phone": phone,
@@ -474,6 +479,8 @@ def submit_questionnaire(
         "career_path": scored["career_path"],
         "career_path_title": scored["career_path_title"],
         "roadmap": scored["roadmap"],
+        "answer_summary": answer_summary(scored["breakdown"]),
+        **consent,
         "attribution": attribution or None,
         "lead_source": lead_source_label(attribution),
         "created_at": now,
@@ -545,14 +552,3 @@ def submit_questionnaire(
         "lead_notification_sent": lead_notification_sent,
     }
 
-
-def list_submissions_admin() -> list[dict]:
-    if questionnaire_submissions_table is None:
-        return []
-    try:
-        response = questionnaire_submissions_table.scan()
-        items = response.get("Items", [])
-        items.sort(key=lambda x: x.get("created_at") or "", reverse=True)
-        return items
-    except ClientError:
-        return []

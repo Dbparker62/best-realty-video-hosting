@@ -79,6 +79,8 @@ export async function submitLeadershipQuestionnaire(payload: {
   name: string
   email: string
   phone?: string
+  contactConsent: boolean
+  consentText: string
   answers: { questionId: string; optionIds: string[] }[]
 }): Promise<LeadershipSubmitResult> {
   const response = await fetch(`${API_BASE_URL}/leadership-questionnaire/submit`, {
@@ -88,6 +90,8 @@ export async function submitLeadershipQuestionnaire(payload: {
       name: payload.name,
       email: payload.email,
       phone: payload.phone || null,
+      contact_consent: payload.contactConsent,
+      contact_consent_text: payload.consentText,
       attribution: attributionPayload(),
       answers: payload.answers.map((a) => ({
         question_id: a.questionId,

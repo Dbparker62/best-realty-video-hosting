@@ -1,6 +1,12 @@
 import Image from "next/image"
 import { BadgeCheck } from "lucide-react"
-import { DIRECTOR, DIRECTOR_BIO, PROOF_POINTS, SCHOOL_SUMMARY } from "@/lib/school-facts"
+import {
+  DIRECTOR,
+  DIRECTOR_BIO,
+  PROOF_POINTS,
+  SCHOOL_LICENSE_NUMBER,
+  SCHOOL_SUMMARY,
+} from "@/lib/school-facts"
 
 /** "Learn from an experienced NJ broker" block: bio + proof points. */
 export function DirectorSection({
@@ -27,6 +33,16 @@ export function DirectorSection({
             <p className="mt-1 text-sm text-muted-foreground">
               Broker/Owner, {DIRECTOR.brokerage} · {DIRECTOR.brokerageCity}, NJ
             </p>
+            <dl className="mt-5 space-y-1 border-t pt-4 text-xs text-muted-foreground">
+              <div>
+                <dt className="inline font-semibold text-foreground">NJ Instructor ID: </dt>
+                <dd className="inline">#{DIRECTOR.instructorId}</dd>
+              </div>
+              <div>
+                <dt className="inline font-semibold text-foreground">School License: </dt>
+                <dd className="inline">#{SCHOOL_LICENSE_NUMBER}</dd>
+              </div>
+            </dl>
           </div>
 
           <div>

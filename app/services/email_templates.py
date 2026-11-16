@@ -707,6 +707,22 @@ Ready to talk about selling? Call {CONTACT_PHONE} or just reply to this email{f"
 """
 
 
+def _county_label(county: str | None) -> str:
+    """Dropdown value to display text: "Middlesex" -> "Middlesex County"; "Other" -> "Other NJ county"."""
+    if not county:
+        return ""
+    return "Other NJ county" if county == "Other" else f"{county} County"
+
+
+def _home_location(report: dict) -> str:
+    """e.g. "Edison, Middlesex County", "Edison", or "" when the seller skipped location."""
+    town = report.get("town") or ""
+    county = report.get("county") or ""
+    if county and county != "Other":
+        return f"{town}, {county} County" if town else f"{county} County"
+    return town
+
+
 def home_sale_score_html(*, report: dict, support_email: str) -> str:
     top, more = _numbered(report["priorities"])
     roadmap = (
@@ -721,7 +737,7 @@ def home_sale_score_html(*, report: dict, support_email: str) -> str:
         site_url=SELLER_FRONTEND_URL,
         logo_url=None,
         heading="Your Home Sale Readiness",
-        subheading=f"{report['town']}, {report['county']} County",
+        subheading=_home_location(report) or "New Jersey",
         name=report["name"],
         result_title=f"{report['score']}% · {report['label']}",
         summary=report["summary"],
@@ -735,7 +751,8 @@ def home_sale_score_html(*, report: dict, support_email: str) -> str:
 
 
 def home_sale_lead_subject(*, report: dict) -> str:
-    return f"New seller lead: {report['name']} ({report['town']}) · {report['score']}% {report['label']}"
+    where = f" ({report['town']})" if report.get("town") else ""
+    return f"New seller lead: {report['name']}{where} · {report['score']}% {report['label']}"
 
 
 def _home_sale_rows(report: dict, lead_source: str) -> list[tuple[str, str]]:
@@ -747,8 +764,8 @@ def _home_sale_rows(report: dict, lead_source: str) -> list[tuple[str, str]]:
         ("Client name", report["name"]),
         ("Email", report["email"]),
         ("Phone", report["phone"] or "Not provided"),
-        ("County", report["county"]),
-        ("Town", report["town"]),
+        ("County", _county_label(report.get("county")) or "Not provided"),
+        ("Town", report.get("town") or "Not provided"),
         ("Listing timing", report["timing"]),
         ("Readiness score", f"{report['score']}% ({report['label']})"),
         ("Top priorities", priorities),

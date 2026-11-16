@@ -63,16 +63,28 @@ export interface QuestionnaireSubmitResult {
   leadNotificationSent: boolean
 }
 
+export type QuizType = "career" | "leadership" | "home_sale"
+
+/** One saved quiz lead (any of the three quizzes), as shown in the admin table. */
 export interface QuestionnaireSubmissionAdmin {
   id: string
+  quizType: QuizType
+  quiz: string
   name: string
   email: string
-  readinessPercent: number
-  readinessLabel: string
-  careerPath?: string
-  score: number
-  maxScore: number
+  phone: string
+  town: string
+  result: string
+  /** true = agreed to be contacted; null = submitted before the checkbox existed. */
+  contactConsent: boolean | null
   createdAt: string
+}
+
+export interface LeadExportFilters {
+  quiz?: QuizType
+  /** YYYY-MM-DD, Eastern time. */
+  since?: string
+  consentOnly?: boolean
 }
 
 interface QuestionPublicApi {
@@ -157,6 +169,8 @@ export async function submitQuestionnaire(payload: {
   name: string
   email: string
   phone?: string
+  contactConsent: boolean
+  consentText: string
   answers: { questionId: string; optionIds: string[] }[]
 }): Promise<QuestionnaireSubmitResult> {
   const response = await fetch(`${API_BASE_URL}/questionnaire/submit`, {
@@ -166,6 +180,8 @@ export async function submitQuestionnaire(payload: {
       name: payload.name,
       email: payload.email,
       phone: payload.phone || null,
+      contact_consent: payload.contactConsent,
+      contact_consent_text: payload.consentText,
       attribution: attributionPayload(),
       answers: payload.answers.map((a) => ({
         question_id: a.questionId,
@@ -306,24 +322,55 @@ export async function getAdminQuestionnaireSubmissions(): Promise<
   }
   const data = (await response.json()) as {
     id: string
+    quiz_type: QuizType
+    quiz: string
     name: string
     email: string
-    readiness_percent: number
-    readiness_label: string
-    career_path?: string
-    score: number
-    max_score: number
+    phone: string
+    town: string
+    result: string
+    contact_consent?: boolean | null
     created_at: string
   }[]
   return (data ?? []).map((row) => ({
     id: row.id,
+    quizType: row.quiz_type,
+    quiz: row.quiz,
     name: row.name,
     email: row.email,
-    readinessPercent: row.readiness_percent,
-    readinessLabel: row.readiness_label,
-    careerPath: row.career_path,
-    score: row.score,
-    maxScore: row.max_score,
+    phone: row.phone,
+    town: row.town,
+    result: row.result,
+    contactConsent: row.contact_consent ?? null,
     createdAt: row.created_at,
   }))
+}
+
+/** Downloads the quiz leads CSV (Real Geeks import format) through the browser. */
+export async function downloadQuizLeadsCsv(filters: LeadExportFilters = {}): Promise<void> {
+  const params = new URLSearchParams()
+  if (filters.quiz) params.set("quiz", filters.quiz)
+  if (filters.since) params.set("since", filters.since)
+  if (filters.consentOnly) params.set("consent_only", "true")
+  const query = params.toString()
+  const response = await fetch(
+    `${API_BASE_URL}/admin/questionnaire/submissions/export${query ? `?${query}` : ""}`,
+    { headers: authHeaders() }
+  )
+  if (!response.ok) {
+    throw new Error(await parseApiError(response))
+  }
+  const disposition = response.headers.get("Content-Disposition") ?? ""
+  const today = new Date().toISOString().slice(0, 10)
+  const filename =
+    /filename="([^"]+)"/.exec(disposition)?.[1] ??
+    `quiz-leads-${(filters.quiz ?? "all").replace("_", "-")}-${today}.csv`
+  const url = URL.createObjectURL(await response.blob())
+  const link = document.createElement("a")
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
 }

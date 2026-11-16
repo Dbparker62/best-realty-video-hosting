@@ -9,7 +9,15 @@ export const DIRECTOR = {
   title: "Director & Licensed NJ Real Estate Instructor",
   brokerage: "Best Realty",
   brokerageCity: "Highland Park",
+  /** NJ Real Estate Commission instructor ID. */
+  instructorId: "9482948",
 }
+
+/** NJ Real Estate Commission school license number. */
+export const SCHOOL_LICENSE_NUMBER = "0562856"
+
+/** One line for footers: "NJREC School License #0562856 · Instructor ID #9482948". */
+export const LICENSE_LINE = `NJ Real Estate Commission School License #${SCHOOL_LICENSE_NUMBER} · Instructor ID #${DIRECTOR.instructorId}`
 
 /** Short proof points (homepage stats, quiz page, share images). */
 export const PROOF_POINTS = [

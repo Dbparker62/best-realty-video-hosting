@@ -7,6 +7,7 @@ import { Footer } from '@/components/footer'
 import { TrackingScripts } from '@/components/tracking-scripts'
 import { JsonLd } from '@/components/json-ld'
 import { CONTACT, SITE_DESCRIPTION, SITE_NAME, SITE_URL, SOCIAL_LINKS } from '@/lib/site'
+import { DIRECTOR, SCHOOL_LICENSE_NUMBER } from '@/lib/school-facts'
 import './globals.css'
 
 // Same fonts as bestschoolofrealestate.biz: Montserrat headings, Roboto body.
@@ -71,6 +72,21 @@ const ORGANIZATION_JSON_LD = {
         addressCountry: 'US',
       },
       ...(SOCIAL_LINKS.length > 0 ? { sameAs: SOCIAL_LINKS.map((s) => s.href) } : {}),
+      identifier: {
+        '@type': 'PropertyValue',
+        name: 'New Jersey Real Estate Commission school license',
+        value: SCHOOL_LICENSE_NUMBER,
+      },
+      employee: {
+        '@type': 'Person',
+        name: DIRECTOR.name,
+        jobTitle: DIRECTOR.title,
+        identifier: {
+          '@type': 'PropertyValue',
+          name: 'New Jersey real estate instructor ID',
+          value: DIRECTOR.instructorId,
+        },
+      },
     },
     {
       '@type': 'WebSite',

@@ -38,5 +38,7 @@ def submit_home_sale_questionnaire(body: schemas.HomeSaleSubmitIn):
         county=body.county,
         town=body.town,
         phone=body.phone,
+        contact_consent=body.contact_consent,
+        consent_text=body.contact_consent_text,
         attribution=body.attribution.model_dump(exclude_none=True) if body.attribution else None,
     )

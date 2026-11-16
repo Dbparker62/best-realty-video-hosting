@@ -67,6 +67,8 @@ export async function submitHomeSaleQuestionnaire(payload: {
   name: string
   email: string
   phone?: string
+  contactConsent: boolean
+  consentText: string
   county: string
   town: string
   answers: { questionId: string; optionIds: string[] }[]
@@ -78,6 +80,8 @@ export async function submitHomeSaleQuestionnaire(payload: {
       name: payload.name,
       email: payload.email,
       phone: payload.phone || null,
+      contact_consent: payload.contactConsent,
+      contact_consent_text: payload.consentText,
       county: payload.county,
       town: payload.town,
       attribution: attributionPayload(),

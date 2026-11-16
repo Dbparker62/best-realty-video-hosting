@@ -1,5 +1,8 @@
 """Counties and towns offered in the Home Sale quiz dropdowns (lead contact info only)."""
 
+# The county dropdown's "Another NJ county" choice; the town is then typed in.
+OTHER_COUNTY = "Other"
+
 SERVICE_AREA: dict[str, tuple[str, ...]] = {
     "Middlesex": (
         "Carteret", "Cranbury", "Dunellen", "East Brunswick", "Edison", "Helmetta",

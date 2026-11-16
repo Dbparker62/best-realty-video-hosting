@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { Mail, MapPin, Phone } from "lucide-react"
 import { BrandLogo } from "@/components/brand-logo"
+import { LICENSE_LINE } from "@/lib/school-facts"
 import {
   CONTACT,
   CONTACT_ADDRESS_LINE,
@@ -106,8 +107,9 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-12 border-t border-border pt-8">
-          <p className="text-center text-sm text-muted-foreground">
+        <div className="mt-12 space-y-2 border-t border-border pt-8 text-center">
+          <p className="text-xs text-muted-foreground">{LICENSE_LINE}</p>
+          <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
           </p>
         </div>

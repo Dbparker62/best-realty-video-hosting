@@ -20,3 +20,6 @@ export const SERVICE_AREA: Record<string, readonly string[]> = {
 }
 
 export const SERVICE_COUNTIES = Object.keys(SERVICE_AREA)
+
+/** County dropdown value for "Another NJ county" (the town is then typed in). */
+export const OTHER_COUNTY = "Other"

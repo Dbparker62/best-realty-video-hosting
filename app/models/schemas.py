@@ -220,18 +220,17 @@ class QuestionnaireSubmitIn(BaseModel):
     phone: str | None = Field(None, max_length=30)
     answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
     attribution: LeadAttributionIn | None = None
+    # "You may contact me" checkbox. The quiz pages require it; None = an older page.
+    contact_consent: bool | None = None
+    # The exact checkbox wording the person agreed to, kept as a record.
+    contact_consent_text: str | None = Field(None, max_length=600)
 
 
-class HomeSaleSubmitIn(BaseModel):
-    """Home Sale Readiness quiz submission (seller lead)."""
+class HomeSaleSubmitIn(QuestionnaireSubmitIn):
+    """Home Sale Readiness quiz submission (seller lead). Location is optional."""
 
-    name: str = Field(..., min_length=1, max_length=100)
-    email: EmailStr
-    phone: str | None = Field(None, max_length=30)
-    county: str = Field(..., min_length=1, max_length=40)
-    town: str = Field(..., min_length=1, max_length=80)
-    answers: list[QuestionnaireAnswerIn] = Field(..., min_length=1)
-    attribution: LeadAttributionIn | None = None
+    county: str = Field("", max_length=40)
+    town: str = Field("", max_length=80)
 
 
 class ContactMessageIn(BaseModel):

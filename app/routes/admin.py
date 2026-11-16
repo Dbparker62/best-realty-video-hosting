@@ -1,9 +1,11 @@
 import logging
+from datetime import date, datetime, timezone
+from typing import Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from app.models import schemas
-from app.services import lesson_service, questionnaire_service
+from app.services import lead_export_service, lesson_service, questionnaire_service
 from app.services.cognito_service import lookup_email_by_sub
 from app.utils.auth import require_admin
 from app.utils.database import purchases_table, courses_table, users_table
@@ -193,4 +195,49 @@ def admin_delete_questionnaire_question(
 
 @router.get("/admin/questionnaire/submissions")
 def admin_list_questionnaire_submissions(user=Depends(require_admin)):
-    return questionnaire_service.list_submissions_admin()
+    """Leads from all three quizzes, newest first, in one shape for the admin table."""
+    rows = []
+    for item in lead_export_service.scan_all_submissions():
+        quiz_type = lead_export_service.quiz_type_of(item)
+        info = lead_export_service.QUIZ_INFO.get(quiz_type, lead_export_service.QUIZ_INFO["career"])
+        rows.append(
+            {
+                "id": item.get("id"),
+                "quiz_type": quiz_type,
+                "quiz": info["quiz"],
+                "name": item.get("name") or "",
+                "email": item.get("email") or "",
+                "phone": item.get("phone") or "",
+                "town": item.get("town") or "",
+                "result": lead_export_service.result_text(item, quiz_type),
+                "contact_consent": item.get("contact_consent"),
+                "created_at": item.get("created_at") or "",
+            }
+        )
+    return rows
+
+
+@router.get("/admin/questionnaire/submissions/export")
+def admin_export_questionnaire_submissions(
+    quiz: Literal["career", "leadership", "home_sale"] | None = None,
+    since: date | None = None,
+    consent_only: bool = False,
+    user=Depends(require_admin),
+):
+    """CSV of quiz leads for Real Geeks bulk import. Filters: quiz type, date (ET), consent."""
+    items = lead_export_service.filter_submissions(
+        lead_export_service.scan_all_submissions(),
+        quiz=quiz,
+        since=since,
+        consent_only=consent_only,
+    )
+    stamp = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    filename = f"quiz-leads-{quiz or 'all'}-{stamp}.csv".replace("_", "-")
+    return Response(
+        content=lead_export_service.submissions_csv(items),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="{filename}"',
+            "Cache-Control": "no-store",
+        },
+    )

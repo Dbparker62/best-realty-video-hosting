@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import useSWR from "swr"
-import { ClipboardList, Plus, Trash2, Pencil } from "lucide-react"
+import { ClipboardList, Download, Plus, Trash2, Pencil } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
@@ -29,11 +29,13 @@ import { Skeleton } from "@/components/ui/skeleton"
 import {
   createAdminQuestionnaireQuestion,
   deleteAdminQuestionnaireQuestion,
+  downloadQuizLeadsCsv,
   getAdminQuestionnaireQuestions,
   getAdminQuestionnaireSubmissions,
   updateAdminQuestionnaireQuestion,
   type QuestionnaireOptionAdmin,
   type QuestionnaireQuestionAdmin,
+  type QuizType,
 } from "@/lib/questionnaire-api"
 
 type OptionDraft = QuestionnaireOptionAdmin
@@ -63,6 +65,28 @@ export default function AdminQuestionnairePage() {
     "admin-questionnaire-submissions",
     getAdminQuestionnaireSubmissions
   )
+
+  const [exportQuiz, setExportQuiz] = useState<QuizType | "">("")
+  const [exportSince, setExportSince] = useState("")
+  const [exportConsentOnly, setExportConsentOnly] = useState(false)
+  const [exporting, setExporting] = useState(false)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  async function handleExport() {
+    setExporting(true)
+    setExportError(null)
+    try {
+      await downloadQuizLeadsCsv({
+        quiz: exportQuiz || undefined,
+        since: exportSince || undefined,
+        consentOnly: exportConsentOnly,
+      })
+    } catch (err) {
+      setExportError(err instanceof Error ? err.message : "Could not download the CSV")
+    } finally {
+      setExporting(false)
+    }
+  }
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<QuestionnaireQuestionAdmin | null>(null)
@@ -239,40 +263,87 @@ export default function AdminQuestionnairePage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent submissions</CardTitle>
+          <CardTitle>Quiz leads</CardTitle>
           <CardDescription>
-            Leads who completed the quiz and received a readiness score.
+            Everyone who finished the Career, Team/Broker, or Home Sale quiz. Download a CSV to
+            import into Real Geeks (Lead Manager → Import Leads → Bulk Import). Real Geeks skips
+            emails it already has, so overlapping downloads won&apos;t create duplicates.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
+          <div className="flex flex-wrap items-end gap-4 rounded-lg border bg-muted/40 p-4">
+            <div className="space-y-2">
+              <Label htmlFor="export-quiz">Quiz</Label>
+              <select
+                id="export-quiz"
+                value={exportQuiz}
+                onChange={(e) => setExportQuiz(e.target.value as QuizType | "")}
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+              >
+                <option value="">All quizzes</option>
+                <option value="career">Career quiz</option>
+                <option value="leadership">Team/Broker quiz</option>
+                <option value="home_sale">Home Sale quiz (sellers)</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="export-since">Submitted on or after</Label>
+              <Input
+                id="export-since"
+                type="date"
+                value={exportSince}
+                onChange={(e) => setExportSince(e.target.value)}
+                className="h-9 w-auto"
+              />
+            </div>
+            <div className="flex items-center gap-2 pb-2">
+              <Switch id="export-consent" checked={exportConsentOnly} onCheckedChange={setExportConsentOnly} />
+              <Label htmlFor="export-consent">Only leads who agreed to be contacted</Label>
+            </div>
+            <Button onClick={handleExport} disabled={exporting} className="ml-auto">
+              <Download className="mr-2 h-4 w-4" />
+              {exporting ? "Preparing…" : "Download CSV for Real Geeks"}
+            </Button>
+            {exportError && <p className="w-full text-sm text-destructive">{exportError}</p>}
+          </div>
+
           {submissionsLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : !submissions?.length ? (
-            <p className="py-8 text-center text-muted-foreground">
-              No submissions yet (requires QUESTIONNAIRE_SUBMISSIONS_TABLE).
-            </p>
+            <p className="py-8 text-center text-muted-foreground">No quiz leads yet.</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>Quiz</TableHead>
                   <TableHead>Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Career path</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Result</TableHead>
+                  <TableHead>Contact OK</TableHead>
                   <TableHead>Submitted</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {submissions.map((row) => (
                   <TableRow key={row.id}>
-                    <TableCell className="font-medium">{row.name}</TableCell>
+                    <TableCell className="text-sm">{row.quiz}</TableCell>
+                    <TableCell className="font-medium">
+                      {row.name}
+                      {row.town && <span className="block text-xs text-muted-foreground">{row.town}</span>}
+                    </TableCell>
                     <TableCell>{row.email}</TableCell>
-                    <TableCell className="text-sm capitalize">
-                      {row.careerPath?.replace("_", " ") ?? "—"}
+                    <TableCell className="text-sm">{row.phone || "—"}</TableCell>
+                    <TableCell className="text-sm">{row.result || "—"}</TableCell>
+                    <TableCell>
+                      {row.contactConsent === true ? (
+                        <Badge variant="secondary">Yes</Badge>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">Not asked</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
-                      {row.createdAt
-                        ? new Date(row.createdAt).toLocaleString()
-                        : "—"}
+                      {row.createdAt ? new Date(row.createdAt).toLocaleString() : "—"}
                     </TableCell>
                   </TableRow>
                 ))}

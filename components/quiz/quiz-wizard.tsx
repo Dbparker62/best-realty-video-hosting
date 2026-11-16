@@ -16,7 +16,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import type { QuestionnaireQuestion, QuizPreview, ResultLean } from "@/lib/questionnaire-api"
 import { ResultLeanBar } from "@/components/quiz/result-lean-bar"
 import { suggestEmail } from "@/lib/email-suggest"
-import { SERVICE_AREA, SERVICE_COUNTIES } from "@/lib/nj"
+import { OTHER_COUNTY, SERVICE_AREA, SERVICE_COUNTIES } from "@/lib/nj"
+import { SITE_NAME } from "@/lib/site"
 import {
   trackQuizSubmit,
   trackQuizSubmitError,
@@ -28,13 +29,28 @@ import {
 /** Short pause after picking an answer so the selection is visible before advancing. */
 const AUTO_ADVANCE_MS = 350
 
+/** Town dropdown choice that swaps in a text box. */
+const TOWN_NOT_LISTED = "__not_listed__"
+
+/**
+ * The wording of the required "you may contact me" checkbox. It is sent with each
+ * submission and saved with the lead as the record of what the person agreed to.
+ */
+export const CONTACT_CONSENT_TEXT =
+  `I agree that ${SITE_NAME} may contact me about my results and its real estate services ` +
+  "by phone, text message, or email, including by automated calls or texts. Consent is not a " +
+  "condition of any purchase. Message and data rates may apply. Reply STOP to opt out of texts."
+
 export type QuizAnswer = { questionId: string; optionIds: string[] }
 
 export interface QuizContact {
   name: string
   email: string
   phone: string
-  /** Only collected when `askLocation` is on. */
+  /** Always true on submit: the checkbox is required. */
+  contactConsent: boolean
+  consentText: string
+  /** Only collected when `askLocation` is on, and optional. */
   county?: string
   town?: string
 }
@@ -69,7 +85,7 @@ export interface QuizWizardProps {
   resultsNoun: string
   cta: { label: string; href: string }
   footer: ReactNode
-  /** Ask for NJ county + town on the final step (home sale quiz). */
+  /** Ask for NJ county + town (optional) on the final step (home sale quiz). */
   askLocation?: boolean
 }
 
@@ -116,6 +132,8 @@ export function QuizWizard({
   const [phone, setPhone] = useState("")
   const [county, setCounty] = useState("")
   const [town, setTown] = useState("")
+  const [typedTown, setTypedTown] = useState("")
+  const [consent, setConsent] = useState(false)
   const [emailBlurred, setEmailBlurred] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -216,12 +234,12 @@ export function QuizWizard({
     [email, emailBlurred]
   )
 
-  const canSubmit =
-    allQuestionsAnswered &&
-    name.trim().length > 0 &&
-    email.trim().length > 0 &&
-    (!askLocation || (county.length > 0 && town.trim().length > 0)) &&
-    !submitting
+  // The town is typed when the county is "Other" or the town isn't in the dropdown.
+  const townTyped = county === OTHER_COUNTY || town === TOWN_NOT_LISTED
+  const resolvedTown = (townTyped ? typedTown : town).trim()
+
+  const contactFilled = allQuestionsAnswered && name.trim().length > 0 && email.trim().length > 0
+  const canSubmit = contactFilled && consent && !submitting
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -234,7 +252,9 @@ export function QuizWizard({
           name: name.trim(),
           email: email.trim(),
           phone: phone.trim(),
-          ...(askLocation ? { county, town: town.trim() } : {}),
+          contactConsent: consent,
+          consentText: CONTACT_CONSENT_TEXT,
+          ...(askLocation ? { county, town: resolvedTown } : {}),
         },
         answerList
       )
@@ -319,6 +339,8 @@ export function QuizWizard({
   const cardClass = "rounded-2xl border-primary/10 shadow-lg shadow-primary/5"
   const optionClass =
     "group flex cursor-pointer items-center gap-4 rounded-xl border bg-card p-4 transition-all hover:border-primary/40 hover:bg-primary/[0.03] has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring"
+  const selectClass =
+    "h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
   const letterClass =
     "flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border bg-muted text-xs font-semibold text-muted-foreground transition-colors"
 
@@ -532,46 +554,63 @@ export function QuizWizard({
                 {askLocation && (
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="quiz-county">County</Label>
+                      <Label htmlFor="quiz-county">
+                        County <span className="text-muted-foreground">(optional)</span>
+                      </Label>
                       <select
                         id="quiz-county"
                         value={county}
                         onChange={(e) => {
                           setCounty(e.target.value)
                           setTown("")
+                          setTypedTown("")
                         }}
-                        required
-                        className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                        className={selectClass}
                       >
-                        <option value="" disabled>
-                          Choose county
-                        </option>
+                        <option value="">Choose county</option>
                         {SERVICE_COUNTIES.map((c) => (
                           <option key={c} value={c}>
                             {c}
                           </option>
                         ))}
+                        <option value={OTHER_COUNTY}>Another NJ county</option>
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="quiz-town">Town</Label>
-                      <select
-                        id="quiz-town"
-                        value={town}
-                        onChange={(e) => setTown(e.target.value)}
-                        required
-                        disabled={!county}
-                        className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-sm shadow-xs outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <option value="" disabled>
-                          {county ? "Choose town" : "Choose county first"}
-                        </option>
-                        {(SERVICE_AREA[county] ?? []).map((t) => (
-                          <option key={t} value={t}>
-                            {t}
-                          </option>
-                        ))}
-                      </select>
+                      <Label htmlFor={townTyped ? "quiz-town-typed" : "quiz-town"}>
+                        Town <span className="text-muted-foreground">(optional)</span>
+                      </Label>
+                      {county !== OTHER_COUNTY && (
+                        <select
+                          id="quiz-town"
+                          value={town}
+                          onChange={(e) => {
+                            setTown(e.target.value)
+                            setTypedTown("")
+                          }}
+                          disabled={!county}
+                          className={`${selectClass} disabled:cursor-not-allowed disabled:opacity-50`}
+                        >
+                          <option value="">{county ? "Choose town" : "Choose county first"}</option>
+                          {(SERVICE_AREA[county] ?? []).map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                          {county && <option value={TOWN_NOT_LISTED}>My town isn&apos;t listed</option>}
+                        </select>
+                      )}
+                      {townTyped && (
+                        <Input
+                          id="quiz-town-typed"
+                          className="h-11"
+                          value={typedTown}
+                          onChange={(e) => setTypedTown(e.target.value)}
+                          autoComplete="address-level2"
+                          maxLength={80}
+                          placeholder="Type your town"
+                        />
+                      )}
                     </div>
                   </div>
                 )}
@@ -590,6 +629,33 @@ export function QuizWizard({
                     placeholder="(555) 555-5555"
                   />
                 </div>
+                <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
+                  <Checkbox
+                    id="quiz-consent"
+                    checked={consent}
+                    onCheckedChange={(checked) => setConsent(checked === true)}
+                    required
+                    aria-describedby="quiz-consent-privacy"
+                    className="mt-0.5 h-5 w-5"
+                  />
+                  <div className="space-y-1">
+                    <Label htmlFor="quiz-consent" className="block text-xs font-normal leading-relaxed text-foreground">
+                      {CONTACT_CONSENT_TEXT}
+                    </Label>
+                    <p id="quiz-consent-privacy" className="text-xs text-muted-foreground">
+                      See our{" "}
+                      <Link href="/privacy" target="_blank" className="underline hover:text-foreground">
+                        Privacy Policy
+                      </Link>
+                      .
+                    </p>
+                  </div>
+                </div>
+                {contactFilled && !consent && (
+                  <p className="text-sm text-muted-foreground">
+                    Check the box above so we can send your results.
+                  </p>
+                )}
                 {submitError && <p className="text-sm text-destructive">{submitError}</p>}
                 <div className="flex justify-between gap-3 pt-2">
                   <Button type="button" variant="ghost" onClick={goBack}>
